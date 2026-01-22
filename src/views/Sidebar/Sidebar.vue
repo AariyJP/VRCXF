@@ -62,7 +62,17 @@
                     </PopoverContent>
                 </Popover>
             </div>
-            <div>
+            <div style="display: flex; align-items: center">
+                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.pencil_social_status')">
+                    <Button
+                        class="rounded-full"
+                        variant="outline"
+                        size="icon-sm"
+                        style="margin-right: 10px"
+                        @click="showSocialStatusDialog">
+                        <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
+                    </Button>
+                </TooltipWrapper>
                 <TooltipWrapper side="bottom" :content="t('side_panel.refresh_tooltip')">
                     <Button
                         class="rounded-full"
@@ -96,7 +106,9 @@
             <template #friends>
                 <div class="h-full overflow-hidden">
                     <ScrollArea ref="friendsScrollAreaRef" class="h-full">
-                        <FriendsSidebar @confirm-delete-friend="confirmDeleteFriend" />
+                        <FriendsSidebar
+                            @confirm-delete-friend="confirmDeleteFriend"
+                            @show-social-status-dialog="showSocialStatusDialog" />
                     </ScrollArea>
                     <BackToTop :target="friendsScrollTarget" :bottom="20" :right="20" :teleport="false" />
                 </div>
@@ -110,11 +122,14 @@
                 </div>
             </template>
         </TabsUnderline>
+        <SocialStatusDialog
+            :social-status-dialog="socialStatusDialog"
+            :social-status-history-table="socialStatusHistoryTable" />
     </div>
 </template>
 
 <script setup>
-    import { computed, nextTick, onMounted, ref, watch } from 'vue';
+    import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { Button } from '@/components/ui/button';
     import { DataTableEmpty } from '@/components/ui/data-table';
@@ -128,8 +143,10 @@
 
     import BackToTop from '@/components/BackToTop.vue';
 
-    import { useFriendStore, useGroupStore, useSearchStore } from '../../stores';
-    import { userImage } from '../../shared/utils';
+    import { useFriendStore, useGroupStore, useSearchStore, useUserStore } from '../../stores';
+    import { userImage, userStatusClass } from '../../shared/utils';
+
+    const SocialStatusDialog = defineAsyncComponent(() => import('../../components/dialogs/UserDialog/SocialStatusDialog.vue'));
 
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import GroupsSidebar from './components/GroupsSidebar.vue';
@@ -139,6 +156,7 @@
     const { quickSearchRemoteMethod, quickSearchChange } = useSearchStore();
     const { quickSearchItems } = storeToRefs(useSearchStore());
     const { inGameGroupOrder, groupInstances } = storeToRefs(useGroupStore());
+    const { currentUser } = storeToRefs(useUserStore());
     const { t } = useI18n();
     const sidebarTabs = computed(() => [
         { value: 'friends', label: t('side_panel.friends') },
@@ -147,6 +165,17 @@
 
     const quickSearchQuery = ref('');
     const isQuickSearchOpen = ref(false);
+
+    const socialStatusDialog = ref({
+        visible: false,
+        loading: false,
+        status: '',
+        statusDescription: ''
+    });
+    const socialStatusHistoryTable = ref({
+        data: [],
+        layout: 'table'
+    });
 
     const friendsScrollAreaRef = ref(null);
     const groupsScrollAreaRef = ref(null);
@@ -182,6 +211,23 @@
         isQuickSearchOpen.value = false;
         quickSearchQuery.value = '';
         quickSearchChange(String(value));
+    }
+
+    function showSocialStatusDialog() {
+        const D = socialStatusDialog.value;
+        const { statusHistory } = currentUser.value;
+        const statusHistoryArray = [];
+        for (let i = 0; i < statusHistory.length; ++i) {
+            const addStatus = {
+                no: i + 1,
+                status: statusHistory[i]
+            };
+            statusHistoryArray.push(addStatus);
+        }
+        socialStatusHistoryTable.value.data = statusHistoryArray;
+        D.status = currentUser.value.status;
+        D.statusDescription = currentUser.value.statusDescription;
+        D.visible = true;
     }
 </script>
 
