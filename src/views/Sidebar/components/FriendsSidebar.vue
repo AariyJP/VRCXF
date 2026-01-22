@@ -25,7 +25,10 @@
                     </template>
 
                     <template v-else-if="item.row.type === 'me-item'">
-                        <div class="x-friend-item" @click="showUserDialog(currentUser.id)">
+                        <div
+                            class="x-friend-item"
+                            @click="showUserDialog(currentUser.id)"
+                            @contextmenu.prevent="emit('show-social-status-dialog')">
                             <div class="avatar" :class="userStatusClass(currentUser)">
                                 <img :src="userImage(currentUser)" loading="lazy" />
                             </div>
@@ -105,7 +108,7 @@
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../service/config';
 
-    const emit = defineEmits(['confirm-delete-friend']);
+    const emit = defineEmits(['confirm-delete-friend', 'show-social-status-dialog']);
     const { t } = useI18n();
 
     const friendStore = useFriendStore();
