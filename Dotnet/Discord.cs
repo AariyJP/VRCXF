@@ -16,7 +16,7 @@ namespace VRCX
         private readonly Timer _timer;
         private bool _active;
         private string _discordAppId;
-        private const string VrcxUrl = "https://vrcx.app";
+        private const string VrcxUrl = "https://hello.vrchat.com";
 
         static Discord()
         {
@@ -32,7 +32,7 @@ namespace VRCX
 
         public void Init()
         {
-            _timer.Change(0, 3000);
+            _timer.Change(0, 30000);
         }
 
         public void Exit()
@@ -156,15 +156,15 @@ namespace VRCX
             _lock.EnterWriteLock();
             try
             {
-                if (string.IsNullOrEmpty(largeKey) &&
-                    string.IsNullOrEmpty(smallKey))
-                {
-                    _presence.Assets = null;
-                    _presence.Party = null;
-                    _presence.Timestamps = null;
-                    _lock.ExitWriteLock();
-                    return;
-                }
+                // if (string.IsNullOrEmpty(largeKey) &&
+                //     string.IsNullOrEmpty(smallKey))
+                // {
+                //     _presence.Assets = null;
+                //     _presence.Party = null;
+                //     _presence.Timestamps = null;
+                //     _lock.ExitWriteLock();
+                //     return;
+                // }
 
                 _presence.Details = LimitByteLength(details, 127);
                 _presence.DetailsUrl = !string.IsNullOrEmpty(detailsUrl) ? detailsUrl : null;
