@@ -299,7 +299,7 @@ export const useUserStore = defineStore('User', () => {
     const cachedUsers = shallowReactive(new Map());
 
     const isLocalUserVrcPlusSupporter = computed(
-        () => currentUser.value.$isVRCPlus || AppDebug.debugVrcPlus
+        () => true
     );
 
     watch(

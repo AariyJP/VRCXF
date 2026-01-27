@@ -1617,6 +1617,7 @@
         }
         socialStatusHistoryTable.value.data = statusHistoryArray;
         D.status = currentUser.value.status;
+        // D.status = '';
         D.statusDescription = currentUser.value.statusDescription;
         D.visible = true;
     }

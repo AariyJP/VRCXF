@@ -34,6 +34,7 @@ export const useDiscordPresenceSettingsStore = defineStore(
 
         const state = reactive({
             isDiscordActive: false,
+            discordTime: Date.now(),
             lastLocationDetails: {
                 tag: '',
                 instanceName: '',
@@ -277,7 +278,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordHideInvite.value &&
                 (state.lastLocationDetails.accessType === 'invite' ||
                     state.lastLocationDetails.accessType === 'invite+' ||
-                    state.lastLocationDetails.groupAccessType === 'members')
+                    state.lastLocationDetails.accessType === 'friends' ||
+                    state.lastLocationDetails.accessType === 'group'
+                )
             ) {
                 hidePrivate = true;
             }
@@ -285,22 +288,22 @@ export const useDiscordPresenceSettingsStore = defineStore(
             let statusImage = '';
             switch (userStore.currentUser.status) {
                 case 'active':
-                    statusName = t('dialog.user.status.active');
-                    statusImage = 'active';
+                    statusName = 'オンライン';
+                    statusImage = 'online';
                     break;
                 case 'join me':
-                    statusName = t('dialog.user.status.join_me');
-                    statusImage = 'joinme';
+                    statusName = 'だれでもおいで';
+                    statusImage = 'join_me';
                     break;
                 case 'ask me':
-                    statusName = t('dialog.user.status.ask_me');
-                    statusImage = 'askme';
+                    statusName = 'きいてみてね';
+                    statusImage = 'ask_me';
                     if (discordHideInvite.value) {
                         hidePrivate = true;
                     }
                     break;
                 case 'busy':
-                    statusName = t('dialog.user.status.busy');
+                    statusName = '取り込み中';
                     statusImage = 'busy';
                     hidePrivate = true;
                     break;
@@ -317,8 +320,8 @@ export const useDiscordPresenceSettingsStore = defineStore(
             let statusDisplayType = discordWorldNameAsDiscordStatus.value
                 ? StatusDisplayType.Details
                 : StatusDisplayType.Name;
-            let appId = '883308884863901717';
-            let bigIcon = 'vrchat';
+            let appId = '1366854478250381462';
+            let bigIcon = 'vrchat-logo';
             let detailsUrl = state.lastLocationDetails.worldLink;
             let poweredBy = t(
                 'view.settings.discord_presence.rpc.powered_by_vrcx'
@@ -338,10 +341,8 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 partyMaxSize = 0;
                 stateText = '';
             }
-            let buttonText = t(
-                'view.settings.discord_presence.rpc.join_button'
-            );
-            let buttonUrl = state.lastLocationDetails.joinUrl;
+            let buttonText = `${userStore.currentUser.displayName} on VRChat`;
+            let buttonUrl = `https://vrchat.com/home/user/${userStore.currentUser.id}`;
             if (!discordJoinButton.value) {
                 buttonText = '';
                 buttonUrl = '';
@@ -432,42 +433,41 @@ export const useDiscordPresenceSettingsStore = defineStore(
             ) {
                 bigIcon = state.lastLocationDetails.thumbnailImageUrl;
             }
-
-            if (hidePrivate) {
-                partyId = '';
-                partySize = 0;
-                partyMaxSize = 0;
-                buttonText = '';
-                buttonUrl = '';
-                detailsUrl = '';
-                details = t('view.settings.discord_presence.rpc.private_world');
-                stateText = '';
-                startTime = 0;
-                endTime = 0;
-                appId = '883308884863901717'; // default VRChat app id
-                bigIcon = 'vrchat';
-                activityType = ActivityType.Playing;
-                statusDisplayType = StatusDisplayType.Name;
-            }
             if (details.length < 2) {
                 // 글자 수가 짧으면 업데이트가 안된다..
                 details += '\uFFA0'.repeat(2 - details.length);
             }
+            if (hidePrivate) {
+                partyId = 'vrchat';
+                partySize = 0;
+                partyMaxSize = 0;
+                // buttonText = '';
+                // buttonUrl = '';
+                detailsUrl = '';
+                details = '';
+                stateText = '';
+                startTime = state.discordTime;
+                endTime = 0;
+                appId = '1366854478250381462'; // default VRChat app id
+                bigIcon = 'vrchat-logo';
+                activityType = ActivityType.Playing;
+                statusDisplayType = StatusDisplayType.Name;
+            }
             Discord.SetAssets(
                 details, // main text
-                stateText, // secondary text
+                '', // secondary text
                 detailsUrl, // details url
 
                 bigIcon, // big icon
-                poweredBy, // big icon hover text
+                'RichVRC By AariyJP', // big icon hover text
 
                 statusImage, // small icon
                 statusName, // small icon hover text
 
-                startTime,
+                state.discordTime,
                 endTime,
 
-                partyId, // party id
+                'party', // party id
                 partySize, // party size
                 partyMaxSize, // party max size
                 buttonText, // button text

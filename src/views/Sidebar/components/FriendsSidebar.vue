@@ -28,17 +28,20 @@
                             </template>
 
                             <template v-else-if="item.row.type === 'me-item'">
-                                <div class="x-friend-item" @click="showUserDialog(currentUser.id)">
+                                <div
+                                    class="x-friend-item"
+                                    @click="showUserDialog(currentUser.id)"
+                                    @contextmenu.prevent="emit('show-social-status-dialog')">
                                     <div class="avatar" :class="userStatusClass(currentUser)">
                                         <img :src="userImage(currentUser)" loading="lazy" />
                                     </div>
-                                    <div class="detail h-9 flex flex-col justify-between">
+                                    <div class="detail">
                                         <span class="name" :style="{ color: currentUser.$userColour }">{{
                                             currentUser.displayName
                                         }}</span>
                                         <Location
                                             v-if="isGameRunning && !gameLogDisabled"
-                                            class="extra block truncate text-xs"
+                                            class="text-xs"
                                             :location="lastLocation.location"
                                             :traveling="lastLocationDestination"
                                             :link="false" />
@@ -47,7 +50,7 @@
                                                 isRealInstance(currentUser.$locationTag) ||
                                                 isRealInstance(currentUser.$travelingToLocation)
                                             "
-                                            class="extra block truncate text-xs"
+                                            class="text-xs"
                                             :location="currentUser.$locationTag"
                                             :traveling="currentUser.$travelingToLocation"
                                             :link="false" />
@@ -112,6 +115,7 @@
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../service/config';
 
+    const emit = defineEmits(['confirm-delete-friend', 'show-social-status-dialog']);
     const { t } = useI18n();
 
     const friendStore = useFriendStore();
