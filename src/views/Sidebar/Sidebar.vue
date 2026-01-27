@@ -76,7 +76,7 @@
                 <TooltipWrapper side="bottom" :content="t('side_panel.refresh_tooltip')">
                     <Button
                         class="rounded-full"
-                        variant="ghost"
+                        variant="outline"
                         size="icon-sm"
                         :disabled="isRefreshFriendsLoading"
                         style="margin-right: 10px"
