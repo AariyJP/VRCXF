@@ -15,6 +15,16 @@
                 </button>
             </div>
             <div class="flex items-center mx-1 gap-1">
+                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.pencil_social_status')">
+                    <Button
+                        class="rounded-full"
+                        variant="outline"
+                        size="icon-sm"
+                        style="margin-right: 10px"
+                        @click="showSocialStatusDialog">
+                        <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
+                    </Button>
+                </TooltipWrapper>
                 <TooltipWrapper side="bottom" :content="t('side_panel.refresh_tooltip')">
                     <Button
                         class="rounded-full"
@@ -289,7 +299,7 @@
             </template>
             <template #friends>
                 <div class="h-full overflow-hidden">
-                    <FriendsSidebar />
+                    <FriendsSidebar @show-social-status-dialog="showSocialStatusDialog" />
                 </div>
             </template>
             <template #groups>
@@ -301,10 +311,15 @@
         <NotificationCenterSheet />
         <FavoriteFriendGroupOrderDialog v-model:open="isGroupOrderDialogOpen" />
         <QuickSearchDialog />
+        <SocialStatusDialog
+            :social-status-dialog="socialStatusDialog"
+            :social-status-history-table="socialStatusHistoryTable" />
     </div>
 </template>
 
 <script setup>
+    import { computed, defineAsyncComponent, ref } from 'vue';
+    import { useMagicKeys, whenever } from '@vueuse/core';
     import {
         Select,
         SelectContent,
@@ -319,8 +334,6 @@
     import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
     import { Field, FieldContent, FieldLabel } from '@/components/ui/field';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-    import { computed, ref } from 'vue';
-    import { useMagicKeys, whenever } from '@vueuse/core';
     import { Button } from '@/components/ui/button';
     import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
     import { Kbd } from '@/components/ui/kbd';
@@ -337,17 +350,22 @@
         useFriendStore,
         useGroupStore,
         useNotificationStore,
-        useNotificationsSettingsStore
+        useNotificationsSettingsStore,
+        useUserStore
     } from '../../stores';
     import { runRefreshFriendsListFlow } from '../../coordinators/friendSyncCoordinator';
     import { normalizeFavoriteGroupsChange, resolveFavoriteGroups } from './sidebarSettingsUtils';
     import { useQuickSearchStore } from '../../stores/quickSearch';
-
+    import { useUserDisplay } from '../../composables/useUserDisplay';
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import QuickSearchDialog from '../../components/QuickSearchDialog.vue';
     import FavoriteFriendGroupOrderDialog from './components/FavoriteFriendGroupOrderDialog.vue';
     import GroupsSidebar from './components/GroupsSidebar.vue';
     import NotificationCenterSheet from './components/NotificationCenterSheet.vue';
+
+    const SocialStatusDialog = defineAsyncComponent(
+        () => import('../../components/dialogs/UserDialog/SocialStatusDialog.vue')
+    );
 
     const { friends, isRefreshFriendsLoading, onlineFriendCount } = storeToRefs(useFriendStore());
     const { groupInstances } = storeToRefs(useGroupStore());
@@ -355,6 +373,8 @@
     const { isNotificationCenterOpen, hasUnseenNotifications } = storeToRefs(notificationStore);
     const { notificationLayout } = storeToRefs(useNotificationsSettingsStore());
     const quickSearchStore = useQuickSearchStore();
+    const { currentUser } = storeToRefs(useUserStore());
+    const { userStatusClass } = useUserDisplay();
     const { t } = useI18n();
 
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -449,6 +469,32 @@
         { value: 'friends', label: t('side_panel.friends') },
         { value: 'groups', label: t('side_panel.groups') }
     ]);
+    const socialStatusDialog = ref({
+        visible: false,
+        loading: false,
+        status: '',
+        statusDescription: ''
+    });
+    const socialStatusHistoryTable = ref({
+        data: [],
+        layout: 'table'
+    });
+    function showSocialStatusDialog() {
+        const D = socialStatusDialog.value;
+        const { statusHistory } = currentUser.value;
+        const statusHistoryArray = [];
+        for (let i = 0; i < statusHistory.length; ++i) {
+            const addStatus = {
+                no: i + 1,
+                status: statusHistory[i]
+            };
+            statusHistoryArray.push(addStatus);
+        }
+        socialStatusHistoryTable.value.data = statusHistoryArray;
+        D.status = currentUser.value.status;
+        D.statusDescription = currentUser.value.statusDescription;
+        D.visible = true;
+    }
 </script>
 
 <style scoped>

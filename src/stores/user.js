@@ -345,7 +345,7 @@ export const useUserStore = defineStore('User', () => {
     }
 
     const isLocalUserVrcPlusSupporter = computed(
-        () => currentUser.value.$isVRCPlus || AppDebug.debugVrcPlus
+        () => true
     );
 
     watch(

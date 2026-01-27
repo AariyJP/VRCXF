@@ -64,7 +64,6 @@
                                                     :location="currentUser.$locationTag"
                                                     :traveling="currentUser.$travelingToLocation"
                                                     :link="false" />
-
                                                 <span v-else class="extra block truncate text-xs">{{
                                                     currentUser.statusDescription
                                                 }}</span>
