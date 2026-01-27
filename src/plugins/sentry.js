@@ -21,23 +21,8 @@ export async function initSentry(app) {
         if (!(await isSentryOptedIn())) return;
 
         const vrcxId = await configRepository.getString('VRCX_id', '');
-        const response = await webApiService.execute({
-            url: 'https://api0.vrcx.app/errorreporting/getdsn',
-            method: 'GET',
-            headers: {
-                Referer: 'https://vrcx.app',
-                'VRCX-ID': vrcxId
-            }
-        });
-        if (response.status !== 200) {
-            console.error(
-                'Failed to get Sentry DSN:',
-                response.status,
-                response.data
-            );
-            return;
-        }
-        const dsn = atob(response.data);
+        const dsn =
+            'https://b9e3006eb340c2caefe3ee28c7f09824@o4509403957035008.ingest.us.sentry.io/4510781456056320';
         const Sentry = await getSentry();
         Sentry.init({
             app,

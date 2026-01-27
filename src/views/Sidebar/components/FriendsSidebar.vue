@@ -249,7 +249,6 @@
 
     import '@/styles/status-icon.css';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
-
     const { t } = useI18n();
 
     const friendStore = useFriendStore();

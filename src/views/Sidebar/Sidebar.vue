@@ -18,7 +18,7 @@
                 <TooltipWrapper side="bottom" :content="t('dialog.user.actions.pencil_social_status')">
                     <Button
                         class="rounded-full"
-                        variant="outline"
+                        variant="ghost"
                         size="icon-sm"
                         style="margin-right: 10px"
                         @click="showSocialStatusDialog">
