@@ -72,7 +72,7 @@ namespace VRCX
                 // look for trailing git hash "-22bcd96" to indicate nightly build
                 var version = versionFile.Split('-');
                 if (version.Length > 0 && version[^1].Length == 7)
-                    Version = $"VRCX Nightly {versionFile}";
+                    Version = $"VRCXF {versionFile}";
                 else
                     Version = $"VRCX {versionFile}";
             }
@@ -263,7 +263,7 @@ namespace VRCX
         }
 #else
         public static VRCXVRInterface VRCXVRInstance;
-        
+
         public static void PreInit(string version, string[] args)
         {
             Version = version;
@@ -282,7 +282,7 @@ namespace VRCX
                 logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
 
             AppApiInstance = new AppApiElectron();
-            
+
             VRCXVRInstance = new VRCXVRElectron();
             VRCXVRInstance.Init();
         }
