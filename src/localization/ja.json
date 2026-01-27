@@ -497,7 +497,7 @@
                     "support": "サポート"
                 },
                 "vrcx_updater": {
-                    "header": "VRCXアップデーター",
+                    "header": "VRCXFアップデーター",
                     "change_build": "ビルドを変更",
                     "update_action": "更新がリリースされたとき",
                     "auto_update_off": "何もしない",
@@ -1569,13 +1569,13 @@
             "save": "保存"
         },
         "vrcx_updater": {
-            "header": "VRCXアップデーター",
-            "latest_version": "VRCXは最新版です。",
-            "ready_for_update": "インストールの準備が完了しました。VRCXを再起動して適用してください。",
-            "branch_stable": "安定板",
-            "branch_nightly": "ナイトリー",
-            "nightly_title": "ナイトリービルド",
-            "nightly_notice": "ナイトリービルドはテスト用です。安定性を求める場合は安定板を使用してください。",
+            "header": "VRCXFアップデーター",
+            "latest_version": "VRCXFは最新版です。",
+            "ready_for_update": "インストールの準備が完了しました。VRCXFを再起動して適用してください。",
+            "branch_stable": "安定板（公式）",
+            "branch_nightly": "フォーク（非公式）",
+            "nightly_title": "フォークビルド",
+            "nightly_notice": "安定性を求める場合は安定板を使用してください。",
             "release": "リリース",
             "download": "ダウンロード",
             "install": "インストール",
