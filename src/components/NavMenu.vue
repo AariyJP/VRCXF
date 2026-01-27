@@ -166,7 +166,7 @@
                                         type="button"
                                         class="text-left text-sm font-medium truncate flex items-center gap-1"
                                         @click="openGithub">
-                                        VRCX
+                                        VRCXF
                                         <Heart class="text-primary fill-current stroke-none" />
                                     </button>
                                     <span class="text-xs text-muted-foreground">{{ version }}</span>
@@ -463,7 +463,7 @@
         return getFirstNavRoute(navLayout.value) || 'feed';
     });
 
-    const version = computed(() => appVersion.value?.split('VRCX ')?.[1] || '-');
+    const version = computed(() => appVersion.value?.split('VRCXF ')?.[1] || '-');
     const vrcxLogo = new URL('../../images/VRCX.png', import.meta.url).href;
 
     const themes = computed(() => Object.keys(THEME_CONFIG));
@@ -604,7 +604,7 @@
     };
 
     const openGithub = () => {
-        openExternalLink('https://github.com/vrcx-team/VRCX');
+        openExternalLink('https://github.com/AariyJP/VRCXF');
     };
 
     const customNavDialogVisible = ref(false);

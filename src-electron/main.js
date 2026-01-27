@@ -773,7 +773,7 @@ function getVersion() {
         const version = versionFile.split('-');
         console.log('Version:', versionFile);
         if (version.length > 0 && version[version.length - 1].length == 7) {
-            return `VRCX (Linux) Nightly ${versionFile}`;
+            return `VRCXF (Linux) ${versionFile}`;
         } else {
             return `VRCX (Linux) ${versionFile}`;
         }

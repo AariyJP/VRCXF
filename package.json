@@ -1,6 +1,6 @@
 {
-    "name": "VRCX",
-    "description": "Friendship management tool for VRChat",
+    "name": "VRCXF",
+    "description": "Friendship management tool for VRChat (Forked by AariyJP)",
     "private": true,
     "main": "src-electron/main.js",
     "scripts": {
@@ -180,5 +180,6 @@
     "dependencies": {
         "hazardous": "^0.3.0",
         "node-api-dotnet": "^0.9.19"
-    }
+    },
+    "version": "0.0.0-develop"
 }

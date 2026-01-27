@@ -514,7 +514,7 @@
                     "support": "Support"
                 },
                 "vrcx_updater": {
-                    "header": "VRCX Updater",
+                    "header": "VRCXF Updater",
                     "change_build": "Change build",
                     "update_action": "Update action",
                     "auto_update_off": "Off",
@@ -1613,13 +1613,13 @@
             "save": "Save"
         },
         "vrcx_updater": {
-            "header": "VRCX Updater",
-            "latest_version": "VRCX is up to date.",
-            "ready_for_update": "Ready for install, restart VRCX to apply.",
-            "branch_stable": "Stable",
-            "branch_nightly": "Nightly",
-            "nightly_title": "Nightly builds",
-            "nightly_notice": "Nightly builds are for testing. For stability, use stable build.",
+            "header": "VRCXF Updater",
+            "latest_version": "VRCXF is up to date.",
+            "ready_for_update": "Ready for install, restart VRCXF to apply.",
+            "branch_stable": "Stable (Official)",
+            "branch_nightly": "Forked (Unofficial)",
+            "nightly_title": "Forked builds",
+            "nightly_notice": "Forked builds are for testing. For stability, use stable build.",
             "release": "Release",
             "download": "Download",
             "install": "Install",
