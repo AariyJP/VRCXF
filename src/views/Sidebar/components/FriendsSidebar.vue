@@ -115,7 +115,7 @@
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../service/config';
 
-    const emit = defineEmits(['confirm-delete-friend', 'show-social-status-dialog']);
+    const emit = defineEmits(['show-social-status-dialog']);
     const { t } = useI18n();
 
     const friendStore = useFriendStore();

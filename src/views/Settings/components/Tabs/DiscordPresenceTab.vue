@@ -49,7 +49,7 @@
                 saveDiscordOption();
             " />
         <simple-switch
-            :label="t('view.settings.discord_presence.discord_presence.join_button')"
+            :label="t('Link to Profile Button')"
             :value="discordJoinButton"
             :disabled="!discordActive"
             @change="

@@ -63,10 +63,10 @@
                 </Popover>
             </div>
             <div style="display: flex; align-items: center">
-                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.pencil_social_status')">
+                <TooltipWrapper side="bottom" :content="t('Edit Social Status')">
                     <Button
                         class="rounded-full"
-                        variant="outline"
+                        variant="ghost"
                         size="icon-sm"
                         style="margin-right: 10px"
                         @click="showSocialStatusDialog">
@@ -105,9 +105,7 @@
             </template>
             <template #friends>
                 <div class="h-full overflow-hidden">
-                    <FriendsSidebar
-                        @confirm-delete-friend="confirmDeleteFriend"
-                        @show-social-status-dialog="showSocialStatusDialog" />
+                    <FriendsSidebar @show-social-status-dialog="showSocialStatusDialog" />
                 </div>
             </template>
             <template #groups>
