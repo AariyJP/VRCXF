@@ -402,17 +402,10 @@ jobs:
           sha256sum "VRCX_${{ needs.set_version.outputs.version }}_Setup.exe" "VRCX_${{ needs.set_version.outputs.version }}_x64.AppImage" > "SHA256SUMS.txt"
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: "${{ needs.set_version.outputs.version }}"
-          release_name: "VRCXF ${{ needs.set_version.outputs.version }}"
-          draft: false
-          prerelease: false
-      - name: Upload multiple assets to release
-        uses: csexton/release-asset-action@v3
-        with:
+          name: "VRCXF ${{ needs.set_version.outputs.version }}"
           files: |
             VRCX_${{ needs.set_version.outputs.version }}_Setup.exe
             VRCX_${{ needs.set_version.outputs.version }}.zip
@@ -421,5 +414,3 @@ jobs:
             VRCX_${{ needs.set_version.outputs.version }}_x64.dmg
             VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg
             SHA256SUMS.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          release-url: ${{ steps.create_release.outputs.upload_url }}
