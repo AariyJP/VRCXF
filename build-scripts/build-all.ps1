@@ -1,4 +1,5 @@
 cd ..
+Set-Content -Path "Version" -Value "Forked-AariyJP"
 
 $ErrorActionPreference = "Stop"
 
