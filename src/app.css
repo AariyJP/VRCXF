@@ -360,3 +360,7 @@ i.x-status-icon.red {
 .force-pointer-on-hover input[type='submit'] {
     cursor: pointer !important;
 }
+
+td.p-2 {
+    padding: 2px !important;
+}
