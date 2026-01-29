@@ -414,3 +414,4 @@ jobs:
             VRCX_${{ needs.set_version.outputs.version }}_x64.dmg
             VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg
             SHA256SUMS.txt
+          body: "VRCXF ${{ needs.set_version.outputs.version }}"
