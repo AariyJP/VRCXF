@@ -13,6 +13,7 @@ concurrency:
 permissions:
   id-token: write
   contents: write
+  attestations: write
 
 jobs:
   set_version:
@@ -413,4 +414,11 @@ jobs:
             VRCX_${{ needs.set_version.outputs.version }}_arm64.AppImage
             VRCX_${{ needs.set_version.outputs.version }}_x64.dmg
             VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg
+            SHA256SUMS.txt
+          body: "VRCXF ${{ needs.set_version.outputs.version }}"
+      - name: Create Attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            VRCX_${{ needs.set_version.outputs.version }}*
             SHA256SUMS.txt
