@@ -1,9 +1,6 @@
 name: Build VRCXF
 
 on:
-  push:
-    branches:
-      - develop
   workflow_dispatch:
 
 concurrency:
