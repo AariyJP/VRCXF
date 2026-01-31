@@ -1,6 +1,6 @@
 <template>
     <Dialog v-model:open="isVisible">
-        <DialogContent>
+        <DialogContent class="sm:max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{{ t('dialog.launch.header') }}</DialogTitle>
                 <DialogDescription class="sr-only">{{ t('dialog.launch.header') }}</DialogDescription>
@@ -84,43 +84,22 @@
                     {{ t('dialog.launch.open_ingame') }}
                 </Button>
                 <Button
-                    v-else
                     variant="outline"
                     class="mr-1.25"
                     :disabled="!launchDialog.secureOrShortName"
                     @click="selfInvite(launchDialog.location, launchDialog.shortName)">
                     {{ t('dialog.launch.self_invite') }}
                 </Button>
-                <ButtonGroup>
-                    <Button
-                        :disabled="!launchDialog.secureOrShortName"
-                        @click="handleLaunchDefault(launchDialog.location, launchDialog.shortName)">
-                        {{ launchModeLabel }}
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button size="icon" :disabled="!launchDialog.secureOrShortName" aria-label="More options">
-                                <MoreHorizontal class="size-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-52">
-                            <DropdownMenuItem
-                                @click="
-                                    handleLaunchCommand(
-                                        launchDialog.desktop ? 'vr' : 'desktop',
-                                        launchDialog.location,
-                                        launchDialog.shortName
-                                    )
-                                ">
-                                {{
-                                    launchDialog.desktop
-                                        ? t('dialog.launch.launch')
-                                        : t('dialog.launch.start_as_desktop')
-                                }}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </ButtonGroup>
+                <Button
+                    :disabled="!launchDialog.secureOrShortName"
+                    @click="handleLaunchCommand('vr', launchDialog.location, launchDialog.shortName)">
+                    {{ t('dialog.launch.launch') }}
+                </Button>
+                <Button
+                    :disabled="!launchDialog.secureOrShortName"
+                    @click="handleLaunchCommand('desktop', launchDialog.location, launchDialog.shortName)">
+                    {{ t('dialog.launch.start_as_desktop') }}
+                </Button>
             </DialogFooter>
 
             <InviteDialog :invite-dialog="inviteDialog" @closeInviteDialog="closeInviteDialog" />

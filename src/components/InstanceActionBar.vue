@@ -13,7 +13,6 @@
         </div>
         <div v-if="showInviteYourself" class="inline-block" :style="inviteStyle">
             <TooltipWrapper
-                v-if="!canOpenInstanceInGame"
                 side="top"
                 :content="t('dialog.user.info.self_invite_tooltip')">
                 <Button
@@ -24,7 +23,9 @@
                     <Mail class="h-4 w-4" />
                 </Button>
             </TooltipWrapper>
-            <TooltipWrapper v-else side="top" :content="t('dialog.user.info.open_in_vrchat_tooltip')">
+        </div>
+        <div v-if="showInviteYourself" class="inline-block" :style="inviteStyle">
+            <TooltipWrapper v-if="canOpenInstanceInGame" side="top" :content="t('dialog.user.info.open_in_vrchat_tooltip')">
                 <Button
                     class="rounded-full h-6 w-6 text-xs text-muted-foreground hover:text-foreground"
                     size="icon-sm"
@@ -38,7 +39,7 @@
                     variant="outline"
                     v-else
                     @click="openInstance">
-                    <Mail class="h-4 w-4" />
+                    <Gamepad2 class="h-4 w-4" />
                 </Button>
             </TooltipWrapper>
         </div>
@@ -143,7 +144,7 @@
 </template>
 
 <script setup>
-    import { History, Loader2, LogIn, Mail, MapPin, RefreshCw, UsersRound } from 'lucide-vue-next';
+    import { History, Loader2, LogIn, Mail, MapPin, RefreshCw, UsersRound, Gamepad2 } from 'lucide-vue-next';
     import { computed, reactive, ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';
     import { storeToRefs } from 'pinia';
