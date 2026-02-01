@@ -216,6 +216,13 @@ export const useUserStore = defineStore('User', () => {
         isFavoriteWorldsLoading: false,
         isAvatarsLoading: false,
         isGroupsLoading: false,
+        userFavoriteWorlds: [],
+        userGroups: {
+            groups: [],
+            ownGroups: [],
+            mutualGroups: [],
+            remainingGroups: []
+        },
 
         worldSorting: {
             name: 'dialog.user.worlds.sorting.updated',
@@ -771,6 +778,14 @@ export const useUserStore = defineStore('User', () => {
         });
         const D = userDialog.value;
         D.visible = true;
+        if (D.id === userId) {
+            uiStore.setDialogCrumbLabel(
+                'user',
+                D.id,
+                D.ref?.displayName || D.id
+            );
+            return;
+        }
         D.id = userId;
         D.memo = '';
         D.note = '';
@@ -844,7 +859,9 @@ export const useUserStore = defineStore('User', () => {
             })
             .catch((err) => {
                 D.loading = false;
-                uiStore.closeMainDialog();
+                D.id = null;
+                D.visible = false;
+                uiStore.jumpBackDialogCrumb();
                 toast.error(t('message.user.load_failed'));
                 throw err;
             })
@@ -903,7 +920,7 @@ export const useUserStore = defineStore('User', () => {
                         if (userId !== currentUser.value.id) {
                             database
                                 .getUserStats(D.ref, inCurrentWorld)
-                                .then((ref1) => {
+                                .then(async (ref1) => {
                                     if (ref1.userId === D.id) {
                                         D.lastSeen = ref1.lastSeen;
                                         D.joinCount = ref1.joinCount;
@@ -911,49 +928,59 @@ export const useUserStore = defineStore('User', () => {
                                     }
                                     const displayNameMap =
                                         ref1.previousDisplayNames;
-                                    friendStore.friendLogTable.data.forEach(
-                                        (ref2) => {
-                                            if (ref2.userId === D.id) {
+                                    const userNotifications =
+                                        await database.getFriendLogHistoryForUserId(
+                                            D.id,
+                                            [
+                                                'DisplayName',
+                                                'Friend',
+                                                'Unfriend'
+                                            ]
+                                        );
+                                    const dateFriendedInfo = [];
+                                    for (const notification of userNotifications) {
+                                        if (notification.userId !== D.id) {
+                                            continue;
+                                        }
+                                        if (
+                                            notification.type === 'DisplayName'
+                                        ) {
+                                            displayNameMap.set(
+                                                notification.previousDisplayName,
+                                                notification.created_at
+                                            );
+                                        }
+                                        if (!D.dateFriended) {
+                                            if (
+                                                notification.type === 'Unfriend'
+                                            ) {
+                                                D.unFriended = true;
                                                 if (
-                                                    ref2.type === 'DisplayName'
+                                                    !appearanceSettingsStore.hideUnfriends
                                                 ) {
-                                                    displayNameMap.set(
-                                                        ref2.previousDisplayName,
-                                                        ref2.created_at
-                                                    );
-                                                }
-                                                if (!D.dateFriended) {
-                                                    if (
-                                                        ref2.type === 'Unfriend'
-                                                    ) {
-                                                        D.unFriended = true;
-                                                        if (
-                                                            !appearanceSettingsStore.hideUnfriends
-                                                        ) {
-                                                            D.dateFriended =
-                                                                ref2.created_at;
-                                                        }
-                                                    }
-                                                    if (
-                                                        ref2.type === 'Friend'
-                                                    ) {
-                                                        D.unFriended = false;
-                                                        D.dateFriended =
-                                                            ref2.created_at;
-                                                    }
-                                                }
-                                                if (
-                                                    ref2.type === 'Friend' ||
-                                                    (ref2.type === 'Unfriend' &&
-                                                        !appearanceSettingsStore.hideUnfriends)
-                                                ) {
-                                                    D.dateFriendedInfo.push(
-                                                        ref2
-                                                    );
+                                                    D.dateFriended =
+                                                        notification.created_at;
                                                 }
                                             }
+                                            if (
+                                                notification.type === 'Friend'
+                                            ) {
+                                                D.unFriended = false;
+                                                D.dateFriended =
+                                                    notification.created_at;
+                                            }
                                         }
-                                    );
+                                        if (
+                                            notification.type === 'Friend' ||
+                                            (notification.type === 'Unfriend' &&
+                                                !appearanceSettingsStore.hideUnfriends)
+                                        ) {
+                                            dateFriendedInfo.unshift(
+                                                notification
+                                            );
+                                        }
+                                    }
+                                    D.dateFriendedInfo = dateFriendedInfo;
                                     displayNameMap.forEach(
                                         (updated_at, displayName) => {
                                             D.previousDisplayNames.push({

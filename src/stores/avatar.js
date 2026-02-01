@@ -65,7 +65,8 @@ export const useAvatarStore = defineStore('Avatar', () => {
         cacheSize: '',
         cacheLocked: false,
         cachePath: '',
-        fileAnalysis: {}
+        fileAnalysis: {},
+        timeSpent: 0
     });
     const avatarHistory = ref([]);
 
@@ -183,7 +184,11 @@ export const useAvatarStore = defineStore('Avatar', () => {
             id: avatarId,
             skipBreadcrumb: options.skipBreadcrumb
         });
-
+        D.visible = true;
+        if (D.id === avatarId) {
+            uiStore.setDialogCrumbLabel('avatar', D.id, D.ref?.name || D.id);
+            return;
+        }
         D.loading = true;
         D.id = avatarId;
         D.inCache = false;
@@ -216,11 +221,13 @@ export const useAvatarStore = defineStore('Avatar', () => {
                 ref2.authorId !== userStore.currentUser.id
             ) {
                 D.loading = false;
-                uiStore.closeMainDialog();
-                return;
+                D.id = null;
+                D.visible = false;
+                uiStore.jumpBackDialogCrumb();
+                toast.error(t('message.api_handler.avatar_private_or_deleted'));
+                throw new Error('Avatar is private or deleted');
             }
         }
-        D.visible = true;
         avatarRequest
             .getAvatar({ avatarId })
             .then((args) => {
@@ -259,6 +266,10 @@ export const useAvatarStore = defineStore('Avatar', () => {
             })
             .catch((err) => {
                 D.visible = false;
+                D.id = null;
+                D.visible = false;
+                uiStore.jumpBackDialogCrumb();
+                toast.error(t('message.api_handler.avatar_private_or_deleted'));
                 throw err;
             })
             .finally(() => {

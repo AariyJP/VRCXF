@@ -2,6 +2,7 @@
     <div class="x-container" ref="friendLogRef">
         <DataTableLayout
             :table="table"
+            :loading="friendLogTable.loading"
             :table-style="tableHeightStyle"
             :page-sizes="pageSizes"
             :total-items="totalItems"
@@ -174,7 +175,9 @@
 
     const { table, pagination } = useVrcxVueTable({
         persistKey: 'friendLog',
-        data: friendLogDisplayData,
+        get data() {
+            return friendLogDisplayData.value;
+        },
         columns,
         getRowId: (row) => `${row.type}:${row.rowId ?? row.userId ?? row.created_at ?? ''}`,
         initialSorting: [],

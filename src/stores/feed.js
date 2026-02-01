@@ -1,11 +1,10 @@
-import { ref, shallowReactive, watch } from 'vue';
+import { ref, shallowReactive, shallowRef, watch } from 'vue';
 import { defineStore } from 'pinia';
 
 import { database } from '../service/database';
 import { useFriendStore } from './friend';
 import { useNotificationStore } from './notification';
 import { useSharedFeedStore } from './sharedFeed';
-import { useUiStore } from './ui';
 import { useVrcxStore } from './vrcx';
 import { watchState } from '../service/watchState';
 
@@ -14,12 +13,11 @@ import configRepository from '../service/config';
 export const useFeedStore = defineStore('Feed', () => {
     const friendStore = useFriendStore();
     const notificationStore = useNotificationStore();
-    const UiStore = useUiStore();
     const vrcxStore = useVrcxStore();
     const sharedFeedStore = useSharedFeedStore();
 
+    const feedTableData = shallowRef([]);
     const feedTable = ref({
-        data: shallowReactive([]),
         search: '',
         vip: false,
         loading: false,
@@ -31,7 +29,7 @@ export const useFeedStore = defineStore('Feed', () => {
     watch(
         () => watchState.isLoggedIn,
         (isLoggedIn) => {
-            feedTable.value.data.length = 0;
+            feedTableData.value = [];
             if (isLoggedIn) {
                 initFeedTable();
             }
@@ -146,12 +144,19 @@ export const useFeedStore = defineStore('Feed', () => {
         if (feedTable.value.vip) {
             vipList = Array.from(friendStore.localFavoriteFriends.values());
         }
-        const rows = await database.lookupFeedDatabase(
-            feedTable.value.search,
-            feedTable.value.filter,
-            vipList
-        );
-        feedTable.value.data = shallowReactive(rows);
+        const search = feedTable.value.search.trim();
+        const rows = search
+            ? await database.searchFeedDatabase(
+                  search,
+                  feedTable.value.filter,
+                  vipList
+              )
+            : await database.lookupFeedDatabase(
+                  feedTable.value.filter,
+                  vipList
+              );
+        feedTableData.value = [];
+        feedTableData.value = [...feedTableData.value, ...rows];
         feedTable.value.loading = false;
     }
 
@@ -173,26 +178,26 @@ export const useFeedStore = defineStore('Feed', () => {
         if (!feedSearch(feed)) {
             return;
         }
-        feedTable.value.data.push(feed);
+        feedTableData.value = [feed, ...feedTableData.value];
         sweepFeed();
-        // UiStore.notifyMenu('feed');
     }
 
     function sweepFeed() {
-        const { data } = feedTable.value;
-        const j = data.length;
+        const j = feedTableData.value.length;
         if (j > vrcxStore.maxTableSize + 50) {
-            data.splice(0, 50);
+            feedTableData.value = feedTableData.value.slice(0, -50);
         }
     }
 
     async function initFeedTable() {
         feedTable.value.loading = true;
-        feedTableLookup();
+        await feedTableLookup();
+        feedTable.value.loading = false;
     }
 
     return {
         feedTable,
+        feedTableData,
         initFeedTable,
         feedTableLookup,
         addFeed

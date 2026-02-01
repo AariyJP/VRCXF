@@ -90,6 +90,10 @@ export const useWorldStore = defineStore('World', () => {
             skipBreadcrumb: options.skipBreadcrumb
         });
         D.visible = true;
+        if (D.id === L.worldId) {
+            uiStore.setDialogCrumbLabel('world', D.id, D.ref?.name || D.id);
+            return;
+        }
         L.shortName = shortName;
         D.id = L.worldId;
         D.$location = L;
@@ -144,7 +148,9 @@ export const useWorldStore = defineStore('World', () => {
             })
             .catch((err) => {
                 D.loading = false;
-                uiStore.closeMainDialog();
+                D.id = null;
+                D.visible = false;
+                uiStore.jumpBackDialogCrumb();
                 toast.error(t('message.world.load_failed'));
                 throw err;
             })

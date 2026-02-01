@@ -197,6 +197,11 @@
                 "no_invalid_found": "No invalid avatars found",
                 "delete_cancelled": "Delete operation cancelled"
             },
+            "visibility": {
+                "public": "Public",
+                "friends": "Friends",
+                "private": "Private"
+            },
             "edit_mode": "Edit Mode",
             "copy": "Copy",
             "clear": "Clear",
@@ -565,7 +570,7 @@
                     "header": "Legal Notice",
                     "info": "VRCX is an assistant application for VRChat that provides information about and managing friendship. This application makes use of the unofficial VRChat API SDK.",
                     "disclaimer1": "VRCX is not endorsed by VRChat and does not reflect the views or opinions of VRChat or anyone officially involved in producing or managing VRChat properties. VRChat and all associated properties are trademarks or registered trademarks of VRChat Inc. VRChat © VRChat Inc.",
-                    "disclaimer2": "pypy & Natsumi are not responsible for any problems caused by VRCX. Use at your own risk!",
+                    "disclaimer2": "pypy & Natsumi and all contributors are not responsible for any problems caused by VRCX. Use at your own risk!",
                     "open_source_software_notice": "Open Source Software Notice"
                 },
                 "contributors": {
@@ -1164,6 +1169,11 @@
                     "last_active": "Last Active",
                     "friend_order": "Friend Order"
                 }
+            },
+            "note_memo": {
+                "header": "Edit Note And Memo",
+                "cancel": "Cancel",
+                "confirm": "Confirm"
             }
         },
         "world": {
@@ -1884,7 +1894,9 @@
                 "player_id": "Player ID",
                 "world_name": "World Name",
                 "world_id": "World ID"
-            }
+            },
+            "no_results": "No results found",
+            "invalid_file": "Invalid file selected. Please select a valid VRChat screenshot."
         },
         "registry_backup": {
             "header": "VRC Registry Settings Backup",
