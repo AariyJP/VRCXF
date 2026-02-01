@@ -15,6 +15,11 @@ export const THEME_CONFIG = {
         isDark: true,
         name: 'Midnight',
         file: 'midnight.css'
+    },
+    rednight: {
+        isDark: true,
+        name: 'Rednight',
+        file: 'rednight.css'
     }
 };
 

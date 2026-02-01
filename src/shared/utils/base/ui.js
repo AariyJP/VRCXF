@@ -281,7 +281,9 @@ function changeAppThemeStyle(themeMode) {
     } else {
         document.documentElement.classList.remove('dark');
     }
-    if (themeConfig.name === 'Midnight') {
+    if (themeConfig.name === 'Rednight') {
+        AppApi.ChangeTheme(3);
+    } else if (themeConfig.name === 'Midnight') {
         AppApi.ChangeTheme(2);
     } else if (themeConfig.isDark) {
         AppApi.ChangeTheme(1);
