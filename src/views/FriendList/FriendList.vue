@@ -25,7 +25,7 @@
                                 multiple
                                 :model-value="Array.isArray(friendsListSearchFilters) ? friendsListSearchFilters : []"
                                 @update:modelValue="handleFriendListFilterChange">
-                                <SelectTrigger class="mx-2 w-[150px]">
+                                <SelectTrigger class="mx-2 w-37.5">
                                     <SelectValue :placeholder="t('view.friend_list.filter_placeholder')" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -191,7 +191,9 @@
 
     const { table, sorting, pagination } = useVrcxVueTable({
         persistKey: 'friendList',
-        data: friendsListDisplayData,
+        get data() {
+            return friendsListDisplayData.value;
+        },
         columns: friendsListColumns.value,
         getRowId: (row) => row?.id ?? row?.displayName ?? '',
         enablePinning: true,

@@ -134,7 +134,6 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         // Feed
         if (vipFilters.length) {
             const vipFeedRows = await database.lookupFeedDatabase(
-                '',
                 vipFilters,
                 vipList,
                 maxEntries
@@ -143,7 +142,6 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         }
         if (everyoneAndFriendsFilters.length) {
             const friendsFeedRows = await database.lookupFeedDatabase(
-                '',
                 everyoneAndFriendsFilters,
                 [],
                 maxEntries
@@ -154,7 +152,6 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         // GameLog
         if (vipFilters.length) {
             const vipGameLogRows = await database.lookupGameLogDatabase(
-                '',
                 vipFilters,
                 vipList,
                 maxEntries
@@ -163,7 +160,6 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         }
         if (friendsFilters.length) {
             const friendsGameLogRows = await database.lookupGameLogDatabase(
-                '',
                 friendsFilters,
                 friendList,
                 maxEntries
@@ -172,7 +168,6 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         }
         if (everyoneFilters.length) {
             const everyoneGameLogRows = await database.lookupGameLogDatabase(
-                '',
                 everyoneFilters,
                 [],
                 maxEntries
@@ -241,7 +236,8 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         rebuildOnPlayerJoining(); // also sends updated feed
     }
 
-    async function addEntry(ctx) {
+    async function addEntry(data) {
+        const ctx = { ...data };
         const userId = ctx.userId || ctx.senderUserId;
         const wristFilter = notificationsSettingsStore.sharedFeedFilters.wrist;
         if (userId === userStore.currentUser.id) {
