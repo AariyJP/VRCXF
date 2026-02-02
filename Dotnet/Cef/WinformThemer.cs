@@ -31,6 +31,7 @@ namespace VRCX
         ///     Light = 0
         ///     Dark = 1
         ///     Midnight = 2
+        ///     Rednight = 3
         /// </summary>
         public static void SetGlobalTheme(int theme)
         {
@@ -98,12 +99,15 @@ namespace VRCX
             var whiteColor = 0xFFFFFF;
             var blackColor = 0x000000;
             var greyColor = 0x2B2B2B;
+            var redColor = 0x000014;
             
             var isDark = currentTheme > 0 ? 1 : 0;
             if (PInvoke.DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref isDark, sizeof(int)) != 0)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref isDark, sizeof(int));
 
-            if (currentTheme == 2)
+            if (currentTheme == 3)
+                PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref redColor, sizeof(int));
+            else if (currentTheme == 2)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref blackColor, sizeof(int));
             else if (currentTheme == 1)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref greyColor, sizeof(int));
