@@ -31,7 +31,7 @@ namespace VRCX
                             KeepAliveInterval = TimeSpan.FromSeconds(5),
                         }
                     };
-                    client.Options.SetRequestHeader("user-agent", Program.Version);
+                    client.Options.SetRequestHeader("user-agent", Program.UserAgent);
                     return client;
                 });
 

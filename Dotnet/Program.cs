@@ -22,6 +22,7 @@ namespace VRCX
         public static bool LaunchDebug;
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static AppApi AppApiInstance { get; private set; }
+        public const string UserAgent = "UnityPlayer/2022.3.22f2-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)";
 
         private static void SetProgramDirectories()
         {

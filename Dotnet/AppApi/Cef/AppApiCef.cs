@@ -213,7 +213,7 @@ namespace VRCX
         public override void SetUserAgent()
         {
             using var client = MainForm.Instance.Browser.GetDevToolsClient();
-            _ = client.Network.SetUserAgentOverrideAsync(Program.Version);
+            _ = client.Network.SetUserAgentOverrideAsync(Program.UserAgent);
         }
 
         public override void SetTrayIconNotification(bool notify)

@@ -38,7 +38,7 @@ namespace VRCX
                 LogFile = Path.Join(Program.AppDataDirectory, "logs", "cef.log"),
                 WindowlessRenderingEnabled = true,
                 PersistSessionCookies = true,
-                UserAgent = Program.Version,
+                UserAgent = Program.UserAgent,
                 BrowserSubprocessPath = Environment.ProcessPath,
                 BackgroundColor = 0xFF0A0A0A
             };

@@ -33,7 +33,7 @@ namespace VRCX
                 httpClientHandler.Proxy = WebApi.Proxy;
 
             httpClient = new HttpClient(httpClientHandler);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", Program.UserAgent);
         }
 
         public void Init(string appImagePath = "")

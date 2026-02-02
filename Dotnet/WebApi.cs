@@ -93,7 +93,7 @@ namespace VRCX
             }
 
             _httpClient = new HttpClient(_httpHandler);
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", Program.UserAgent);
         }
 
         private void SetProxy()
