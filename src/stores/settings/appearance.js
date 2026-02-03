@@ -4,6 +4,15 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import {
+    APP_FONT_DEFAULT_KEY,
+    APP_FONT_FAMILIES,
+    SEARCH_LIMIT_MAX,
+    SEARCH_LIMIT_MIN,
+    TABLE_MAX_SIZE_MAX,
+    TABLE_MAX_SIZE_MIN,
+    THEME_CONFIG
+} from '../../shared/constants';
+import {
     HueToHex,
     applyAppFontFamily,
     changeAppThemeStyle,
@@ -11,18 +20,12 @@ import {
     getThemeMode,
     updateTrustColorClasses
 } from '../../shared/utils/base/ui';
-import {
-    APP_FONT_DEFAULT_KEY,
-    APP_FONT_FAMILIES,
-    THEME_CONFIG
-} from '../../shared/constants';
 import { database } from '../../service/database';
 import { getNameColour } from '../../shared/utils';
 import { languageCodes } from '../../localization';
 import { loadLocalizedStrings } from '../../plugin';
 import { useFeedStore } from '../feed';
 import { useGameLogStore } from '../gameLog';
-import { useModalStore } from '../modal';
 import { useUiStore } from '../ui';
 import { useUserStore } from '../user';
 import { useVrStore } from '../vr';
@@ -42,9 +45,7 @@ export const useAppearanceSettingsStore = defineStore(
         const userStore = useUserStore();
         const router = useRouter();
         const uiStore = useUiStore();
-        const modalStore = useModalStore();
-
-        const { t, locale } = useI18n();
+        const { locale } = useI18n();
 
         const MAX_TABLE_PAGE_SIZE = 1000;
         const DEFAULT_TABLE_PAGE_SIZES = [10, 15, 20, 25, 50, 100];
@@ -72,7 +73,6 @@ export const useAppearanceSettingsStore = defineStore(
             'Sort by Time in Instance',
             'Sort by Last Active'
         ]);
-        const asideWidth = ref(300);
         const navWidth = ref(240);
         const isSidebarGroupByInstance = ref(true);
         const isHideFriendsInSameInstance = ref(false);
@@ -97,15 +97,22 @@ export const useAppearanceSettingsStore = defineStore(
         const isNavCollapsed = ref(true);
         const isSideBarTabShow = computed(() => {
             const currentRouteName = router.currentRoute.value?.name;
-            return !(
-                currentRouteName === 'friends-locations' ||
-                currentRouteName === 'friend-list' ||
-                currentRouteName === 'charts'
-            );
+            return ![
+                'friends-locations',
+                'friend-list',
+                'charts',
+                'charts-instance',
+                'charts-mutual'
+            ].includes(currentRouteName);
         });
 
         const isDataTableStriped = ref(false);
         const showPointerOnHover = ref(false);
+        const tableLimitsDialog = ref({
+            visible: false,
+            maxTableSize: 500,
+            searchLimit: 5000
+        });
 
         const clampInt = (value, min, max) => {
             const n = parseInt(value, 10);
@@ -139,7 +146,6 @@ export const useAppearanceSettingsStore = defineStore(
                 dtHour12Config,
                 dtIsoFormatConfig,
                 sidebarSortMethodsConfig,
-                asideWidthConfig,
                 navWidthConfig,
                 isSidebarGroupByInstanceConfig,
                 isHideFriendsInSameInstanceConfig,
@@ -189,7 +195,6 @@ export const useAppearanceSettingsStore = defineStore(
                         'Sort by Last Active'
                     ])
                 ),
-                configRepository.getInt('VRCX_sidePanelWidth', 300),
                 configRepository.getInt('VRCX_navPanelWidth', 240),
                 configRepository.getBool('VRCX_sidebarGroupByInstance', true),
                 configRepository.getBool(
@@ -282,7 +287,6 @@ export const useAppearanceSettingsStore = defineStore(
                 );
             }
             trustColor.value = { ...TRUST_COLOR_DEFAULTS };
-            asideWidth.value = asideWidthConfig;
             navWidth.value = clampInt(navWidthConfig, 64, 480);
             isSidebarGroupByInstance.value = isSidebarGroupByInstanceConfig;
             isHideFriendsInSameInstance.value =
@@ -674,22 +678,6 @@ export const useAppearanceSettingsStore = defineStore(
                 });
             }
         }
-        function setAsideWidth(widthOrArray) {
-            let width = null;
-            if (Array.isArray(widthOrArray) && widthOrArray.length) {
-                width = widthOrArray[widthOrArray.length - 1];
-            } else if (typeof widthOrArray === 'number') {
-                width = widthOrArray;
-            }
-            if (!Number.isFinite(width) || width === null) {
-                return;
-            }
-            const normalized = Math.max(0, Math.round(width));
-            requestAnimationFrame(() => {
-                asideWidth.value = normalized;
-                configRepository.setInt('VRCX_sidePanelWidth', normalized);
-            });
-        }
         function setIsSidebarGroupByInstance() {
             isSidebarGroupByInstance.value = !isSidebarGroupByInstance.value;
             configRepository.setBool(
@@ -864,36 +852,67 @@ export const useAppearanceSettingsStore = defineStore(
             }
         }
 
-        function promptMaxTableSizeDialog() {
-            modalStore
-                .prompt({
-                    title: t('prompt.change_table_size.header'),
-                    description: t('prompt.change_table_size.description'),
-                    confirmText: t('prompt.change_table_size.save'),
-                    cancelText: t('prompt.change_table_size.cancel'),
-                    inputValue: vrcxStore.maxTableSize.toString(),
-                    pattern: /\d+$/,
-                    errorMessage: t('prompt.change_table_size.input_error')
-                })
-                .then(async ({ ok, value }) => {
-                    if (!ok) return;
-                    if (value) {
-                        // TODO
-                        let processedValue = Number(value);
-                        if (processedValue > 10000) {
-                            processedValue = 10000;
-                        }
-                        vrcxStore.maxTableSize = processedValue;
-                        await configRepository.setString(
-                            'VRCX_maxTableSize',
-                            vrcxStore.maxTableSize.toString()
-                        );
-                        database.setMaxTableSize(vrcxStore.maxTableSize);
-                        feedStore.feedTableLookup();
-                        gameLogStore.gameLogTableLookup();
-                    }
-                })
-                .catch(() => {});
+        const clampLimit = (value, min, max) => {
+            const n = Number.parseInt(value, 10);
+            if (!Number.isFinite(n)) {
+                return null;
+            }
+            if (n < min || n > max) {
+                return null;
+            }
+            return n;
+        };
+
+        function showTableLimitsDialog() {
+            tableLimitsDialog.value.maxTableSize = Number(
+                vrcxStore.maxTableSize ?? 500
+            );
+            tableLimitsDialog.value.searchLimit = Number(
+                vrcxStore.searchLimit ?? 5000
+            );
+            tableLimitsDialog.value.visible = true;
+        }
+
+        function closeTableLimitsDialog() {
+            tableLimitsDialog.value.visible = false;
+        }
+
+        async function saveTableLimitsDialog() {
+            const nextMaxTableSize = clampLimit(
+                tableLimitsDialog.value.maxTableSize,
+                TABLE_MAX_SIZE_MIN,
+                TABLE_MAX_SIZE_MAX
+            );
+            if (nextMaxTableSize === null) {
+                return;
+            }
+
+            const nextSearchLimit = clampLimit(
+                tableLimitsDialog.value.searchLimit,
+                SEARCH_LIMIT_MIN,
+                SEARCH_LIMIT_MAX
+            );
+            if (nextSearchLimit === null) {
+                return;
+            }
+
+            vrcxStore.maxTableSize = nextMaxTableSize;
+            await configRepository.setString(
+                'VRCX_maxTableSize',
+                vrcxStore.maxTableSize.toString()
+            );
+            database.setMaxTableSize(vrcxStore.maxTableSize);
+
+            vrcxStore.searchLimit = nextSearchLimit;
+            await configRepository.setInt(
+                'VRCX_searchLimit',
+                vrcxStore.searchLimit
+            );
+            database.setSearchTableSize(vrcxStore.searchLimit);
+
+            feedStore.feedTableLookup();
+            gameLogStore.gameLogTableLookup();
+            tableLimitsDialog.value.visible = false;
         }
 
         async function tryInitUserColours() {
@@ -935,7 +954,6 @@ export const useAppearanceSettingsStore = defineStore(
             sidebarSortMethod2,
             sidebarSortMethod3,
             sidebarSortMethods,
-            asideWidth,
             navWidth,
             isSidebarGroupByInstance,
             isHideFriendsInSameInstance,
@@ -952,6 +970,11 @@ export const useAppearanceSettingsStore = defineStore(
             isNavCollapsed,
             isDataTableStriped,
             showPointerOnHover,
+            tableLimitsDialog,
+            TABLE_MAX_SIZE_MIN,
+            TABLE_MAX_SIZE_MAX,
+            SEARCH_LIMIT_MIN,
+            SEARCH_LIMIT_MAX,
 
             setAppLanguage,
             setDisplayVRCPlusIconsAsAvatar,
@@ -969,7 +992,6 @@ export const useAppearanceSettingsStore = defineStore(
             setSidebarSortMethod3,
             setSidebarSortMethods,
             setNavWidth,
-            setAsideWidth,
             setIsSidebarGroupByInstance,
             setIsHideFriendsInSameInstance,
             setIsSidebarDivideByFriendGroup,
@@ -986,7 +1008,9 @@ export const useAppearanceSettingsStore = defineStore(
             userColourInit,
             applyUserTrustLevel,
             changeAppLanguage,
-            promptMaxTableSizeDialog,
+            showTableLimitsDialog,
+            closeTableLimitsDialog,
+            saveTableLimitsDialog,
             setNotificationIconDot,
             applyTableDensity,
             setNavCollapsed,

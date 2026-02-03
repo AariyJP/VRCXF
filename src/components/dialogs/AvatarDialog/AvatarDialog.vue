@@ -13,7 +13,7 @@
                         :src="avatarDialog.ref.thumbnailImageUrl"
                         class="cursor-pointer"
                         @click="showFullscreenImageDialog(avatarDialog.ref.imageUrl)"
-                        style="width: 160px; height: 120px; border-radius: 12px"
+                        style="width: 160px; height: 120px; border-radius: 12px; object-fit: cover"
                         loading="lazy" />
                 </div>
                 <div style="flex: 1; display: flex; align-items: flex-start; margin-left: 15px">
@@ -317,7 +317,7 @@
                                         <User class="size-4" />
                                         {{ t('dialog.avatar.actions.create_impostor') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem variant="destructive" @click="avatarDialogCommand('Trash2')">
+                                    <DropdownMenuItem variant="destructive" @click="avatarDialogCommand('Delete')">
                                         <Trash2 class="size-4" />
                                         {{ t('dialog.avatar.actions.delete') }}
                                     </DropdownMenuItem>
