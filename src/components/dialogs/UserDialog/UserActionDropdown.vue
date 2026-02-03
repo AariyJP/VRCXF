@@ -12,6 +12,16 @@
                     ><Star
                 /></Button>
             </TooltipWrapper>
+            <TooltipWrapper side="top" :content="t('dialog.user.actions.request_invite')">
+                <Button class="ml-2 rounded-full" size="icon-lg" variant="outline" @click="onCommand('Request Invite')" @contextmenu.prevent="onCommand('Request Invite Message')">
+                    <Mail />
+                </Button>
+            </TooltipWrapper>
+            <TooltipWrapper v-if="isGameRunning"side="top" :content="t('dialog.user.actions.invite')">
+                <Button class="ml-2 rounded-full" size="icon-lg" variant="outline" :disabled="!checkCanInvite(lastLocation.location)" @click="onCommand('Invite')" @contextmenu.prevent="onCommand('Invite Message')">
+                    <MessageSquare />
+                </Button>
+            </TooltipWrapper>
         </template>
         <DropdownMenu>
             <DropdownMenuTrigger as-child>

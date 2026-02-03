@@ -16,14 +16,14 @@
 
             <SidebarInset class="min-w-0 bg-sidebar">
                 <ResizablePanelGroup
-                    ref="panelGroupRef"
                     direction="horizontal"
+                    auto-save-id="vrcx-main-layout-right-sidebar"
                     :class="['group/main-layout flex-1 h-full min-w-0', { 'aside-collapsed': isAsideCollapsedStatic }]"
                     @layout="handleLayout">
                     <template #default="{ layout }">
                         <ResizablePanel :default-size="mainDefaultSize" :order="1">
                             <RouterView v-slot="{ Component }">
-                                <KeepAlive exclude="Charts">
+                                <KeepAlive exclude="ChartsInstance, ChartsMutual">
                                     <component :is="Component" />
                                 </KeepAlive>
                             </RouterView>
@@ -35,12 +35,10 @@
                                 :class="[
                                     isAsideCollapsed(layout) ? 'opacity-100' : 'opacity-0',
                                     'z-20 [&>div]:-translate-x-1/2'
-                                ]"
-                                @dragging="setIsDragging"></ResizableHandle>
+                                ]"></ResizableHandle>
                             <ResizablePanel
-                                ref="asidePanelRef"
                                 :default-size="asideDefaultSize"
-                                :max-size="asideMaxSize"
+                                :min-size="asideMinSize"
                                 :collapsed-size="0"
                                 collapsible
                                 :order="2"
@@ -115,7 +113,7 @@
     const router = useRouter();
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
-    const { navWidth, isNavCollapsed, asideWidth } = storeToRefs(appearanceSettingsStore);
+    const { navWidth, isNavCollapsed } = storeToRefs(appearanceSettingsStore);
 
     const sidebarOpen = computed(() => !isNavCollapsed.value);
 
@@ -164,18 +162,15 @@
     });
 
     const {
-        panelGroupRef,
         asideDefaultSize,
-        asideMaxSize,
+        asideMinSize,
         asideMaxPx,
         mainDefaultSize,
         handleLayout,
-        setIsDragging,
         isAsideCollapsed,
+        isAsideCollapsedStatic,
         isSideBarTabShow
     } = useMainLayoutResizable();
-
-    const isAsideCollapsedStatic = computed(() => !isSideBarTabShow.value || asideWidth.value === 0);
 
     watch(
         () => watchState.isLoggedIn,
