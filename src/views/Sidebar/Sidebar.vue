@@ -63,7 +63,7 @@
                 </Popover>
             </div>
             <div style="display: flex; align-items: center">
-                <TooltipWrapper side="bottom" :content="t('Edit Social Status')">
+                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.edit_status')">
                     <Button
                         class="rounded-full"
                         variant="ghost"
