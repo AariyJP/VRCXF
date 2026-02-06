@@ -15,7 +15,7 @@
                 </button>
             </div>
             <div class="flex items-center mx-1 gap-1">
-                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.pencil_social_status')">
+                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.edit_status')">
                     <Button
                         class="rounded-full"
                         variant="ghost"
