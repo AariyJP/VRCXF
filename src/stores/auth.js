@@ -76,12 +76,6 @@ export const useAuthStore = defineStore('Auth', () => {
             twoFactorAuthDialogVisible.value = false;
             if (isLoggedIn) {
                 updateStoredUser(currentUser);
-                new Noty({
-                    type: 'success',
-                    text: `Hello there, <strong>${escapeTag(
-                        currentUser.displayName
-                    )}</strong>!`
-                }).show();
             }
         },
         { flush: 'sync' }
