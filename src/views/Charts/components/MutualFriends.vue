@@ -4,8 +4,7 @@
             class="mt-0 flex min-h-[calc(100vh-140px)] flex-col items-center justify-betweenpt-12"
             ref="mutualGraphRef">
             <div class="flex items-center w-full">
-                <div
-                    class="options-container mt-2 mb-0 flex flex-wrap items-center gap-3 bg-transparent px-0 pb-2 shadow-none">
+                <div class="options-container flex flex-wrap items-center gap-3 bg-transparent pb-3 shadow-none">
                     <div class="flex flex-wrap items-center gap-2">
                         <TooltipWrapper :content="fetchButtonLabel" side="top">
                             <Button :disabled="fetchButtonDisabled" @click="startFetch">
@@ -24,14 +23,101 @@
                         </TooltipWrapper>
                     </div>
                 </div>
-                <div
-                    v-if="isFetching"
-                    class="mt-3 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] items-center gap-x-3 gap-y-2 rounded-md bg-transparent p-3 ml-auto">
-                    <div class="flex justify-between text-[13px]">
-                        <span>{{ t('view.charts.mutual_friend.progress.friends_processed') }}</span>
-                        <strong>{{ fetchState.processedFriends }} / {{ totalFriends }}</strong>
+                <div class="ml-auto flex items-center gap-2">
+                    <Sheet>
+                        <SheetTrigger as-child>
+                            <div>
+                                <TooltipWrapper :content="t('view.charts.mutual_friend.settings.title')" side="top">
+                                    <Button class="rounded-full" size="icon" variant="ghost">
+                                        <Settings />
+                                    </Button>
+                                </TooltipWrapper>
+                            </div>
+                        </SheetTrigger>
+                        <SheetContent side="right" class="w-90">
+                            <SheetHeader>
+                                <SheetTitle>{{ t('view.charts.mutual_friend.settings.title') }}</SheetTitle>
+                            </SheetHeader>
+
+                            <FieldGroup class="mt-4 gap-4 p-4">
+                                <Field>
+                                    <FieldLabel>{{
+                                        t('view.charts.mutual_friend.settings.layout_iterations')
+                                    }}</FieldLabel>
+                                    <FieldContent>
+                                        <div class="flex items-center gap-3">
+                                            <Slider
+                                                v-model="layoutIterationsModel"
+                                                :min="LAYOUT_ITERATIONS_MIN"
+                                                :max="LAYOUT_ITERATIONS_MAX"
+                                                :step="100" />
+                                            <span
+                                                class="min-w-12 text-right text-sm text-muted-foreground tabular-nums">
+                                                {{ layoutSettings.layoutIterations }}
+                                            </span>
+                                        </div>
+                                        <p class="mt-1 text-xs text-muted-foreground">
+                                            {{ t('view.charts.mutual_friend.settings.layout_iterations_help') }}
+                                        </p>
+                                    </FieldContent>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>{{
+                                        t('view.charts.mutual_friend.settings.layout_spacing')
+                                    }}</FieldLabel>
+                                    <FieldContent>
+                                        <div class="flex items-center gap-3">
+                                            <Slider
+                                                v-model="layoutSpacingModel"
+                                                :min="LAYOUT_SPACING_MIN"
+                                                :max="LAYOUT_SPACING_MAX"
+                                                :step="1" />
+                                            <span
+                                                class="min-w-12 text-right text-sm text-muted-foreground tabular-nums">
+                                                {{ layoutSettings.layoutSpacing }}
+                                            </span>
+                                        </div>
+                                        <p class="mt-1 text-xs text-muted-foreground">
+                                            {{ t('view.charts.mutual_friend.settings.layout_spacing_help') }}
+                                        </p>
+                                    </FieldContent>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>{{
+                                        t('view.charts.mutual_friend.settings.edge_curvature')
+                                    }}</FieldLabel>
+                                    <FieldContent>
+                                        <div class="flex items-center gap-3">
+                                            <Slider
+                                                v-model="edgeCurvatureModel"
+                                                :min="EDGE_CURVATURE_MIN"
+                                                :max="EDGE_CURVATURE_MAX"
+                                                :step="0.01" />
+                                            <span
+                                                class="min-w-12 text-right text-sm text-muted-foreground tabular-nums">
+                                                {{ edgeCurvatureLabel }}
+                                            </span>
+                                        </div>
+                                        <p class="mt-1 text-xs text-muted-foreground">
+                                            {{ t('view.charts.mutual_friend.settings.edge_curvature_help') }}
+                                        </p>
+                                    </FieldContent>
+                                </Field>
+                            </FieldGroup>
+                        </SheetContent>
+                    </Sheet>
+
+                    <div
+                        v-if="isFetching"
+                        class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] items-center rounded-md bg-transparent p-3 w-70">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="mr-1">{{ t('view.charts.mutual_friend.progress.friends_processed') }}</span>
+                            <strong>{{ fetchState.processedFriends }} / {{ totalFriends }}</strong>
+                        </div>
+                        <Progress :model-value="progressPercent" class="h-3" />
                     </div>
-                    <Progress :model-value="progressPercent" class="h-3" />
                 </div>
             </div>
 
@@ -56,18 +142,22 @@
 <script setup>
     defineOptions({ name: 'ChartsMutual' });
 
-    import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+    import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+    import { Field, FieldContent, FieldGroup, FieldLabel } from '@/components/ui/field';
     import { Empty, EmptyDescription, EmptyHeader } from '@/components/ui/empty';
     import { Button } from '@/components/ui/button';
     import { Progress } from '@/components/ui/progress';
+    import { Settings } from 'lucide-vue-next';
+    import { Slider } from '@/components/ui/slider';
     import { Spinner } from '@/components/ui/spinner';
     import { createNodeBorderProgram } from '@sigma/node-border';
-    import { onBeforeRouteLeave } from 'vue-router';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
     import BackToTop from '@/components/BackToTop.vue';
+    import EdgeCurveProgram from '@sigma/edge-curve';
     import Graph from 'graphology';
     import Sigma from 'sigma';
     import forceAtlas2 from 'graphology-layout-forceatlas2';
@@ -81,9 +171,7 @@
         useModalStore,
         useUserStore
     } from '../../../stores';
-    import { createRateLimiter, executeWithBackoff } from '../../../shared/utils';
     import { database } from '../../../service/database';
-    import { userRequest } from '../../../api';
     import { watchState } from '../../../service/watchState';
 
     const { t } = useI18n();
@@ -128,11 +216,74 @@
     let sigmaInstance = null;
     let currentGraph = null;
     let resizeObserver = null;
+    let pendingRender = null;
+    let pendingLayoutUpdate = null;
+
+    const LAYOUT_ITERATIONS_MIN = 300;
+    const LAYOUT_ITERATIONS_MAX = 1500;
+    const LAYOUT_SPACING_MIN = 8;
+    const LAYOUT_SPACING_MAX = 240;
+    const EDGE_CURVATURE_MIN = 0;
+    const EDGE_CURVATURE_MAX = 0.2;
+
+    const layoutSettings = reactive({
+        layoutIterations: 800,
+        layoutSpacing: 60,
+        edgeCurvature: 0.1
+    });
+
+    const layoutIterationsModel = computed({
+        get: () => [layoutSettings.layoutIterations],
+        set: (value) => {
+            layoutSettings.layoutIterations = clampNumber(
+                Math.round(value?.[0] ?? layoutSettings.layoutIterations),
+                LAYOUT_ITERATIONS_MIN,
+                LAYOUT_ITERATIONS_MAX
+            );
+        }
+    });
+
+    const layoutSpacingModel = computed({
+        get: () => [layoutSettings.layoutSpacing],
+        set: (value) => {
+            layoutSettings.layoutSpacing = clampNumber(
+                Math.round(value?.[0] ?? layoutSettings.layoutSpacing),
+                LAYOUT_SPACING_MIN,
+                LAYOUT_SPACING_MAX
+            );
+        }
+    });
+
+    const edgeCurvatureModel = computed({
+        get: () => [layoutSettings.edgeCurvature],
+        set: (value) => {
+            const next = clampNumber(
+                value?.[0] ?? layoutSettings.edgeCurvature,
+                EDGE_CURVATURE_MIN,
+                EDGE_CURVATURE_MAX
+            );
+            layoutSettings.edgeCurvature = Number(next.toFixed(2));
+        }
+    });
+
+    const edgeCurvatureLabel = computed(() => layoutSettings.edgeCurvature.toFixed(2));
+
+    let lastLayoutSpacing = layoutSettings.layoutSpacing;
 
     watch(isDarkMode, () => {
         if (!currentGraph) return;
         renderGraph(currentGraph, true);
     });
+
+    watch(
+        () => [layoutSettings.layoutIterations, layoutSettings.layoutSpacing],
+        () => scheduleLayoutUpdate({ runLayout: true })
+    );
+
+    watch(
+        () => layoutSettings.edgeCurvature,
+        () => scheduleLayoutUpdate({ runLayout: false })
+    );
 
     const isFetching = computed({
         get: () => status.isFetching,
@@ -240,10 +391,36 @@
         });
     }
 
-    function runLayout(graph) {
-        initPositions(graph);
+    function clampNumber(value, min, max) {
+        const normalized = Number.isFinite(value) ? value : min;
+        return Math.min(max, Math.max(min, normalized));
+    }
 
-        const iterations = Math.min(1200, Math.max(400, Math.round(Math.sqrt(graph.order) * 18)));
+    function lerp(a, b, t) {
+        return a + (b - a) * t;
+    }
+
+    function jitterPositions(graph, magnitude) {
+        graph.forEachNode((node, attrs) => {
+            if (!Number.isFinite(attrs.x) || !Number.isFinite(attrs.y)) return;
+            graph.mergeNodeAttributes(node, {
+                x: attrs.x + (Math.random() - 0.5) * magnitude,
+                y: attrs.y + (Math.random() - 0.5) * magnitude
+            });
+        });
+    }
+
+    // @ts-ignore
+    function runLayout(graph, { reinitialize } = {}) {
+        if (reinitialize) initPositions(graph);
+
+        let iterations = clampNumber(layoutSettings.layoutIterations, LAYOUT_ITERATIONS_MIN, LAYOUT_ITERATIONS_MAX);
+        iterations = Math.min(iterations, Math.round(Math.sqrt(graph.order) * 20));
+        const spacing = clampNumber(layoutSettings.layoutSpacing, LAYOUT_SPACING_MIN, LAYOUT_SPACING_MAX);
+        const t = (spacing - LAYOUT_SPACING_MIN) / (LAYOUT_SPACING_MAX - LAYOUT_SPACING_MIN);
+        const clampedT = clampNumber(t, 0, 1);
+        const deltaSpacing = spacing - lastLayoutSpacing;
+        lastLayoutSpacing = spacing;
 
         const inferred = forceAtlas2.inferSettings ? forceAtlas2.inferSettings(graph) : {};
         const settings = {
@@ -251,13 +428,42 @@
             barnesHutOptimize: true,
             barnesHutTheta: 0.8,
             strongGravityMode: true,
-            gravity: 1.2,
-            scalingRatio: 20,
+            gravity: lerp(1.6, 0.6, clampedT),
+            scalingRatio: spacing,
             slowDown: 2
         };
 
+        if (Math.abs(deltaSpacing) >= 8) jitterPositions(graph, lerp(0.5, 2.0, clampedT));
+
         forceAtlas2.assign(graph, { iterations, settings });
-        noverlap.assign(graph, { maxIterations: 200, settings: { ratio: 1.1, margin: 2 } });
+        const noverlapIterations = clampNumber(Math.round(Math.sqrt(graph.order) * 6), 200, 600);
+        noverlap.assign(graph, {
+            maxIterations: noverlapIterations,
+            settings: {
+                ratio: lerp(1.05, 1.35, clampedT),
+                margin: lerp(1, 8, clampedT)
+            }
+        });
+    }
+
+    function applyEdgeCurvature(graph) {
+        const curvature = clampNumber(layoutSettings.edgeCurvature, EDGE_CURVATURE_MIN, EDGE_CURVATURE_MAX);
+        const type = curvature > 0 ? 'curve' : 'line';
+
+        graph.forEachEdge((edge) => {
+            graph.mergeEdgeAttributes(edge, { curvature, type });
+        });
+    }
+
+    function scheduleLayoutUpdate({ runLayout: shouldRunLayout }) {
+        if (!currentGraph) return;
+        if (pendingLayoutUpdate) clearTimeout(pendingLayoutUpdate);
+        pendingLayoutUpdate = setTimeout(() => {
+            pendingLayoutUpdate = null;
+            applyEdgeCurvature(currentGraph);
+            if (shouldRunLayout) runLayout(currentGraph, { reinitialize: false });
+            renderGraph(currentGraph);
+        }, 100);
     }
 
     function assignCommunitiesAndColors(graph) {
@@ -328,8 +534,9 @@
         });
 
         if (graph.order > 1) {
-            runLayout(graph);
+            runLayout(graph, { reinitialize: true });
             assignCommunitiesAndColors(graph);
+            applyEdgeCurvature(graph);
         }
 
         graphNodeCount.value = graph.order;
@@ -338,6 +545,16 @@
 
     function renderGraph(graph, forceRecreate = false) {
         if (!graphContainerRef.value) return;
+        const container = graphContainerRef.value;
+        const { width, height } = container.getBoundingClientRect();
+        if (!width || !height) {
+            if (pendingRender) return;
+            pendingRender = requestAnimationFrame(() => {
+                pendingRender = null;
+                renderGraph(graph, forceRecreate);
+            });
+            return;
+        }
 
         const DEFAULT_LABEL_THRESHOLD = 10;
 
@@ -357,7 +574,7 @@
         }
 
         if (!sigmaInstance) {
-            sigmaInstance = new Sigma(graph, graphContainerRef.value, {
+            sigmaInstance = new Sigma(graph, container, {
                 renderLabels: true,
                 labelRenderedSizeThreshold: DEFAULT_LABEL_THRESHOLD,
                 labelColor: { color: labelColor },
@@ -365,6 +582,7 @@
                 zIndex: true,
                 defaultNodeType: 'border',
                 nodeProgramClasses: { border: NodeBorderProgram },
+                edgeProgramClasses: { curve: EdgeCurveProgram },
                 defaultDrawNodeHover: (ctx, data, settings) => {
                     if (!data.label) return;
 
@@ -512,11 +730,10 @@
         if (!watchState.isLoggedIn || !currentUser.value?.id) return;
         if (!watchState.isFriendsLoaded) return;
         if (isFetching.value || isLoadingSnapshot.value) return;
-        if (hasFetched.value && !status.needsRefetch) return;
+        if (hasFetched.value && !status.needsRefetch && currentGraph) return;
 
         isLoadingSnapshot.value = true;
-        toast.dismiss(loadingToastId.value);
-        loadingToastId.value = toast.loading(t('view.charts.mutual_friend.status.loading_cache'));
+        // loadingToastId.value = toast.info(t('view.charts.mutual_friend.status.loading_cache'));
 
         try {
             const snapshot = await database.getMutualGraphSnapshot();
@@ -554,7 +771,7 @@
             }
 
             applyGraph(mutualMap);
-            hasFetched.value = true;
+            chartsStore.markMutualGraphLoaded({ notify: false });
             fetchState.processedFriends = Math.min(mutualMap.size, totalFriends.value || mutualMap.size);
             status.friendSignature = totalFriends.value;
             status.needsRefetch = false;
@@ -562,7 +779,6 @@
             console.error('[MutualNetworkGraph] Failed to load cached mutual graph', err);
         } finally {
             isLoadingSnapshot.value = false;
-            toast.dismiss(loadingToastId.value);
         }
     }
 
@@ -598,148 +814,14 @@
             .catch(() => {});
     }
 
-    function cancelFetch() {
-        if (isFetching.value) status.cancelRequested = true;
-    }
-
-    const isCancelled = () => status.cancelRequested === true;
-
     async function startFetch() {
-        const rateLimiter = createRateLimiter({ limitPerInterval: 5, intervalMs: 1000 });
-
-        const fetchMutualFriends = async (userId) => {
-            const collected = [];
-            let offset = 0;
-
-            while (true) {
-                if (isCancelled()) break;
-                await rateLimiter.wait();
-                if (isCancelled()) break;
-
-                const args = await executeWithBackoff(
-                    () => {
-                        if (isCancelled()) throw new Error('cancelled');
-                        return userRequest.getMutualFriends({ userId, offset, n: 100 });
-                    },
-                    {
-                        maxRetries: 4,
-                        baseDelay: 500,
-                        shouldRetry: (err) => err?.status === 429 || (err?.message || '').includes('429')
-                    }
-                ).catch((err) => {
-                    if ((err?.message || '') === 'cancelled') return null;
-                    throw err;
-                });
-
-                if (!args || isCancelled()) break;
-
-                collected.push(...args.json);
-
-                if (args.json.length < 100) break;
-                offset += args.json.length;
-            }
-
-            return collected;
-        };
-
         if (isFetching.value || isOptOut.value) return;
-
-        if (!totalFriends.value) {
-            showStatusMessage(t('view.charts.mutual_friend.status.no_friends_to_process'), 'info');
-            return;
-        }
-
-        isFetching.value = true;
-        status.completionNotified = false;
-        status.needsRefetch = false;
-        status.cancelRequested = false;
-        hasFetched.value = false;
-        Object.assign(fetchState, { processedFriends: 0 });
-
-        const friendSnapshot = Array.from(friends.value.values());
-        const mutualMap = new Map();
-
-        let cancelled = false;
-
-        try {
-            for (let index = 0; index < friendSnapshot.length; index += 1) {
-                const friend = friendSnapshot[index];
-                if (!friend?.id) continue;
-
-                if (isCancelled()) {
-                    cancelled = true;
-                    break;
-                }
-
-                try {
-                    const mutuals = await fetchMutualFriends(friend.id);
-                    if (isCancelled()) {
-                        cancelled = true;
-                        break;
-                    }
-                    mutualMap.set(friend.id, { friend, mutuals });
-                } catch (err) {
-                    if ((err?.message || '') === 'cancelled' || isCancelled()) {
-                        cancelled = true;
-                        break;
-                    }
-                    console.warn('[MutualNetworkGraph] Skipping friend due to fetch error', friend.id, err);
-                    continue;
-                }
-
-                fetchState.processedFriends = index + 1;
-                if (status.cancelRequested) {
-                    cancelled = true;
-                    break;
-                }
-            }
-
-            if (cancelled) {
-                hasFetched.value = false;
-                showStatusMessage(t('view.charts.mutual_friend.messages.fetch_cancelled_graph_not_updated'), 'warning');
-                return;
-            }
-
-            applyGraph(mutualMap);
-            status.friendSignature = totalFriends.value;
-            status.needsRefetch = false;
-
-            try {
-                const entries = new Map();
-                mutualMap.forEach((value, friendId) => {
-                    if (!friendId) return;
-                    const normalizedFriendId = String(friendId);
-                    const collection = Array.isArray(value?.mutuals) ? value.mutuals : [];
-                    const ids = [];
-
-                    for (const entry of collection) {
-                        const identifier =
-                            typeof entry?.id === 'string'
-                                ? entry.id
-                                : entry?.id !== undefined && entry?.id !== null
-                                  ? String(entry.id)
-                                  : '';
-                        if (identifier && identifier !== 'usr_00000000-0000-0000-0000-000000000000')
-                            ids.push(identifier);
-                    }
-
-                    entries.set(normalizedFriendId, ids);
-                });
-                await database.saveMutualGraphSnapshot(entries);
-            } catch (persistErr) {
-                console.error('[MutualNetworkGraph] Failed to cache data', persistErr);
-            }
-
-            hasFetched.value = true;
-        } catch (err) {
-            console.error('[MutualNetworkGraph] fetch aborted', err);
-        } finally {
-            isFetching.value = false;
-            status.cancelRequested = false;
-        }
+        const mutualMap = await chartsStore.fetchMutualGraph();
+        if (!mutualMap) return;
+        applyGraph(mutualMap);
     }
 
-    onBeforeRouteLeave(() => {
-        chartsStore.resetMutualGraphState();
-    });
+    function cancelFetch() {
+        chartsStore.requestMutualGraphCancel();
+    }
 </script>
