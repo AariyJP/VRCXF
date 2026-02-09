@@ -15,8 +15,8 @@ Write-Host "Building .Net..." -ForegroundColor Green
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:RestorePackagesConfig=true -t:"Restore;Clean;Build" -m --self-contained
 
 Write-Host "Building Node.js..." -ForegroundColor Green
-Remove-Item -Path "node_modules" -Force -Recurse -ErrorAction SilentlyContinue
-npm ci --loglevel=error
+#Remove-Item -Path "node_modules" -Force -Recurse -ErrorAction SilentlyContinue
+#npm ci --loglevel=error
 $ErrorActionPreference = "Continue"
 npm run prod
 $ErrorActionPreference = "Stop"
