@@ -101,8 +101,7 @@ export const useInstanceStore = defineStore('Instance', () => {
         focusViewDisabled: false,
         inCache: false,
         cacheSize: '',
-        bundleSizes: {},
-        lastUpdated: ''
+        fileAnalysis: {}
     });
 
     /** @type {import('vue').Ref<any>} */
@@ -112,6 +111,7 @@ export const useInstanceStore = defineStore('Instance', () => {
 
     const previousInstancesInfoDialog = ref({
         instanceId: '',
+        lastId: '',
         visible: false
     });
 
@@ -129,13 +129,36 @@ export const useInstanceStore = defineStore('Instance', () => {
         groupRef: {
             id: '',
             name: ''
-        }
+        },
+        lastId: ''
+    });
+
+    const previousInstancesInfoState = ref({
+        sortBy: [{ id: 'created_at', desc: true }],
+        search: '',
+        pageSize: 10,
+        pageIndex: 0
     });
 
     const previousInstancesListState = ref({
-        user: { search: '', pageSize: 10, pageIndex: 0 },
-        world: { search: '', pageSize: 10, pageIndex: 0 },
-        group: { search: '', pageSize: 10, pageIndex: 0 }
+        user: {
+            sortBy: [{ id: 'created_at', desc: true }],
+            search: '',
+            pageSize: 10,
+            pageIndex: 0
+        },
+        world: {
+            sortBy: [{ id: 'created_at', desc: true }],
+            search: '',
+            pageSize: 10,
+            pageIndex: 0
+        },
+        group: {
+            sortBy: [{ id: 'created_at', desc: true }],
+            search: '',
+            pageSize: 10,
+            pageIndex: 0
+        }
     });
 
     const instanceJoinHistory = reactive(new Map());
@@ -362,8 +385,7 @@ export const useInstanceStore = defineStore('Instance', () => {
                 focusViewDisabled: false,
                 inCache: false,
                 cacheSize: '',
-                bundleSizes: {},
-                lastUpdated: ''
+                fileAnalysis: {}
             };
             currentInstanceLocation.value = {};
         } else if (instanceId !== currentInstanceLocation.value.tag) {
@@ -377,8 +399,7 @@ export const useInstanceStore = defineStore('Instance', () => {
                 focusViewDisabled: false,
                 inCache: false,
                 cacheSize: '',
-                bundleSizes: {},
-                lastUpdated: ''
+                fileAnalysis: {}
             };
             L = parseLocation(instanceId);
             currentInstanceLocation.value = L;
@@ -415,17 +436,7 @@ export const useInstanceStore = defineStore('Instance', () => {
                                 error
                             );
                         });
-                    getBundleDateSize(args.ref)
-                        .then((bundleSizes) => {
-                            currentInstanceWorld.value.bundleSizes =
-                                bundleSizes;
-                        })
-                        .catch((error) => {
-                            console.error(
-                                'Error fetching bundle sizes:',
-                                error
-                            );
-                        });
+                    getBundleDateSize(args.ref);
                     return args;
                 })
                 .catch((error) => {
@@ -1427,6 +1438,7 @@ export const useInstanceStore = defineStore('Instance', () => {
         currentInstanceLocation,
         queuedInstances,
         previousInstancesInfoDialog,
+        previousInstancesInfoState,
         previousInstancesListDialog,
         previousInstancesListState,
         instanceJoinHistory,

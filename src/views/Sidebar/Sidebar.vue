@@ -62,17 +62,7 @@
                     </PopoverContent>
                 </Popover>
             </div>
-            <div style="display: flex; align-items: center">
-                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.edit_status')">
-                    <Button
-                        class="rounded-full"
-                        variant="ghost"
-                        size="icon-sm"
-                        style="margin-right: 10px"
-                        @click="showSocialStatusDialog">
-                        <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
-                    </Button>
-                </TooltipWrapper>
+            <div>
                 <TooltipWrapper side="bottom" :content="t('side_panel.refresh_tooltip')">
                     <Button
                         class="rounded-full"
@@ -105,7 +95,7 @@
             </template>
             <template #friends>
                 <div class="h-full overflow-hidden">
-                    <FriendsSidebar @show-social-status-dialog="showSocialStatusDialog" />
+                    <FriendsSidebar />
                 </div>
             </template>
             <template #groups>
@@ -114,16 +104,12 @@
                 </div>
             </template>
         </TabsUnderline>
-        <SocialStatusDialog
-            :social-status-dialog="socialStatusDialog"
-            :social-status-history-table="socialStatusHistoryTable" />
     </div>
 </template>
 
 <script setup>
-    import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-    // import { computed, ref, watch } from 'vue';
+    import { computed, ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';
     import { DataTableEmpty } from '@/components/ui/data-table';
     import { Input } from '@/components/ui/input';
@@ -133,14 +119,8 @@
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import BackToTop from '@/components/BackToTop.vue';
-
-    import { useFriendStore, useGroupStore, useSearchStore, useUserStore } from '../../stores';
-    import { userImage, userStatusClass } from '../../shared/utils';
-
-    const SocialStatusDialog = defineAsyncComponent(
-        () => import('../../components/dialogs/UserDialog/SocialStatusDialog.vue')
-    );
+    import { useFriendStore, useGroupStore, useSearchStore } from '../../stores';
+    import { debounce, userImage } from '../../shared/utils';
 
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import GroupsSidebar from './components/GroupsSidebar.vue';
@@ -149,8 +129,7 @@
     const { refreshFriendsList } = useFriendStore();
     const { quickSearchRemoteMethod, quickSearchChange } = useSearchStore();
     const { quickSearchItems } = storeToRefs(useSearchStore());
-    const { inGameGroupOrder, groupInstances } = storeToRefs(useGroupStore());
-    const { currentUser } = storeToRefs(useUserStore());
+    const { groupInstances } = storeToRefs(useGroupStore());
     const { t } = useI18n();
     const sidebarTabs = computed(() => [
         { value: 'friends', label: t('side_panel.friends') },
@@ -160,43 +139,18 @@
     const quickSearchQuery = ref('');
     const isQuickSearchOpen = ref(false);
 
-    const socialStatusDialog = ref({
-        visible: false,
-        loading: false,
-        status: '',
-        statusDescription: ''
+    const runQuickSearch = debounce((value) => {
+        quickSearchRemoteMethod(value);
+    }, 200);
+
+    watch(quickSearchQuery, (value) => {
+        const query = String(value ?? '').trim();
+        if (!query) {
+            quickSearchRemoteMethod('');
+            return;
+        }
+        runQuickSearch(query);
     });
-    const socialStatusHistoryTable = ref({
-        data: [],
-        layout: 'table'
-    });
-
-    const friendsScrollAreaRef = ref(null);
-    const groupsScrollAreaRef = ref(null);
-    const friendsScrollTarget = ref(null);
-    const groupsScrollTarget = ref(null);
-
-    function resolveScrollViewport(scrollAreaComponentRef) {
-        // Our ScrollArea renders a DOM element root; the viewport is marked by data-slot.
-        const rootEl = scrollAreaComponentRef?.$el ?? null;
-        if (!rootEl || typeof rootEl.querySelector !== 'function') return null;
-        return rootEl.querySelector('[data-slot="scroll-area-viewport"]');
-    }
-
-    onMounted(async () => {
-        // Ensure child components are mounted before querying their DOM.
-        await nextTick();
-        friendsScrollTarget.value = resolveScrollViewport(friendsScrollAreaRef.value);
-        groupsScrollTarget.value = resolveScrollViewport(groupsScrollAreaRef.value);
-    });
-
-    watch(
-        quickSearchQuery,
-        (value) => {
-            quickSearchRemoteMethod(String(value ?? ''));
-        },
-        { immediate: true }
-    );
 
     function handleQuickSearchSelect(value) {
         if (!value) {
@@ -205,23 +159,6 @@
         isQuickSearchOpen.value = false;
         quickSearchQuery.value = '';
         quickSearchChange(String(value));
-    }
-
-    function showSocialStatusDialog() {
-        const D = socialStatusDialog.value;
-        const { statusHistory } = currentUser.value;
-        const statusHistoryArray = [];
-        for (let i = 0; i < statusHistory.length; ++i) {
-            const addStatus = {
-                no: i + 1,
-                status: statusHistory[i]
-            };
-            statusHistoryArray.push(addStatus);
-        }
-        socialStatusHistoryTable.value.data = statusHistoryArray;
-        D.status = currentUser.value.status;
-        D.statusDescription = currentUser.value.statusDescription;
-        D.visible = true;
     }
 </script>
 

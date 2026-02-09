@@ -60,9 +60,9 @@
                                     style="margin-right: 5px; margin-top: 5px">
                                     <Monitor class="h-4 w-4 x-tag-platform-pc" />
                                     <span
-                                        v-if="worldDialog.bundleSizes['standalonewindows']"
+                                        v-if="worldDialog.fileAnalysis.standalonewindows?._fileSize"
                                         :class="['x-grey', 'x-tag-platform-pc', 'x-tag-border-left']">
-                                        {{ worldDialog.bundleSizes['standalonewindows'].fileSize }}
+                                        {{ worldDialog.fileAnalysis.standalonewindows._fileSize }}
                                     </span>
                                 </Badge>
                             </TooltipWrapper>
@@ -74,9 +74,9 @@
                                     style="margin-right: 5px; margin-top: 5px">
                                     <Smartphone class="h-4 w-4 x-tag-platform-quest" />
                                     <span
-                                        v-if="worldDialog.bundleSizes['android']"
+                                        v-if="worldDialog.fileAnalysis.android?._fileSize"
                                         :class="['x-grey', 'x-tag-platform-quest', 'x-tag-border-left']">
-                                        {{ worldDialog.bundleSizes['android'].fileSize }}
+                                        {{ worldDialog.fileAnalysis.android._fileSize }}
                                     </span>
                                 </Badge>
                             </TooltipWrapper>
@@ -88,9 +88,9 @@
                                     style="margin-right: 5px; margin-top: 5px">
                                     <Apple class="h-4 w-4 text-[#8e8e93]" />
                                     <span
-                                        v-if="worldDialog.bundleSizes['ios']"
+                                        v-if="worldDialog.fileAnalysis.ios?._fileSize"
                                         :class="['x-grey', 'x-tag-border-left', 'text-[#8e8e93]', 'border-[#8e8e93]']">
-                                        {{ worldDialog.bundleSizes['ios'].fileSize }}
+                                        {{ worldDialog.fileAnalysis.ios._fileSize }}
                                     </span>
                                 </Badge>
                             </TooltipWrapper>
@@ -352,7 +352,7 @@
                         <template
                             v-if="isAgeGatedInstancesVisible || !(room.ageGate || room.location?.includes('~ageGate'))">
                             <div style="margin: 5px 0">
-                                <div class="flex-align-center">
+                                <div class="flex items-center">
                                     <LocationWorld
                                         class="text-sm"
                                         :locationobject="room.$location"
@@ -455,7 +455,7 @@
                                                 <Button
                                                     class="rounded-full text-xs"
                                                     size="icon-sm"
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     @click.stop
                                                     ><Copy class="h-4 w-4" />
                                                 </Button>
@@ -566,13 +566,26 @@
                         </div>
                         <div class="x-friend-item" style="cursor: default">
                             <div class="detail">
-                                <span class="name">
+                                <span class="name" style="display: inline">
                                     {{ t('dialog.world.info.last_updated') }}
                                 </span>
-                                <span v-if="worldDialog.lastUpdated" class="extra">
-                                    {{ formatDateFilter(worldDialog.lastUpdated, 'long') }}
-                                </span>
-                                <span v-else class="extra">
+                                <TooltipWrapper
+                                    v-if="Object.keys(worldDialog.fileAnalysis).length"
+                                    side="top"
+                                    style="margin-left: 5px">
+                                    <template #content>
+                                        <template
+                                            v-for="(created_at, platform) in worldDialogPlatformCreatedAt"
+                                            :key="platform">
+                                            <div class="flex justify-between w-full">
+                                                <span class="mr-1">{{ platform }}:</span>
+                                                <span>{{ formatDateFilter(created_at, 'long') }}</span>
+                                            </div>
+                                        </template>
+                                    </template>
+                                    <ChevronDown class="inline-block" />
+                                </TooltipWrapper>
+                                <span class="extra">
                                     {{ formatDateFilter(worldDialog.ref.updated_at, 'long') }}
                                 </span>
                             </div>
@@ -693,14 +706,14 @@
                     <Button
                         class="rounded-full mr-2"
                         size="icon-sm"
-                        variant="outline"
+                        variant="ghost"
                         @click="refreshWorldDialogTreeData()">
                         <RefreshCw />
                     </Button>
                     <Button
                         class="rounded-full"
                         size="icon-sm"
-                        variant="outline"
+                        variant="ghost"
                         @click="downloadAndSaveJson(worldDialog.id, worldDialog.ref)">
                         <Download />
                     </Button>
@@ -712,7 +725,7 @@
                         show-icon />
                     <br />
                     <vue-json-pretty
-                        v-if="Object.keys(worldDialog.fileAnalysis).length > 0"
+                        v-if="Object.keys(worldDialog.fileAnalysis).length"
                         :data="worldDialog.fileAnalysis"
                         :deep="2"
                         :theme="isDarkMode ? 'dark' : 'light'"
@@ -779,6 +792,7 @@
 
     import {
         commaNumber,
+        compareUnityVersion,
         deleteVRChatCache,
         downloadAndSaveJson,
         formatDateFilter,
@@ -922,18 +936,40 @@
         const platforms = [];
         if (ref.unityPackages) {
             for (const unityPackage of ref.unityPackages) {
+                if (!compareUnityVersion(unityPackage.unitySortNumber)) {
+                    continue;
+                }
                 let platform = 'PC';
                 if (unityPackage.platform === 'standalonewindows') {
                     platform = 'PC';
                 } else if (unityPackage.platform === 'android') {
                     platform = 'Android';
                 } else if (unityPackage.platform) {
-                    ({ platform } = unityPackage);
+                    platform = unityPackage.platform;
                 }
                 platforms.unshift(`${platform}/${unityPackage.unityVersion}`);
             }
         }
         return platforms.join(', ');
+    });
+
+    const worldDialogPlatformCreatedAt = computed(() => {
+        const { ref } = worldDialog.value;
+        if (!ref.unityPackages) {
+            return null;
+        }
+        let newest = {};
+        for (const unityPackage of ref.unityPackages) {
+            if (unityPackage.variant && unityPackage.variant !== 'standard' && unityPackage.variant !== 'security') {
+                continue;
+            }
+            const platform = unityPackage.platform;
+            const createdAt = unityPackage.created_at;
+            if (!newest[platform] || new Date(createdAt) > new Date(newest[platform])) {
+                newest[platform] = createdAt;
+            }
+        }
+        return newest;
     });
 
     watch(
@@ -1390,10 +1426,3 @@
         }
     );
 </script>
-
-<style scoped>
-    .flex-align-center {
-        display: flex;
-        align-items: center;
-    }
-</style>
