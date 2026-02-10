@@ -530,7 +530,7 @@ function createTray() {
             }
         },
         {
-            label: 'Quit VRCX',
+            label: 'Quit VRCXF',
             type: 'normal',
             click: function () {
                 appIsQuitting = true;
@@ -538,7 +538,7 @@ function createTray() {
             }
         }
     ]);
-    tray.setToolTip('VRCX');
+    tray.setToolTip('VRCXF');
     tray.setContextMenu(contextMenu);
 
     tray.on('click', () => {
