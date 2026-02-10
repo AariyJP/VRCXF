@@ -89,13 +89,13 @@ namespace VRCX
             //
             this.TrayMenu_Quit.Name = "TrayMenu_Quit";
             this.TrayMenu_Quit.Size = new Size(131, 22);
-            this.TrayMenu_Quit.Text = "Quit VRCX";
+            this.TrayMenu_Quit.Text = "Quit VRCXF";
             this.TrayMenu_Quit.Click += new EventHandler(this.TrayMenu_Quit_Click);
             //
             // TrayIcon
             //
             this.TrayIcon.ContextMenuStrip = this.TrayMenu;
-            this.TrayIcon.Text = "VRCX";
+            this.TrayIcon.Text = "VRCXF";
             this.TrayIcon.Visible = true;
             this.TrayIcon.MouseClick += new MouseEventHandler(this.TrayIcon_MouseClick);
             //
@@ -107,7 +107,7 @@ namespace VRCX
             this.MinimumSize = new Size(320, 240);
             this.Name = "MainForm";
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = Program.Version;
+            this.Text = "VRCX Forked by AariyJP";
             this.FormClosing += new FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new EventHandler(this.MainForm_Load);

@@ -99,7 +99,7 @@ namespace VRCX
             var whiteColor = 0xFFFFFF;
             var blackColor = 0x000000;
             var greyColor = 0x2B2B2B;
-            var redColor = 0x000014;
+            var redColor = 0x00001A;
             
             var isDark = currentTheme > 0 ? 1 : 0;
             if (PInvoke.DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref isDark, sizeof(int)) != 0)
