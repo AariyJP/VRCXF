@@ -240,6 +240,9 @@
         initialPagination: {
             pageIndex: 0,
             pageSize: pageSize.value
+        },
+        tableOptions: {
+            autoResetPageIndex: false
         }
     });
 
@@ -314,6 +317,10 @@
 
                 showGroupDialog(ids[0]);
                 // ids[1] cal_ is the event id
+                break;
+            case 'openNotificationLink':
+            default:
+                toast.error('Unsupported notification link type');
                 break;
         }
     }
