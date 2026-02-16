@@ -13,7 +13,6 @@ concurrency:
 permissions:
     id-token: write
     contents: write
-    attestations: write
 
 jobs:
     set_version:
@@ -397,6 +396,10 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                   name: Electron-MacDmg-arm64
+
+            - name: Generate hashes
+              run: |
+                  sha256sum "VRCX_${{ needs.set_version.outputs.version }}_Setup.exe" "VRCX_${{ needs.set_version.outputs.version }}_x64.AppImage" > "SHA256SUMS.txt"
             - name: Create Release
               id: create_release
               uses: softprops/action-gh-release@v2
@@ -411,8 +414,3 @@ jobs:
                       VRCX_${{ needs.set_version.outputs.version }}_x64.dmg
                       VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg
                   body: 'VRCXF ${{ needs.set_version.outputs.version }}'
-            - name: Create Attestation
-              uses: actions/attest-build-provenance@v3
-              with:
-                  subject-path: |
-                      VRCX_${{ needs.set_version.outputs.version }}*
