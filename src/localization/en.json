@@ -43,7 +43,7 @@
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",
-        "github": "VRCXF on GitHub",
+        "github": "VRCX on GitHub",
         "discord": "Join our Discord",
         "whats_new": "What's New?",
         "update_available": "Update available",
@@ -494,7 +494,7 @@
                     "support": "Support"
                 },
                 "vrcx_updater": {
-                    "header": "VRCXF Updater",
+                    "header": "VRCX Updater",
                     "change_build": "Change build",
                     "update_action": "Update action",
                     "auto_update_off": "Off",
@@ -1894,13 +1894,13 @@
             "add_item": "Add Item"
         },
         "vrcx_updater": {
-            "header": "VRCXF Updater",
-            "latest_version": "VRCXF is up to date.",
-            "ready_for_update": "Ready for install, restart VRCXF to apply.",
-            "branch_stable": "Official",
-            "branch_nightly": "Forked",
-            "nightly_title": "Forked builds",
-            "nightly_notice": "Forked builds are for testing. For stability, use official build.",
+            "header": "VRCX Updater",
+            "latest_version": "VRCX is up to date.",
+            "ready_for_update": "Ready for install, restart VRCX to apply.",
+            "branch_stable": "Stable",
+            "branch_nightly": "Nightly",
+            "nightly_title": "Nightly builds",
+            "nightly_notice": "Nightly builds are for testing. For stability, use stable build.",
             "release": "Release",
             "download": "Download",
             "install": "Install",

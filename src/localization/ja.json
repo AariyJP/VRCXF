@@ -494,7 +494,7 @@
                     "support": "サポート"
                 },
                 "vrcx_updater": {
-                    "header": "VRCXFアップデーター",
+                    "header": "VRCXアップデーター",
                     "change_build": "ビルドを変更",
                     "update_action": "更新がリリースされたとき",
                     "auto_update_off": "何もしない",

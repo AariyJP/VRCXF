@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="options-container">
-            <span class="header">{{ t('view.settings.general.vrcx_updater.header') }}</span>
+            <span class="header">VRCXF Updater</span>
             <div class="options-container-item">
                 <Button size="sm" variant="outline" class="mr-2" @click="showChangeLogDialog">{{
                     t('view.settings.general.vrcx_updater.change_log')

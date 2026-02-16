@@ -139,7 +139,7 @@
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel>{{ t('nav_menu.get_help') }}</DropdownMenuLabel>
                             <DropdownMenuItem @click="handleSupportLink('github')">
-                                <span>{{ t('nav_menu.github') }}</span>
+                                <span>VRCXF on GitHub</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem @click="handleSupportLink('discord')">
                                 <span>{{ t('nav_menu.discord') }}</span>
