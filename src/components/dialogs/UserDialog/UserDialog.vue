@@ -275,7 +275,7 @@
         } else {
             return getUserStatusText(user.status);
         }
-        if (user.status && user.status !== 'active') {
+        if (user.status) {
             state += ` (${getUserStatusText(user.status)})`;
         }
         return state;
@@ -287,7 +287,7 @@
      */
     function getUserStatusText(status) {
         if (status === 'active') {
-            return t('dialog.user.status.active');
+            return t('dialog.user.status.online');
         }
         if (status === 'join me') {
             return t('dialog.user.status.join_me');
