@@ -32,7 +32,7 @@
                     variant="ghost"
                     class="mr-2"
                     @click="openExternalLink('https://github.com/AariyJP/VRCXF/releases')">
-                    {{ t('nav_menu.github') }}
+                    {{ t('dialog.change_log.github') }}
                 </Button>
                 <!-- <Button variant="outline" class="mr-2" @click="openExternalLink('https://patreon.com/Natsumi_VRCX')">
                     {{ t('dialog.change_log.donate') }}

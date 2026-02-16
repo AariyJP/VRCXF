@@ -69,7 +69,7 @@
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",
-        "github": "VRCXF on GitHub",
+        "github": "VRCX on GitHub",
         "discord": "Join our Discord",
         "changelog": "Changelog",
         "update_available": "Update available",
@@ -766,7 +766,7 @@
                     "support": "Support"
                 },
                 "vrcx_updater": {
-                    "header": "VRCXF Updater",
+                    "header": "VRCX Updater",
                     "change_build": "Change build",
                     "update_action": "Update action",
                     "auto_update_off": "Off",
