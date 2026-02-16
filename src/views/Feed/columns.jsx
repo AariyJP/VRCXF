@@ -349,44 +349,29 @@ export const columns = [
             }
 
             if (type === 'Status') {
-                if (
-                    original.statusDescription ===
-                    original.previousStatusDescription
-                ) {
-                    return (
-                        <div class="flex items-center">
-                            <i
-                                class={[
-                                    'x-user-status',
-                                    statusClass(original.previousStatus)
-                                ]}
-                            ></i>
-                            <span class="mx-2">
-                                <ArrowRight />
-                            </span>
-                            <i
-                                class={[
-                                    'x-user-status',
-                                    statusClass(original.status)
-                                ]}
-                            ></i>
-                        </div>
-                    );
-                }
-
                 return (
-                    <div class="w-full min-w-0 truncate">
+                    <div class="flex items-center text-sm">
                         <i
-                            style="display:-webkit-inline-box"
                             class={[
-                                'x-user-status',
-                                'mr-2',
-                                statusClass(original.status)
+                                'x-user-status opacity-75',
+                                statusClass(original.previousStatus)
                             ]}
                         ></i>
-                        <span style="display:-webkit-inline-box">
-                            {original.statusDescription}
+                        <span class="ml-1 opacity-75">
+                            {original.previousStatusDescription}
                         </span>
+                        <br />
+                        <span class="mx-2">
+                            <ArrowRight />
+                        </span>
+                        <i
+                            class={[
+                                'x-user-status',
+                                statusClass(original.status),
+                                'mx-1'
+                            ]}
+                        ></i>
+                        <span>{original.statusDescription}</span>
                     </div>
                 );
             }
