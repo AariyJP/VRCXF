@@ -2,7 +2,7 @@
     <Dialog v-model:open="VRCXUpdateDialog.visible">
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{{ t('dialog.vrcx_updater.header') }}</DialogTitle>
+                <DialogTitle>VRCXF Updater</DialogTitle>
             </DialogHeader>
             <div style="margin-top: 15px">
                 <template v-if="updateInProgress">
@@ -19,17 +19,8 @@
                     <Tabs :model-value="branch" class="w-full" @update:modelValue="handleBranchChange">
                         <TabsList class="grid w-full grid-cols-2">
                             <TabsTrigger value="Stable">{{ t('dialog.vrcx_updater.branch_stable') }}</TabsTrigger>
-                            <TabsTrigger value="Nightly">{{ t('dialog.vrcx_updater.branch_nightly') }}</TabsTrigger>
+                            <TabsTrigger value="Nightly">Forked</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="Nightly">
-                            <Alert variant="destructive">
-                                <AlertCircle class="text-muted-foreground" />
-                                <AlertTitle>{{ t('dialog.vrcx_updater.nightly_title') }}</AlertTitle>
-                                <AlertDescription>
-                                    {{ t('dialog.vrcx_updater.nightly_notice') }}
-                                </AlertDescription>
-                            </Alert>
-                        </TabsContent>
                     </Tabs>
                     <FieldGroup class="mt-3">
                         <Field>
