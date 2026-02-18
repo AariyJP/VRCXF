@@ -64,12 +64,7 @@
             </div>
             <div class="flex items-center mx-1 gap-1">
                 <TooltipWrapper side="bottom" :content="t('dialog.user.actions.edit_status')">
-                    <Button
-                        class="rounded-full"
-                        variant="ghost"
-                        size="icon-sm"
-                        style="margin-right: 10px"
-                        @click="showSocialStatusDialog">
+                    <Button class="rounded-full" variant="ghost" size="icon-sm" @click="showSocialStatusDialog">
                         <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
                     </Button>
                 </TooltipWrapper>
@@ -274,8 +269,8 @@
         SelectTrigger,
         SelectValue
     } from '@/components/ui/select';
-    import { Bell, RefreshCw, Settings } from 'lucide-vue-next';
     import { computed, defineAsyncComponent, ref, watch } from 'vue';
+    import { Bell, RefreshCw, Settings } from 'lucide-vue-next';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { Button } from '@/components/ui/button';
     import { DataTableEmpty } from '@/components/ui/data-table';
