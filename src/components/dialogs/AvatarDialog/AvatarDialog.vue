@@ -109,7 +109,7 @@
                                 v-if="avatarDialog.ref.styles?.primary || avatarDialog.ref.styles?.secondary"
                                 variant="outline"
                                 style="margin-right: 5px; margin-top: 5px"
-                                >Styles
+                                >{{ t('view.favorite.avatars.styles') }}
                                 <span v-if="avatarDialog.ref.styles.primary" :class="['x-grey', 'x-tag-border-left']">{{
                                     avatarDialog.ref.styles.primary
                                 }}</span>
@@ -808,10 +808,24 @@
                 showFavoriteDialog('avatar', D.id);
                 break;
             default:
+                const commandLabelMap = {
+                    'Delete Favorite': t('dialog.avatar.actions.favorite_tooltip'),
+                    'Select Fallback Avatar': t('dialog.avatar.actions.select_fallback'),
+                    'Block Avatar': t('dialog.avatar.actions.block'),
+                    'Unblock Avatar': t('dialog.avatar.actions.unblock'),
+                    'Make Public': t('dialog.avatar.actions.make_public'),
+                    'Make Private': t('dialog.avatar.actions.make_private'),
+                    Delete: t('dialog.avatar.actions.delete'),
+                    'Delete Imposter': t('dialog.avatar.actions.delete_impostor'),
+                    'Create Imposter': t('dialog.avatar.actions.create_impostor'),
+                    'Regenerate Imposter': t('dialog.avatar.actions.regenerate_impostor')
+                };
                 modalStore
                     .confirm({
-                        title: 'Confirm',
-                        description: `Continue? ${command}`
+                        title: t('confirm.title'),
+                        description: t('confirm.command_question', {
+                            command: commandLabelMap[command] ?? command
+                        })
                     })
                     .then(({ ok }) => {
                         if (!ok) return;
@@ -827,7 +841,7 @@
                                         avatarId: D.id
                                     })
                                     .then((args) => {
-                                        toast.success('Fallback avatar changed');
+                                        toast.success(t('message.avatar.fallback_changed'));
                                         return args;
                                     });
                                 break;
@@ -840,7 +854,7 @@
                                     .then((args) => {
                                         // 'AVATAR-MODERATION';
                                         applyAvatarModeration(args.json);
-                                        toast.success('Avatar blocked');
+                                        toast.success(t('message.avatar.blocked'));
                                         return args;
                                     });
                                 break;
@@ -869,7 +883,7 @@
                                     })
                                     .then((args) => {
                                         applyAvatar(args.json);
-                                        toast.success('Avatar updated to public');
+                                        toast.success(t('message.avatar.updated_public'));
                                         return args;
                                     });
                                 break;
@@ -881,7 +895,7 @@
                                     })
                                     .then((args) => {
                                         applyAvatar(args.json);
-                                        toast.success('Avatar updated to private');
+                                        toast.success(t('message.avatar.updated_private'));
                                         return args;
                                     });
                                 break;
@@ -904,7 +918,7 @@
                                             sortUserDialogAvatars(array);
                                         }
 
-                                        toast.success('Avatar deleted');
+                                        toast.success(t('message.avatar.deleted'));
                                         D.visible = false;
                                         return args;
                                     });
@@ -915,7 +929,7 @@
                                         avatarId: D.id
                                     })
                                     .then((args) => {
-                                        toast.success('Imposter deleted');
+                                        toast.success(t('message.avatar.impostor_deleted'));
                                         showAvatarDialog(D.id);
                                         return args;
                                     });
@@ -926,7 +940,7 @@
                                         avatarId: D.id
                                     })
                                     .then((args) => {
-                                        toast.success('Imposter queued for creation');
+                                        toast.success(t('message.avatar.impostor_queued'));
                                         return args;
                                     });
                                 break;
@@ -945,7 +959,7 @@
                                                 avatarId: D.id
                                             })
                                             .then((args) => {
-                                                toast.success('Imposter deleted and queued for creation');
+                                                toast.success(t('message.avatar.impostor_regenerated'));
                                                 return args;
                                             });
                                     });

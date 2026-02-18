@@ -1095,9 +1095,13 @@
             .confirm({
                 description: `Are you sure you want to unfavorite ${total} favorites?
             This action cannot be undone.`,
-                title: `Trash2 ${total} favorites?`
+                title: `Delete ${total} favorites?`
             })
-            .then(() => bulkUnfavoriteSelectedWorlds([...selectedFavoriteWorlds.value]))
+            .then(({ ok }) => {
+                if (ok) {
+                    bulkUnfavoriteSelectedWorlds([...selectedFavoriteWorlds.value]);
+                }
+            })
             .catch(() => {});
     }
 
@@ -1133,7 +1137,7 @@
                     favoriteGroupId: args.json.id
                 }
             });
-            toast.success('Group visibility changed');
+            toast.success(t('message.group.visibility_updated'));
             if (menuKey) {
                 handleGroupMenuVisible(menuKey, false);
             }
@@ -1170,24 +1174,30 @@
     function promptLocalWorldFavoriteGroupDelete(group) {
         modalStore
             .confirm({
-                description: `Trash2 Group? ${group}`,
-                title: 'Confirm'
+                description: t('confirm.delete_group', { name: group }),
+                title: t('confirm.title')
             })
-            .then(() => deleteLocalWorldFavoriteGroup(group))
+            .then(({ ok }) => {
+                if (ok) {
+                    deleteLocalWorldFavoriteGroup(group);
+                }
+            })
             .catch(() => {});
     }
 
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
-                description: 'Continue? Clear Group',
-                title: 'Confirm'
+                description: t('confirm.clear_group'),
+                title: t('confirm.title')
             })
-            .then(() => {
-                favoriteRequest.clearFavoriteGroup({
-                    type: ctx.type,
-                    group: ctx.name
-                });
+            .then(({ ok }) => {
+                if (ok) {
+                    favoriteRequest.clearFavoriteGroup({
+                        type: ctx.type,
+                        group: ctx.name
+                    });
+                }
             })
             .catch(() => {});
     }

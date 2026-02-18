@@ -142,7 +142,7 @@
 
     const emit = defineEmits(['lookup-user']);
 
-    const { friends } = storeToRefs(useFriendStore());
+    const { friends, allFavoriteFriendIds } = storeToRefs(useFriendStore());
     const modalStore = useModalStore();
     const { getAllUserStats, getAllUserMutualCount, confirmDeleteFriend, handleFriendDelete } = useFriendStore();
     const { randomUserColours } = storeToRefs(useAppearanceSettingsStore());
@@ -286,7 +286,7 @@
         }
         for (const ctx of friends.value.values()) {
             if (!ctx.ref) continue;
-            if (friendsListSearchFilterVIP.value && !ctx.isVIP) continue;
+            if (friendsListSearchFilterVIP.value && !allFavoriteFriendIds.value.has(ctx.id)) continue;
             if (query) {
                 let match = false;
                 if (!match && filters.includes('Display Name') && ctx.ref.displayName) {
@@ -360,6 +360,7 @@
 
     async function bulkUnfriendSelection() {
         if (!selectedFriends.value.size) return;
+        const selectedFriendsCount = selectedFriends.value.size;
         for (const item of friendsListDisplayData.value) {
             if (selectedFriends.value.has(item.id)) {
                 console.log(`Unfriending ${item.displayName} (${item.id})`);
@@ -368,7 +369,7 @@
             }
         }
         modalStore.alert({
-            description: `Unfriended ${selectedFriends.value.size} friends.`,
+            description: `Unfriended ${selectedFriendsCount} friends.`,
             title: 'Bulk Unfriend Complete'
         });
         selectedFriends.value.clear();

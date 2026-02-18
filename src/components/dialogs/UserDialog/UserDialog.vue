@@ -146,11 +146,12 @@
                                     v-if="userDialog.ref.profilePicOverride && !userDialog.ref.currentAvatarImageUrl"
                                     side="top"
                                     :content="t('dialog.user.info.vrcplus_hides_avatar')">
-                                    <Info />
+                                    <Info class="inline-block" />
                                 </TooltipWrapper>
                             </span>
                             <div class="extra">
                                 <AvatarInfo
+                                    :key="userDialog.id"
                                     :imageurl="userDialog.ref.currentAvatarImageUrl"
                                     :userid="userDialog.id"
                                     :avatartags="userDialog.ref.currentAvatarTags"
@@ -518,20 +519,6 @@
                             </SelectContent>
                         </Select>
                     </div>
-                </div>
-                <div
-                    v-if="mutualFriendsError"
-                    @click="openExternalLink('https://docs.vrchat.com/docs/vrchat-202542#mutuals')"
-                    style="
-                        margin-top: 20px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        color: #f56c6c;
-                        cursor: pointer;
-                    ">
-                    <AlertTriangle style="margin-right: 5px" />
-                    <span>Mutual Friends unavailable due to VRChat staged rollout, click for more info</span>
                 </div>
                 <ul class="x-friend-list" style="margin-top: 10px; overflow: auto; max-height: 250px; min-width: 130px">
                     <li
@@ -1347,12 +1334,14 @@
             { value: 'Info', label: t('dialog.user.info.header') },
             { value: 'Groups', label: t('dialog.user.groups.header') },
             { value: 'Worlds', label: t('dialog.user.worlds.header') },
-            { value: 'favorite-worlds', label: t('dialog.user.favorite_worlds.header') },
             { value: 'Avatars', label: t('dialog.user.avatars.header') },
             { value: 'JSON', label: t('dialog.user.json.header') }
         ];
-        if (userDialog.value.id !== currentUser.value.id && !currentUser.value.hasSharedConnectionsOptOut) {
-            tabs.splice(1, 0, { value: 'mutual', label: t('dialog.user.mutual_friends.header') });
+        if (userDialog.value.id !== currentUser.value.id) {
+            if (!currentUser.value.hasSharedConnectionsOptOut) {
+                tabs.splice(1, 0, { value: 'mutual', label: t('dialog.user.mutual_friends.header') });
+            }
+            tabs.splice(3, 0, { value: 'favorite-worlds', label: t('dialog.user.favorite_worlds.header') });
         }
         return tabs;
     });
@@ -1477,7 +1466,6 @@
 
     const isEditNoteAndMemoDialogVisible = ref(false);
     const vrchatCredit = ref(null);
-    const mutualFriendsError = ref(false);
     const treeData = ref({});
 
     const userDialogAvatars = computed(() => {
@@ -2190,7 +2178,6 @@
                     const mutualIds = userDialog.value.mutualFriends.map((u) => u.id);
                     database.updateMutualsForFriend(userId, mutualIds);
                 }
-                mutualFriendsError.value = !success;
             }
         });
     }
@@ -2402,8 +2389,10 @@
     function resetHome() {
         modalStore
             .confirm({
-                description: 'Continue? Reset Home',
-                title: 'Confirm'
+                description: t('confirm.command_question', {
+                    command: t('dialog.user.actions.reset_home')
+                }),
+                title: t('confirm.title')
             })
             .then(({ ok }) => {
                 if (!ok) return;

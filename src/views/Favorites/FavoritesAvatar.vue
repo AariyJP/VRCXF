@@ -40,7 +40,7 @@
                         <DropdownMenuContent class="favorites-dropdown">
                             <li class="favorites-dropdown__control" @click.stop>
                                 <div class="favorites-dropdown__control-header">
-                                    <span>Scale</span>
+                                    <span>{{ t('view.friends_locations.scale') }}</span>
                                     <span class="favorites-dropdown__control-value">{{ avatarCardScalePercent }}%</span>
                                 </div>
                                 <Slider
@@ -52,7 +52,7 @@
                             </li>
                             <li class="favorites-dropdown__control" @click.stop>
                                 <div class="favorites-dropdown__control-header">
-                                    <span>Spacing</span>
+                                    <span>{{ t('view.friends_locations.spacing') }}</span>
                                     <span class="favorites-dropdown__control-value">
                                         {{ avatarCardSpacingPercent }}%
                                     </span>
@@ -294,7 +294,7 @@
                         </div>
                         <div class="group-section">
                             <div class="group-section__header">
-                                <span>Local History</span>
+                                <span>{{ t('view.favorite.avatars.local_history') }}</span>
                                 <DropdownMenu
                                     :open="activeGroupMenu === historyGroupMenuKey"
                                     @update:open="handleGroupMenuVisible(historyGroupMenuKey, $event)">
@@ -318,7 +318,9 @@
                                     ]"
                                     @click="handleGroupClick('history', historyGroupKey)">
                                     <div class="group-item__top">
-                                        <span class="group-item__name">Local History</span>
+                                        <span class="group-item__name">{{
+                                            t('view.favorite.avatars.local_history')
+                                        }}</span>
                                         <span class="group-item__count">{{ avatarHistory.length }}/100</span>
                                     </div>
                                 </div>
@@ -350,7 +352,7 @@
                                         <small>{{ avatarHistory.length }}/100</small>
                                     </span>
                                 </template>
-                                <span v-else>No Group Selected</span>
+                                <span v-else>{{ t('view.favorite.avatars.no_group_selected') }}</span>
                             </div>
                             <div class="favorites-content__edit">
                                 <span>{{ t('view.favorite.edit_mode') }}</span>
@@ -500,7 +502,7 @@
                                 </div>
                             </template>
                             <template v-else>
-                                <div class="favorites-empty">No Group Selected</div>
+                                <div class="favorites-empty">{{ t('view.favorite.avatars.no_group_selected') }}</div>
                             </template>
                         </div>
                     </div>
@@ -591,7 +593,8 @@
         localAvatarFavorites,
         selectedFavoriteAvatars,
         isFavoriteLoading,
-        localAvatarFavoriteGroups
+        localAvatarFavoriteGroups,
+        avatarImportDialogInput
     } = storeToRefs(favoriteStore);
     const {
         showAvatarImportDialog,
@@ -1236,14 +1239,16 @@
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
-                description: 'Continue? Clear Group',
-                title: 'Confirm'
+                description: t('confirm.clear_group'),
+                title: t('confirm.title')
             })
-            .then(() => {
-                favoriteRequest.clearFavoriteGroup({
-                    type: ctx.type,
-                    group: ctx.name
-                });
+            .then(({ ok }) => {
+                if (ok) {
+                    favoriteRequest.clearFavoriteGroup({
+                        type: ctx.type,
+                        group: ctx.name
+                    });
+                }
             })
             .catch(() => {});
     }
@@ -1276,10 +1281,14 @@
     function promptLocalAvatarFavoriteGroupDelete(group) {
         modalStore
             .confirm({
-                description: `Trash2 Group? ${group}`,
-                title: 'Confirm'
+                description: t('confirm.delete_group', { name: group }),
+                title: t('confirm.title')
             })
-            .then(() => deleteLocalAvatarFavoriteGroup(group))
+            .then(({ ok }) => {
+                if (ok) {
+                    deleteLocalAvatarFavoriteGroup(group);
+                }
+            })
             .catch(() => {});
     }
 
@@ -1398,6 +1407,55 @@
             worker.value = null;
         }
         refreshingLocalFavorites.value = false;
+    }
+
+    function toggleSelectAllAvatars() {
+        if (!activeRemoteGroup.value) {
+            return;
+        }
+        if (isAllAvatarsSelected.value) {
+            selectedFavoriteAvatars.value = [];
+        } else {
+            selectedFavoriteAvatars.value = currentRemoteFavorites.value.map((fav) => fav.id);
+        }
+    }
+
+    function copySelectedAvatars() {
+        if (!selectedFavoriteAvatars.value.length) {
+            return;
+        }
+        const idList = selectedFavoriteAvatars.value.map((id) => `${id}\n`).join('');
+        avatarImportDialogInput.value = idList;
+        showAvatarImportDialog();
+    }
+
+    function showAvatarBulkUnfavoriteSelectionConfirm() {
+        if (!selectedFavoriteAvatars.value.length) {
+            return;
+        }
+        const total = selectedFavoriteAvatars.value.length;
+        modalStore
+            .confirm({
+                description: `Are you sure you want to unfavorite ${total} favorites?
+            This action cannot be undone.`,
+                title: `Delete ${total} favorites?`
+            })
+            .then(({ ok }) => {
+                if (ok) {
+                    bulkUnfavoriteSelectedAvatars(selectedFavoriteAvatars.value);
+                }
+            })
+            .catch(() => {});
+    }
+
+    function bulkUnfavoriteSelectedAvatars(ids) {
+        ids.forEach((id) => {
+            favoriteRequest.deleteFavorite({
+                objectId: id
+            });
+        });
+        selectedFavoriteAvatars.value = [];
+        avatarEditMode.value = false;
     }
 
     onBeforeUnmount(() => {
