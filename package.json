@@ -17,8 +17,8 @@
     },
     "main": "src-electron/main.js",
     "scripts": {
-        "dotnet-arm64": "dotnet build Dotnet/VRCX-Electron-arm64.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=arm64 -p:PlatformTarget=arm64 -p:RestorePackagesConfig=true -t:Restore;Clean;Build -m -a arm64",
-        "dotnet-win": "dotnet build Dotnet\\VRCX-Cef.csproj -p:Configuration=Debug -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:Restore;Clean;Build -m -a x64 -p:SelfContained=true",
+        "dotnet-arm64": "dotnet build Dotnet/VRCX-Electron-arm64.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=arm64 -p:PlatformTarget=arm64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a arm64",
+        "dotnet-win": "dotnet build Dotnet\\VRCX-Cef.csproj -p:Configuration=Debug -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a x64 -p:SelfContained=true",
         "dev": "cross-env PLATFORM=windows vite serve src",
         "dev-linux": "cross-env PLATFORM=linux vite serve src",
         "localization": "node ./src/shared/utils/localizationHelperCLI.js",
