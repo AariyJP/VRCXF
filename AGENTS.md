@@ -51,7 +51,7 @@ Implementation checklist:
 ## Stack
 
 - **Frontend**: Vue 3 (Composition API / `<script setup>`), Pinia, Vue Router (hash mode), Vite 7, TailwindCSS 4, shadcn-vue (reka-ui, new-york style), LightningCSS, ECharts, Graphology + Sigma, vue-i18n (14 languages), Jest, Sentry
-- **Backend**: C# / .NET 9, SQLite, OpenVR, node-api-dotnet (JS ⇄ .NET interop)
+- **Backend**: C# / .NET 9 (Electron) / .NET 10 (Windows), SQLite, OpenVR, node-api-dotnet (JS ⇄ .NET interop)
 - **Desktop**: Electron 39, electron-builder, CEF (Windows only)
 - **Platform**: Windows / Linux (AppImage) / macOS (dmg), x64 + arm64
 
@@ -74,8 +74,8 @@ src/                    # Frontend (Vue 3)
   vite.config.js        # Vite config (base:'', port:9000, outDir:../build/html, target:chrome140)
   api/                  # VRChat API wrappers (auth, avatar, avatarModeration, favorite, friend, group, image, instance, inventory, inviteMessages, misc, notification, playerModeration, prop, user, vrcPlusIcon, vrcPlusImage, world)
   components/           # UI components
-    ui/                 #   shadcn-vue UI primitives (304 files)
-    dialogs/            #   Dialogs (48 files)
+    ui/                 #   shadcn-vue UI primitives
+    dialogs/            #   Dialogs
     NavMenu.vue         #   Main navigation
   composables/          # Vue Composables
   lib/                  # Utilities (includes utils, shadcn-vue alias @/lib/utils)
@@ -149,7 +149,7 @@ src/                    # Frontend (Vue 3)
     themes/             #   Theme CSS (blue, green, midnight, orange, red, rednight, rose, violet, yellow)
   types/                # TypeScript type definitions
     globals.d.ts        #   Global types (AppApi, VRCXStorage, SQLite, LogWatcher, Discord, WebApi, AppApiVr, AssetBundleManager, webApiService, window.electron)
-    api/                #   API type definitions (9 files)
+    api/                #   API type definitions
     common.d.ts         #   Common types
   views/                # Pages
     Login/              #   Login (2FA support)
@@ -157,29 +157,29 @@ src/                    # Frontend (Vue 3)
     Feed/               #   Feed (default page)
     FriendsLocations/   #   Friend locations
     GameLog/            #   Game log
-    PlayerList/         #   Player list (5 files)
+    PlayerList/         #   Player list
     Search/             #   Search
-    Favorites/          #   Favorites (Friend/World/Avatar, 20 files)
-    Charts/             #   Charts (InstanceActivity, MutualFriends, 11 files)
-    Notifications/      #   Notifications (8 files)
+    Favorites/          #   Favorites (Friend/World/Avatar)
+    Charts/             #   Charts (InstanceActivity, MutualFriends)
+    Notifications/      #   Notifications
     FriendLog/          #   Friend log
     FriendList/         #   Friend list
     Moderation/         #   Moderation
-    Settings/           #   Settings (22 files)
-    Tools/              #   Tools (Gallery, ScreenshotMetadata, etc., 19 files)
-    Sidebar/            #   Sidebar (4 files)
-  vr/                   # VR overlay UI (4 files)
+    Settings/           #   Settings
+    Tools/              #   Tools (Gallery, ScreenshotMetadata, etc.)
+    Sidebar/            #   Sidebar
+  vr/                   # VR overlay UI
 src-electron/           # Electron Main
-  main.js               # Main process (916 lines): window mgmt, tray, IPC, VR overlay (shared memory), single instance lock
+  main.js               # Main process: window mgmt, tray, IPC, VR overlay (shared memory), single instance lock
   preload.js            # Preload: exposes ipcRenderer via contextBridge
   InteropApi.js         # .NET interop (getDotNetObject → Proxy pattern)
   offscreen.html        # VR overlay offscreen window
 Dotnet/                 # .NET Backend
   Program.cs            # Entry point (Program: CEF version, ProgramElectron: Electron version)
   AppApi/
-    Common/             #   Cross-platform shared API (10 files)
-    Cef/                #   CEF-specific API (6 files)
-    Electron/           #   Electron-specific API (5 files)
+    Common/             #   Cross-platform shared API
+    Cef/                #   CEF-specific API
+    Electron/           #   Electron-specific API
   LogWatcher.cs         # VRChat log monitoring (58KB)
   WebApi.cs             # Web API client (cookie management, HTTP execution)
   SQLite.cs             # DB (Execute/ExecuteJson/ExecuteNonQuery)
@@ -193,11 +193,11 @@ Dotnet/                 # .NET Backend
   StartupArgs.cs        # Startup argument parser
   Overlay/              # VR overlay (OpenVR, CEF/Electron branching)
   ScreenshotMetadata/   # Screenshot metadata (PNG XMP tag read/write)
-  IPC/                  # Inter-process communication (4 files)
-  Cef/                  # CEF browser (14 files)
+  IPC/                  # Inter-process communication
+  Cef/                  # CEF browser
   DBMerger/             # DB merge tool
-  VRCX-Cef.csproj       # Windows CEF build
-  VRCX-Electron.csproj  # Electron x64 build
+  VRCX-Cef.csproj       # Windows CEF build (.NET 10)
+  VRCX-Electron.csproj  # Electron x64 build (.NET 9)
   VRCX-Electron-arm64.csproj
 Installer/              # NSIS (installer.nsi)
 build-scripts/          # Build scripts (build-all.ps1, etc.)
