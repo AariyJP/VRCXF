@@ -1,3 +1,8 @@
+Portions of this software are derived from VRCX
+(https://github.com/vrcx-team/VRCX), licensed under the MIT License:
+
+---
+
 MIT License
 
 Copyright (c) 2019-2026 pypy and individual contributors.
@@ -19,3 +24,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Additional modifications and additions made for VRCXF are Copyright (c) AariyJP.
