@@ -225,6 +225,11 @@
             "unfavorite_tooltip": "取消收藏",
             "edit_favorite_tooltip": "编辑收藏",
             "visibility_tooltip": "更改可见性",
+            "visibility": {
+                "public": "公开",
+                "friends": "仅好友",
+                "private": "私人"
+            },
             "rename_tooltip": "重命名",
             "clear_tooltip": "清除",
             "delete_tooltip": "删除",
@@ -1963,7 +1968,7 @@
         "totp": {
             "header": "双重认证",
             "description": "输入你的身份验证应用中的验证码",
-            "use_otp": "使用一次性邮件验证码或备用验证码",
+            "use_otp": "使用备用验证码",
             "verify": "验证",
             "input_error": "无效的验证码"
         },

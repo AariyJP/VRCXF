@@ -1,4 +1,4 @@
-import { computed, nextTick, reactive, ref, shallowReactive, watch } from 'vue';
+import { computed, reactive, ref, shallowReactive, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -778,19 +778,19 @@ export const useUserStore = defineStore('User', () => {
         ) {
             return;
         }
-        uiStore.openDialog({
+        const isMainDialogOpen = uiStore.openDialog({
             type: 'user',
             id: userId
         });
         const D = userDialog.value;
         D.visible = true;
-        if (D.id === userId) {
+        if (isMainDialogOpen && D.id === userId) {
             uiStore.setDialogCrumbLabel(
                 'user',
                 D.id,
                 D.ref?.displayName || D.id
             );
-            applyUserDialogLocation();
+            applyUserDialogLocation(true);
             return;
         }
         D.id = userId;
@@ -918,6 +918,9 @@ export const useUserStore = defineStore('User', () => {
                     let inCurrentWorld = false;
                     if (locationStore.lastLocation.playerList.has(D.ref.id)) {
                         inCurrentWorld = true;
+                    }
+                    if (args.cache) {
+                        userRequest.getUser(args.params);
                     }
                     if (userId !== currentUser.value.id) {
                         database
@@ -1613,7 +1616,39 @@ export const useUserStore = defineStore('User', () => {
 
         let withCompany = locationStore.lastLocation.playerList.size > 1;
         if (generalSettingsStore.autoStateChangeNoFriends) {
-            withCompany = locationStore.lastLocation.friendList.size >= 1;
+            const selectedGroups = generalSettingsStore.autoStateChangeGroups;
+            if (selectedGroups.length > 0) {
+                const groupFriendIds = new Set();
+                for (const ref of favoriteStore.cachedFavorites.values()) {
+                    if (
+                        ref.type === 'friend' &&
+                        selectedGroups.includes(ref.$groupKey)
+                    ) {
+                        groupFriendIds.add(ref.favoriteId);
+                    }
+                }
+                for (const selectedKey of selectedGroups) {
+                    if (selectedKey.startsWith('local:')) {
+                        const groupName = selectedKey.slice(6);
+                        const userIds =
+                            favoriteStore.localFriendFavorites[groupName];
+                        if (userIds) {
+                            for (let i = 0; i < userIds.length; ++i) {
+                                groupFriendIds.add(userIds[i]);
+                            }
+                        }
+                    }
+                }
+                withCompany = false;
+                for (const friendId of locationStore.lastLocation.friendList.keys()) {
+                    if (groupFriendIds.has(friendId)) {
+                        withCompany = true;
+                        break;
+                    }
+                }
+            } else {
+                withCompany = locationStore.lastLocation.friendList.size >= 1;
+            }
         }
 
         const currentStatus = currentUser.value.status;
@@ -1625,22 +1660,33 @@ export const useUserStore = defineStore('User', () => {
             return;
         }
 
-        userRequest
-            .saveCurrentUser({
-                status: newStatus
-            })
-            .then(() => {
-                const text = `Status automatically changed to ${newStatus}`;
-                if (AppDebug.errorNoty) {
-                    AppDebug.errorNoty.close();
-                }
-                AppDebug.errorNoty = new Noty({
-                    type: 'info',
-                    text
-                });
-                AppDebug.errorNoty.show();
-                console.log(text);
+        const params = { status: newStatus };
+        if (
+            withCompany &&
+            generalSettingsStore.autoStateChangeCompanyDescEnabled
+        ) {
+            params.statusDescription =
+                generalSettingsStore.autoStateChangeCompanyDesc;
+        } else if (
+            !withCompany &&
+            generalSettingsStore.autoStateChangeAloneDescEnabled
+        ) {
+            params.statusDescription =
+                generalSettingsStore.autoStateChangeAloneDesc;
+        }
+
+        userRequest.saveCurrentUser(params).then(() => {
+            const text = `Status automatically changed to ${newStatus}`;
+            if (AppDebug.errorNoty) {
+                AppDebug.errorNoty.close();
+            }
+            AppDebug.errorNoty = new Noty({
+                type: 'info',
+                text
             });
+            AppDebug.errorNoty.show();
+            console.log(text);
+        });
     }
 
     function addCustomTag(data) {

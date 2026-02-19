@@ -28,20 +28,17 @@
                             </template>
 
                             <template v-else-if="item.row.type === 'me-item'">
-                                <div
-                                    class="x-friend-item"
-                                    @click="showUserDialog(currentUser.id)"
-                                    @contextmenu.prevent="emit('show-social-status-dialog')">
+                                <div class="x-friend-item hover:bg-muted/50" @click="showUserDialog(currentUser.id)">
                                     <div class="avatar" :class="userStatusClass(currentUser)">
                                         <img :src="userImage(currentUser)" loading="lazy" />
                                     </div>
-                                    <div class="detail">
+                                    <div class="detail h-9 flex flex-col justify-between">
                                         <span class="name" :style="{ color: currentUser.$userColour }">{{
                                             currentUser.displayName
                                         }}</span>
                                         <Location
                                             v-if="isGameRunning && !gameLogDisabled"
-                                            class="text-xs"
+                                            class="extra block truncate text-xs"
                                             :location="lastLocation.location"
                                             :traveling="lastLocationDestination"
                                             :link="false" />
@@ -50,7 +47,7 @@
                                                 isRealInstance(currentUser.$locationTag) ||
                                                 isRealInstance(currentUser.$travelingToLocation)
                                             "
-                                            class="text-xs"
+                                            class="extra block truncate text-xs"
                                             :location="currentUser.$locationTag"
                                             :traveling="currentUser.$travelingToLocation"
                                             :link="false" />
@@ -59,13 +56,6 @@
                                             currentUser.statusDescription
                                         }}</span>
                                     </div>
-                                </div>
-                            </template>
-
-                            <template v-else-if="item.row.type === 'vip-subheader'">
-                                <div>
-                                    <span class="text-xs">{{ item.row.label }}</span>
-                                    <span class="text-xs ml-1.5">{{ `(${item.row.count})` }}</span>
                                 </div>
                             </template>
 
@@ -92,7 +82,7 @@
 </template>
 
 <script setup>
-    import { computed, nextTick, onMounted, ref, watch } from 'vue';
+    import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
     import { ChevronDown } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
@@ -104,7 +94,6 @@
         useFavoriteStore,
         useFriendStore,
         useGameStore,
-        useGeneralSettingsStore,
         useLocationStore,
         useUserStore
     } from '../../../stores';
@@ -116,16 +105,23 @@
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../service/config';
 
-    const emit = defineEmits(['show-social-status-dialog']);
     const { t } = useI18n();
 
-    const generalSettingsStore = useGeneralSettingsStore();
-
     const friendStore = useFriendStore();
-    const { vipFriends, onlineFriends, activeFriends, offlineFriends, friendsInSameInstance } =
-        storeToRefs(friendStore);
-    const { isSidebarGroupByInstance, isHideFriendsInSameInstance, isSidebarDivideByFriendGroup } =
-        storeToRefs(useAppearanceSettingsStore());
+    const {
+        allFavoriteOnlineFriends,
+        allFavoriteFriendIds,
+        onlineFriends,
+        activeFriends,
+        offlineFriends,
+        friendsInSameInstance
+    } = storeToRefs(friendStore);
+    const {
+        isSidebarGroupByInstance,
+        isHideFriendsInSameInstance,
+        isSidebarDivideByFriendGroup,
+        sidebarFavoriteGroups
+    } = storeToRefs(useAppearanceSettingsStore());
     const { gameLogDisabled } = storeToRefs(useAdvancedSettingsStore());
     const { showUserDialog } = useUserStore();
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } =
@@ -140,6 +136,7 @@
     const isActiveFriends = ref(true);
     const isOfflineFriends = ref(true);
     const isSidebarGroupByInstanceCollapsed = ref(false);
+    const collapsedFavGroups = reactive(new Set());
     const scrollViewportRef = ref(null);
     const scrollRootRef = ref(null);
 
@@ -166,39 +163,66 @@
         return list.filter((item) => !sameInstanceFriendId.value.has(item.id));
     }
 
-    const onlineFriendsByGroupStatus = computed(() => excludeSameInstance(onlineFriends.value));
+    const onlineFriendsByGroupStatus = computed(() =>
+        excludeSameInstance(onlineFriends.value.filter((f) => !allFavoriteFriendIds.value.has(f.id)))
+    );
 
-    const vipFriendsByGroupStatus = computed(() => excludeSameInstance(vipFriends.value));
+    const vipFriendsByGroupStatus = computed(() => {
+        const selectedGroups = sidebarFavoriteGroups.value;
+        const hasFilter = selectedGroups.length > 0;
+        if (!hasFilter) {
+            return excludeSameInstance(allFavoriteOnlineFriends.value);
+        }
+        // Filter to only include VIP friends whose group key is in selectedGroups
+        const allowedIds = new Set();
+        const remoteFriendsByGroup = groupedByGroupKeyFavoriteFriends.value;
+        for (const key of selectedGroups) {
+            if (key.startsWith('local:')) {
+                const groupName = key.slice(6);
+                const userIds = localFriendFavorites.value?.[groupName];
+                if (userIds) {
+                    for (const id of userIds) allowedIds.add(id);
+                }
+            } else if (remoteFriendsByGroup[key]) {
+                for (const f of remoteFriendsByGroup[key]) allowedIds.add(f.id);
+            }
+        }
+        return excludeSameInstance(allFavoriteOnlineFriends.value.filter((f) => allowedIds.has(f.id)));
+    });
 
     // VIP friends divide by group
     const vipFriendsDivideByGroup = computed(() => {
         const remoteFriendsByGroup = groupedByGroupKeyFavoriteFriends.value;
+        const selectedGroups = sidebarFavoriteGroups.value;
+        const hasFilter = selectedGroups.length > 0;
 
         // Build a normalized list of { key, groupName, memberIds }
         const groups = [];
 
         for (const key in remoteFriendsByGroup) {
             if (Object.hasOwn(remoteFriendsByGroup, key)) {
+                if (hasFilter && !selectedGroups.includes(key)) continue;
                 const groupName = favoriteFriendGroups.value.find((g) => g.key === key)?.displayName || '';
                 const memberIds = new Set(remoteFriendsByGroup[key].map((f) => f.id));
                 groups.push({ key, groupName, memberIds });
             }
         }
 
-        for (const selectedKey of generalSettingsStore.localFavoriteFriendsGroups) {
-            if (selectedKey.startsWith('local:')) {
-                const groupName = selectedKey.slice(6);
-                const userIds = localFriendFavorites.value?.[groupName];
-                if (userIds?.length) {
-                    groups.push({ key: selectedKey, groupName, memberIds: new Set(userIds) });
-                }
+        for (const groupName in localFriendFavorites.value) {
+            const selectedKey = `local:${groupName}`;
+            if (hasFilter && !selectedGroups.includes(selectedKey)) continue;
+            const userIds = localFriendFavorites.value[groupName];
+            if (userIds?.length) {
+                groups.push({ key: selectedKey, groupName, memberIds: new Set(userIds) });
             }
         }
 
         // Filter vipFriends per group, preserving vipFriends sort order
         const result = [];
         for (const { key, groupName, memberIds } of groups) {
-            const filteredFriends = excludeSameInstance(vipFriends.value.filter((friend) => memberIds.has(friend.id)));
+            const filteredFriends = excludeSameInstance(
+                allFavoriteOnlineFriends.value.filter((friend) => memberIds.has(friend.id))
+            );
             if (filteredFriends.length > 0) {
                 result.push(filteredFriends.map((item) => ({ groupName, key, ...item })));
             }
@@ -233,13 +257,7 @@
         paddingBottom: options.paddingBottom,
         itemStyle: options.itemStyle
     });
-    const buildVipSubheaderRow = (label, count, key) => ({
-        type: 'vip-subheader',
-        key,
-        label,
-        count,
-        paddingBottom: 4
-    });
+
     const buildInstanceHeaderRow = (location, count, key) => ({
         type: 'instance-header',
         key,
@@ -266,7 +284,7 @@
         }
 
         const vipFriendCount = isSidebarDivideByFriendGroup.value
-            ? vipFriendsDivideByGroup.value.length
+            ? vipFriendsDivideByGroup.value.reduce((sum, group) => sum + group.length, 0)
             : vipFriendsByGroupStatus.value.length;
 
         if (vipFriendCount) {
@@ -286,16 +304,34 @@
                 vipFriendsDivideByGroup.value.forEach((group, groupIndex) => {
                     const groupName = group?.[0]?.groupName ?? '';
                     const groupKey = group?.[0]?.key ?? groupIndex;
+                    const isExpanded = !collapsedFavGroups.has(groupKey);
                     if (groupName) {
-                        rows.push(buildVipSubheaderRow(groupName, group.length, `vip-subheader:${groupKey}`));
-                    }
-                    group.forEach((friend, idx) => {
                         rows.push(
-                            buildFriendRow(friend, `vip:${groupKey}:${friend?.id ?? idx}`, {
-                                paddingBottom: idx === group.length - 1 ? 10 : undefined
+                            buildToggleRow({
+                                key: `vip-subheader:${groupKey}`,
+                                label: groupName,
+                                count: group.length,
+                                expanded: isExpanded,
+                                headerPadding: '4px 0 4px 4px',
+                                onClick: () => {
+                                    if (collapsedFavGroups.has(groupKey)) {
+                                        collapsedFavGroups.delete(groupKey);
+                                    } else {
+                                        collapsedFavGroups.add(groupKey);
+                                    }
+                                }
                             })
                         );
-                    });
+                    }
+                    if (isExpanded) {
+                        group.forEach((friend, idx) => {
+                            rows.push(
+                                buildFriendRow(friend, `vip:${groupKey}:${friend?.id ?? idx}`, {
+                                    paddingBottom: idx === group.length - 1 ? 10 : undefined
+                                })
+                            );
+                        });
+                    }
                 });
             } else {
                 vipFriendsByGroupStatus.value.forEach((friend, idx) => {

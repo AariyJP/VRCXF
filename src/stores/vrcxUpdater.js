@@ -112,7 +112,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         if (!appVersion.value) {
             return;
         }
-        if (currentVersion.value.includes('VRCXF ')) {
+        if (currentVersion.value.includes('VRCXF')) {
             branch.value = 'Nightly';
         } else {
             branch.value = 'Stable';

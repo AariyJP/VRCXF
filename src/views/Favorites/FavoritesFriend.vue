@@ -930,7 +930,7 @@
         modalStore
             .confirm({
                 description: `Are you sure you want to unfavorite ${total} favorites?\n            This action cannot be undone.`,
-                title: `Trash2 ${total} favorites?`
+                title: `Delete ${total} favorites?`
             })
             .then(({ ok }) => ok && bulkUnfavoriteSelectedFriends([...selectedFavoriteFriends.value]))
             .catch(() => {});
@@ -955,14 +955,16 @@
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
-                description: 'Continue? Clear Group',
-                title: 'Confirm'
+                description: t('confirm.clear_group'),
+                title: t('confirm.title')
             })
-            .then(() => {
-                favoriteRequest.clearFavoriteGroup({
-                    type: ctx.type,
-                    group: ctx.name
-                });
+            .then(({ ok }) => {
+                if (ok) {
+                    favoriteRequest.clearFavoriteGroup({
+                        type: ctx.type,
+                        group: ctx.name
+                    });
+                }
             })
             .catch(() => {});
     }
@@ -1033,7 +1035,7 @@
                     favoriteGroupId: args.json.id
                 }
             });
-            toast.success('Group visibility changed');
+            toast.success(t('message.group.visibility_updated'));
             if (menuKey) {
                 handleGroupMenuVisible(menuKey, false);
             }
@@ -1105,8 +1107,8 @@
         handleGroupMenuVisible(localGroupMenuKey(group), false);
         modalStore
             .confirm({
-                description: 'Continue? Delete Group',
-                title: 'Confirm'
+                description: t('confirm.delete_group', { name: group }),
+                title: t('confirm.title')
             })
             .then(({ ok }) => {
                 if (!ok) return;
