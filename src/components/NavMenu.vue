@@ -643,7 +643,7 @@
     };
 
     const openGithub = () => {
-        openExternalLink('https://github.com/AariyJP/VRCXF');
+        openExternalLink(links.github);
     };
 
     const customNavDialogVisible = ref(false);
