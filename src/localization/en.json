@@ -102,8 +102,8 @@
             "tab_friend": "Friend",
             "tab_group": "Group",
             "tab_other": "Other",
-            "past_notifications": "Past",
-            "no_notifications": "No notifications"
+            "past_notifications": "Last 24 hours",
+            "no_new_notifications": "No new notifications in the past 24 hours"
         }
     },
     "view": {
@@ -114,6 +114,7 @@
             "forgotPassword": "Forgot Password?",
             "updater": "Updater",
             "proxy_settings": "Proxy settings",
+            "settings": "Settings",
             "language": "Language",
             "field": {
                 "username": "Username or Email",
@@ -333,7 +334,8 @@
                     },
                     "report": {
                         "closed": "Moderation Report Closed"
-                    }
+                    },
+                    "contentrestriction": "Moderation Content Restriction"
                 },
                 "instance": {
                     "closed": "Instance Closed"
@@ -790,7 +792,6 @@
                 "rpc": {
                     "vr": "VR",
                     "desktop": "Desktop",
-                    "join_button": "Join",
                     "powered_by_vrcx": "Powered by VRCX",
                     "private_world": "Private World"
                 }

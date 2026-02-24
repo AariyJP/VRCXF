@@ -10,43 +10,43 @@
                 <TabsList class="mr-4 ml-2 mt-2 grid w-auto grid-cols-3">
                     <TabsTrigger value="friend">
                         {{ t('side_panel.notification_center.tab_friend') }}
-                        <span v-if="activeCount.friend" class="ml-1 text-xs text-muted-foreground">
-                            ({{ activeCount.friend }})
+                        <span v-if="unseenFriendNotifications.length" class="ml-1 text-xs text-muted-foreground">
+                            ({{ unseenFriendNotifications.length }})
                         </span>
                     </TabsTrigger>
                     <TabsTrigger value="group">
                         {{ t('side_panel.notification_center.tab_group') }}
-                        <span v-if="activeCount.group" class="ml-1 text-xs text-muted-foreground">
-                            ({{ activeCount.group }})
+                        <span v-if="unseenGroupNotifications.length" class="ml-1 text-xs text-muted-foreground">
+                            ({{ unseenGroupNotifications.length }})
                         </span>
                     </TabsTrigger>
                     <TabsTrigger value="other">
                         {{ t('side_panel.notification_center.tab_other') }}
-                        <span v-if="activeCount.other" class="ml-1 text-xs text-muted-foreground">
-                            ({{ activeCount.other }})
+                        <span v-if="unseenOtherNotifications.length" class="ml-1 text-xs text-muted-foreground">
+                            ({{ unseenOtherNotifications.length }})
                         </span>
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="friend" class="mt-0 min-h-0 flex-1 overflow-hidden">
                     <NotificationList
-                        :notifications="friendNotifications"
-                        :unseen-ids="unseenNotifications"
+                        :notifications="unseenFriendNotifications"
+                        :recent-notifications="recentFriendNotifications"
                         @show-invite-response="showSendInviteResponseDialog"
                         @show-invite-request-response="showSendInviteRequestResponseDialog"
                         @navigate-to-table="navigateToTable" />
                 </TabsContent>
                 <TabsContent value="group" class="mt-0 min-h-0 flex-1 overflow-hidden">
                     <NotificationList
-                        :notifications="groupNotifications"
-                        :unseen-ids="unseenNotifications"
+                        :notifications="unseenGroupNotifications"
+                        :recent-notifications="recentGroupNotifications"
                         @show-invite-response="showSendInviteResponseDialog"
                         @show-invite-request-response="showSendInviteRequestResponseDialog"
                         @navigate-to-table="navigateToTable" />
                 </TabsContent>
                 <TabsContent value="other" class="mt-0 min-h-0 flex-1 overflow-hidden">
                     <NotificationList
-                        :notifications="otherNotifications"
-                        :unseen-ids="unseenNotifications"
+                        :notifications="unseenOtherNotifications"
+                        :recent-notifications="recentOtherNotifications"
                         @show-invite-response="showSendInviteResponseDialog"
                         @show-invite-request-response="showSendInviteRequestResponseDialog"
                         @navigate-to-table="navigateToTable" />
@@ -65,7 +65,7 @@
 <script setup>
     import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
     import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-    import { computed, ref } from 'vue';
+    import { ref } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
@@ -83,19 +83,15 @@
 
     const {
         isNotificationCenterOpen,
-        friendNotifications,
-        groupNotifications,
-        otherNotifications,
-        unseenNotifications
+        unseenFriendNotifications,
+        unseenGroupNotifications,
+        unseenOtherNotifications,
+        recentFriendNotifications,
+        recentGroupNotifications,
+        recentOtherNotifications
     } = storeToRefs(useNotificationStore());
 
     const activeTab = ref('friend');
-
-    const activeCount = computed(() => ({
-        friend: friendNotifications.value.filter((n) => !n.$isExpired).length,
-        group: groupNotifications.value.filter((n) => !n.$isExpired).length,
-        other: otherNotifications.value.filter((n) => !n.$isExpired).length
-    }));
 
     // Dialog state
     const sendInviteResponseDialog = ref({

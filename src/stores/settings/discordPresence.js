@@ -279,8 +279,7 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 (state.lastLocationDetails.accessType === 'invite' ||
                     state.lastLocationDetails.accessType === 'invite+' ||
                     state.lastLocationDetails.accessType === 'friends' ||
-                    state.lastLocationDetails.accessType === 'group'
-                )
+                    state.lastLocationDetails.accessType === 'group')
             ) {
                 hidePrivate = true;
             }
