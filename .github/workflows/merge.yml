@@ -2,26 +2,27 @@ name: Auto Merge Release PR
 
 on:
     pull_request:
-        types: [opened, labeled]
+        types:
+            - labeled
+        branches:
+            - main
 
 jobs:
     auto-merge:
-        if: github.event.pull_request.base.ref == 'main' && contains(github.event.pull_request.labels.*.name, 'release')
-        runs-on: ubuntu-latest
+        if: github.event.pull_request.head.ref == 'develop' && contains(github.event.pull_request.labels.*.name, 'release')
+        runs-on: ubuntu-slim
         permissions:
             contents: write
             pull-requests: write
         steps:
             - uses: actions/checkout@v5
             - name: Approve PR
-              run: gh pr approve "$PR_URL"
+              run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
               env:
-                  PR_URL: ${{ github.event.pull_request.html_url }}
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Merge PR
               run: |
                   MERGE_MSG=$(date +'%Y.%m.%d')
-                  gh pr merge "$PR_URL" --merge --subject "$MERGE_MSG" --body ""
+                  gh pr merge "${{ github.event.pull_request.html_url }}" --merge --subject "$MERGE_MSG" --body ""
               env:
-                  PR_URL: ${{ github.event.pull_request.html_url }}
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
