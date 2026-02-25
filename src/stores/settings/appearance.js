@@ -107,7 +107,6 @@ export const useAppearanceSettingsStore = defineStore(
         const isSideBarTabShow = computed(() => {
             const currentRouteName = router.currentRoute.value?.name;
             return ![
-                'friends-locations',
                 'friend-list',
                 'charts-instance',
                 'charts-mutual',
