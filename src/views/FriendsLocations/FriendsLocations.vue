@@ -78,45 +78,44 @@
             <span class="friend-view__loading-text">{{ t('view.friends_locations.loading_more') }}</span>
         </div>
         <div v-if="settingsReady" ref="scrollbarRef" class="friend-view__scroll">
-            <div v-if="virtualRows.length" class="friend-view__virtual" :style="virtualContainerStyle">
-                <template v-for="item in virtualItems" :key="String(item.virtualItem.key)">
-                    <div
-                        v-if="item.row"
-                        class="friend-view__virtual-row"
-                        :class="`friend-view__virtual-row--${item.row.type}`"
-                        :data-index="item.virtualItem.index"
-                        :ref="virtualizer.measureElement"
-                        :style="{ transform: `translateY(${item.virtualItem.start}px)` }">
-                        <template v-if="item.row.type === 'header'">
+            <div v-if="virtualRows.length" class="friend-view__virtual" :style="virtualListStyle">
+                <template v-for="row in virtualRows" :key="String(row.key)">
+                    <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
+                        <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
                                 <Location
                                     class="text-xs"
-                                    :location="getRowInstanceId(item.row)"
+                                    :location="getRowInstanceId(row)"
                                     style="display: inline" />
-                                <span class="friend-view__instance-count">({{ getRowCount(item.row) }})</span>
+                                <InstanceActionBar
+                                    class="ml-1 text-sm inline-flex"
+                                    :location="getRowInstanceId(row)"
+                                    :instance="getRowInstance(row)"
+                                    :friendcount="getRowCount(row)" />
+                                <span class="friend-view__instance-count">({{ getRowCount(row) }})</span>
                             </header>
                         </template>
 
-                        <template v-else-if="item.row.type === 'group-header'">
+                        <template v-else-if="row.type === 'group-header'">
                             <div
                                 class="flex cursor-pointer select-none items-center gap-1.5 px-1 py-1.5 text-[13px] font-semibold hover:opacity-80"
-                                @click="toggleGroupCollapse(item.row.groupKey)">
+                                @click="toggleGroupCollapse(row.groupKey)">
                                 <ChevronDown
                                     class="size-4 shrink-0 transition-transform duration-200 ease-in-out"
-                                    :class="{ '-rotate-90': item.row.collapsed }" />
-                                <span class="flex-none">{{ item.row.label }}</span>
-                                <span class="text-xs font-normal opacity-70">({{ item.row.count }})</span>
+                                    :class="{ '-rotate-90': row.collapsed }" />
+                                <span class="flex-none">{{ row.label }}</span>
+                                <span class="text-xs font-normal opacity-70">({{ row.count }})</span>
                             </div>
                         </template>
 
-                        <template v-else-if="item.row.type === 'divider'">
+                        <template v-else-if="row.type === 'divider'">
                             <div class="friend-view__divider"><span class="friend-view__divider-text"></span></div>
                         </template>
 
                         <template v-else>
                             <div class="friend-view__row">
                                 <FriendLocationCard
-                                    v-for="card in getRowItems(item.row)"
+                                    v-for="card in getRowItems(row)"
                                     :key="card.key"
                                     :friend="card.friend"
                                     :card-scale="cardScale"
@@ -148,17 +147,25 @@
     import { InputGroupSearch } from '@/components/ui/input-group';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
-    import { useVirtualizer } from '@tanstack/vue-virtual';
 
     import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
-    import { useAppearanceSettingsStore, useFavoriteStore, useFriendStore, useLocationStore } from '../../stores';
+    import {
+        useAppearanceSettingsStore,
+        useFavoriteStore,
+        useFriendStore,
+        useInstanceStore,
+        useLocationStore,
+        useUserStore
+    } from '../../stores';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { getFriendsLocations } from '../../shared/utils/location.js';
-    import { debounce, getFriendsSortFunction } from '../../shared/utils';
+    import { debounce, getFriendsSortFunction, parseLocation } from '../../shared/utils';
 
+    import InstanceActionBar from '@/components/InstanceActionBar.vue';
     import FriendLocationCard from './components/FriendsLocationsCard.vue';
     import configRepository from '../../services/config.js';
+    import { userRequest } from '../../api';
 
     const { t } = useI18n();
 
@@ -179,8 +186,13 @@
     const favoriteStore = useFavoriteStore();
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } = storeToRefs(favoriteStore);
 
+    const instanceStore = useInstanceStore();
+    const { lastInstanceApplied } = storeToRefs(instanceStore);
+
     const locationStore = useLocationStore();
     const { lastLocation } = storeToRefs(locationStore);
+
+    const userStore = useUserStore();
 
     const collapsedGroups = reactive(new Set());
 
@@ -261,9 +273,6 @@
 
     const scrollbarRef = ref();
     const gridWidth = ref(0);
-    let measureScheduled = false;
-    let pendingGridWidthUpdate = false;
-
     const updateGridWidth = () => {
         const wrap = scrollbarRef.value;
         if (!wrap) {
@@ -302,23 +311,72 @@
 
     const getEntryIdentity = (entry) => entry?.id ?? getFriendIdentity(entry?.friend);
 
-    const scheduleVirtualMeasure = ({ updateGridWidth: shouldUpdateGridWidth = false } = {}) => {
-        pendingGridWidthUpdate = pendingGridWidthUpdate || shouldUpdateGridWidth;
-        if (measureScheduled) {
-            return;
+
+    const fetchedOwners = new Set();
+    const resolveInstanceOwnerOptionally = (instanceId) => {
+        if (!instanceId || instanceId === 'private') return null;
+
+        const L = parseLocation(instanceId);
+        let ownerId = L.userId;
+
+        const cachedInstance = instanceStore.cachedInstances.get(instanceId);
+        if (!ownerId && cachedInstance?.ownerId) {
+            ownerId = cachedInstance.ownerId;
         }
 
-        measureScheduled = true;
-        nextTick(() => {
-            measureScheduled = false;
+        if (!ownerId && L.groupId) {
+            ownerId = L.groupId;
+        }
 
-            if (pendingGridWidthUpdate) {
-                pendingGridWidthUpdate = false;
-                updateGridWidth();
+        if (ownerId && ownerId.startsWith('usr_')) {
+            const u = userStore.cachedUsers.get(ownerId);
+            if (u) {
+                return {
+                    id: ownerId,
+                    name: u.displayName || ownerId,
+                    status: u.status,
+                    ref: { ...u, isFriend: true },
+                    isOwner: true
+                };
+            } else {
+                if (!fetchedOwners.has(ownerId)) {
+                    fetchedOwners.add(ownerId);
+                    userRequest.getUser({ userId: ownerId }).catch(() => {});
+                }
+                return {
+                    id: ownerId,
+                    name: ownerId,
+                    ref: { id: ownerId, statusDescription: 'Instance Owner', isFriend: true },
+                    isOwner: true
+                };
             }
+        }
 
-            virtualizer.value?.measure?.();
-        });
+        return null;
+    };
+
+    const buildInstanceCardItems = (group, displayInstanceInfo) => {
+        const items = [];
+        const ownerFriend = resolveInstanceOwnerOptionally(group.instanceId);
+
+        if (ownerFriend) {
+            items.push({
+                key: `owner:${group.instanceId}`,
+                friend: ownerFriend,
+                displayInstanceInfo
+            });
+        }
+
+        const friends = Array.isArray(group.friends) ? group.friends : [];
+        for (const friend of friends) {
+            items.push({
+                key: `f:${friend?.id ?? friend?.userId ?? friend?.displayName ?? Math.random()}`,
+                friend,
+                displayInstanceInfo
+            });
+        }
+
+        return items;
     };
 
     const sameInstanceGroups = computed(() => {
@@ -690,13 +748,8 @@
                     count: Array.isArray(group.friends) ? group.friends.length : 0
                 });
 
-                const friends = Array.isArray(group.friends) ? group.friends : [];
-                if (friends.length) {
-                    const items = friends.map((friend) => ({
-                        key: `f:${getFriendIdentity(friend)}`,
-                        friend,
-                        displayInstanceInfo: displayInstanceInfo.value
-                    }));
+                const items = buildInstanceCardItems(group, true);
+                if (items.length) {
                     rows.push(...chunkCardItems(items, `g:${group.instanceId}`));
                 }
             }
@@ -713,13 +766,8 @@
                     count: Array.isArray(group.friends) ? group.friends.length : 0
                 });
 
-                const friends = Array.isArray(group.friends) ? group.friends : [];
-                if (friends.length) {
-                    const items = friends.map((friend) => ({
-                        key: `f:${getFriendIdentity(friend)}`,
-                        friend,
-                        displayInstanceInfo: displayInstanceInfo.value
-                    }));
+                const items = buildInstanceCardItems(group, false);
+                if (items.length) {
                     rows.push(...chunkCardItems(items, `mg:${group.instanceId}`));
                 }
             }
@@ -787,61 +835,20 @@
         };
     });
 
-    const estimateRowSize = (row) => {
-        if (!row) {
-            return 48;
-        }
-        if (row.type === 'header') {
-            return 32;
-        }
-        if (row.type === 'group-header') {
-            return 40;
-        }
-        if (row.type === 'divider') {
-            return 36;
-        }
-
-        const itemCount = Array.isArray(row.items) ? row.items.length : 0;
-        const { columns, gap } = computeGridLayout(itemCount, { matchMaxColumnWidth: true });
-        const safeColumns = Math.max(1, columns || 1);
-        const rows = Math.max(1, Math.ceil(itemCount / safeColumns));
-        const scale = cardScale.value;
-        const spacing = cardSpacing.value;
-        const baseCardHeight = 150;
-        const cardHeight = baseCardHeight * scale * spacing;
-        const rowGap = Math.max(0, gap - 4);
-
-        return rows * cardHeight + (rows - 1) * rowGap + 8;
-    };
-
-    const virtualizer = useVirtualizer(
-        computed(() => ({
-            count: virtualRows.value.length,
-            getScrollElement: () => scrollbarRef.value,
-            estimateSize: (index) => estimateRowSize(virtualRows.value[index]),
-            overscan: 5
-        }))
-    );
-
-    const virtualItems = computed(() => {
-        const items = virtualizer.value?.getVirtualItems?.() ?? [];
-        return items.map((virtualItem) => ({
-            virtualItem,
-            row: virtualRows.value[virtualItem.index]
-        }));
-    });
-
-    const virtualContainerStyle = computed(() => ({
-        ...virtualListStyle.value,
-        height: `${virtualizer.value?.getTotalSize?.() ?? 0}px`
-    }));
 
     const getRowItems = (row) => (row && Array.isArray(row.items) ? row.items : []);
     const getRowInstanceId = (row) => (row && row.type === 'header' ? row.instanceId : '');
     const getRowCount = (row) => (row && row.type === 'header' ? row.count : 0);
+    const getRowInstance = (row) => {
+        void lastInstanceApplied.value;
+        if (!row || row.type !== 'header' || !row.instanceId) {
+            return null;
+        }
+        return instanceStore.cachedInstances.get(row.instanceId) || null;
+    };
 
     watch([searchTerm, activeSegment], () => {
-        scheduleVirtualMeasure({ updateGridWidth: true });
+        nextTick(() => updateGridWidth());
     });
 
     watch(showSameInstance, (value) => {
@@ -852,13 +859,13 @@
             activeSegment.value = 'online';
         }
 
-        scheduleVirtualMeasure({ updateGridWidth: true });
+        nextTick(() => updateGridWidth());
     });
 
     watch(
         () => filteredFriends.value.length,
         () => {
-            scheduleVirtualMeasure({ updateGridWidth: true });
+            nextTick(() => updateGridWidth());
         }
     );
 
@@ -866,17 +873,13 @@
         if (!settingsReady.value) {
             return;
         }
-        scheduleVirtualMeasure({ updateGridWidth: true });
-    });
-
-    watch(virtualRows, () => {
-        scheduleVirtualMeasure();
+        nextTick(() => updateGridWidth());
     });
 
     onMounted(() => {
         nextTick(() => {
             setupResizeHandling();
-            scheduleVirtualMeasure({ updateGridWidth: true });
+            updateGridWidth();
         });
     });
 
@@ -910,7 +913,7 @@
             settingsReady.value = true;
             nextTick(() => {
                 setupResizeHandling();
-                scheduleVirtualMeasure({ updateGridWidth: true });
+                updateGridWidth();
             });
         }
     }
@@ -973,15 +976,11 @@
         width: 100%;
         padding: 2px;
         box-sizing: border-box;
-        position: relative;
     }
 
     .friend-view__virtual-row {
         width: 100%;
         box-sizing: border-box;
-        position: absolute;
-        left: 0;
-        top: 0;
         padding-bottom: calc(var(--friend-card-gap, 14px) - 4px);
     }
 
