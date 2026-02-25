@@ -32,10 +32,17 @@
                                     <div class="avatar" :class="userStatusClass(currentUser)">
                                         <img :src="userImage(currentUser)" loading="lazy" />
                                     </div>
-                                    <div class="detail h-9 flex flex-col justify-between">
-                                        <span class="name" :style="{ color: currentUser.$userColour }">{{
-                                            currentUser.displayName
-                                        }}</span>
+                                    <div class="detail h-auto flex flex-col justify-between">
+                                        <div class="flex items-center">
+                                            <span class="name" :style="{ color: currentUser.$userColour }">{{
+                                                currentUser.displayName
+                                            }}</span>
+                                            <span
+                                                v-if="currentUser.statusDescription"
+                                                class="block truncate text-[11px] text-muted-foreground"
+                                                >{{ '・' + currentUser.statusDescription }}</span
+                                            >
+                                        </div>
                                         <Location
                                             v-if="isGameRunning && !gameLogDisabled"
                                             class="extra block truncate text-xs"
@@ -51,10 +58,6 @@
                                             :location="currentUser.$locationTag"
                                             :traveling="currentUser.$travelingToLocation"
                                             :link="false" />
-
-                                        <span v-else class="extra block truncate text-xs">{{
-                                            currentUser.statusDescription
-                                        }}</span>
                                     </div>
                                 </div>
                             </template>

@@ -6,19 +6,26 @@
                 :class="isFriendActiveOrOffline ? undefined : userStatusClass(friend.ref, friend.pendingOffline)">
                 <img :src="userImage(friend.ref, true)" loading="lazy" />
             </div>
-            <div class="detail h-9 flex flex-col justify-between">
-                <span v-if="!hideNicknames && friend.$nickName" class="name" :style="{ color: friend.ref.$userColour }">
-                    {{ friend.ref.displayName }} ({{ friend.$nickName }})
-                </span>
-                <span v-else class="name" :style="{ color: friend.ref.$userColour }"
-                    >{{ friend.ref.displayName
-                    }}{{ isGroupByInstance && allFavoriteFriendIds.has(friend.id) ? ' ⭐' : '' }}</span
-                >
+            <div class="detail h-auto flex flex-col justify-between">
+                <div class="flex items-center">
+                    <span
+                        v-if="!hideNicknames && friend.$nickName"
+                        class="name"
+                        :style="{ color: friend.ref.$userColour }">
+                        {{ friend.ref.displayName }} ({{ friend.$nickName }})
+                    </span>
+                    <span v-else class="name" :style="{ color: friend.ref.$userColour }"
+                        >{{ friend.ref.displayName
+                        }}{{ isGroupByInstance && allFavoriteFriendIds.has(friend.id) ? ' ⭐' : '' }}</span
+                    >
 
-                <span v-if="isFriendActiveOrOffline" class="block truncate text-xs">{{
-                    friend.ref.statusDescription
-                }}</span>
-                <template v-else>
+                    <span
+                        v-if="friend.ref.statusDescription"
+                        class="block truncate text-[11px] text-muted-foreground"
+                        >{{ '・' + friend.ref.statusDescription }}</span
+                    >
+                </div>
+                <template v-if="!isFriendActiveOrOffline">
                     <div v-if="friend.pendingOffline" class="extra block truncate text-xs">
                         {{ t('side_panel.pending_offline') }}
                     </div>
