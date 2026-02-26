@@ -10,20 +10,6 @@
                 "cwd": "${workspaceFolder}/build-scripts"
             },
             "problemMatcher": []
-        },
-        {
-            "type": "npm",
-            "script": "dotnet-win",
-            "problemMatcher": [],
-            "label": "npm: dotnet-win",
-            "detail": "dotnet build Dotnet\\VRCX-Cef.csproj -p:Configuration=Debug -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a x64 -p:SelfContained=true"
-        },
-        {
-            "type": "npm",
-            "script": "dev",
-            "problemMatcher": [],
-            "label": "npm: dev",
-            "detail": "cross-env PLATFORM=windows vite serve src"
         }
     ]
 }
