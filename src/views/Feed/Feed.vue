@@ -11,16 +11,27 @@
                 <div style="margin: 0 0 10px; display: flex; align-items: center">
                     <div style="flex: none; margin-right: 10px; display: flex; align-items: center">
                         <TooltipWrapper side="bottom" :content="t('view.feed.favorites_only_tooltip')">
-                            <span class="inline-flex">
-                                <Switch v-model="feedTable.vip" @update:modelValue="feedTableLookup" />
-                            </span>
+                            <div>
+                                <Toggle
+                                    variant="outline"
+                                    size="sm"
+                                    :model-value="feedTable.vip"
+                                    @update:modelValue="
+                                        (v) => {
+                                            feedTable.vip = v;
+                                            feedTableLookup();
+                                        }
+                                    ">
+                                    <Star />
+                                </Toggle>
+                            </div>
                         </TooltipWrapper>
                     </div>
                     <ToggleGroup
                         type="multiple"
                         variant="outline"
                         size="sm"
-                        :model-value="Array.isArray(feedTable.filter) ? feedTable.filter : []"
+                        :model-value="activeFilterSelection"
                         @update:model-value="handleFeedFilterChange"
                         class="w-full justify-start"
                         style="flex: 1">
@@ -69,8 +80,8 @@
 
 <script setup>
     import { computed, ref, watch } from 'vue';
+    import { Funnel, Star } from 'lucide-vue-next';
     import { getLocalTimeZone, today } from '@internationalized/date';
-    import { Funnel } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
@@ -83,7 +94,7 @@
     import { DataTableLayout } from '../../components/ui/data-table';
     import { InputGroupField } from '../../components/ui/input-group';
     import { RangeCalendar } from '../../components/ui/range-calendar';
-    import { Switch } from '../../components/ui/switch';
+    import { Toggle } from '../../components/ui/toggle';
     import { columns as baseColumns } from './columns.jsx';
     import { useDataTableScrollHeight } from '../../composables/useDataTableScrollHeight';
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
@@ -188,9 +199,30 @@
         }
     };
 
+    const activeFilterSelection = computed(() => {
+        const filter = feedTable.value.filter;
+        if (!Array.isArray(filter) || filter.length === 0) {
+            return [...feedFilterTypes];
+        }
+        return filter;
+    });
+
     function handleFeedFilterChange(value) {
         const selected = Array.isArray(value) ? value : [];
-        feedTable.value.filter = selected.length === feedFilterTypes.length ? [] : selected;
+        const wasAllSelected = !Array.isArray(feedTable.value.filter) || feedTable.value.filter.length === 0;
+
+        if (selected.length === 0) {
+            feedTable.value.filter = [];
+        } else if (wasAllSelected) {
+            const clicked = feedFilterTypes.filter((t) => !selected.includes(t));
+            if (clicked.length === 1) {
+                feedTable.value.filter = clicked;
+            } else {
+                feedTable.value.filter = selected.length === feedFilterTypes.length ? [] : selected;
+            }
+        } else {
+            feedTable.value.filter = selected.length === feedFilterTypes.length ? [] : selected;
+        }
         feedTableLookup();
     }
 

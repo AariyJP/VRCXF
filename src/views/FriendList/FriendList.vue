@@ -15,11 +15,20 @@
                     <div class="mb-2 flex items-center justify-between">
                         <div class="flex flex-none mr-2 items-center">
                             <TooltipWrapper side="bottom" :content="t('view.friend_list.favorites_only_tooltip')">
-                                <span class="inline-flex">
-                                    <Switch
-                                        v-model="friendsListSearchFilterVIP"
-                                        @update:modelValue="friendsListSearchChange" />
-                                </span>
+                                <div>
+                                    <Toggle
+                                        variant="outline"
+                                        size="sm"
+                                        :model-value="friendsListSearchFilterVIP"
+                                        @update:modelValue="
+                                            (v) => {
+                                                friendsListSearchFilterVIP = v;
+                                                friendsListSearchChange();
+                                            }
+                                        ">
+                                        <Star />
+                                    </Toggle>
+                                </div>
                             </TooltipWrapper>
                             <Select
                                 multiple
@@ -115,6 +124,7 @@
     import { Button } from '@/components/ui/button';
     import { InputGroupField } from '@/components/ui/input-group';
     import { Progress } from '@/components/ui/progress';
+    import { Star } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
@@ -131,6 +141,7 @@
     import { friendRequest, userRequest } from '../../api';
     import { DataTableLayout } from '../../components/ui/data-table';
     import { Switch } from '../../components/ui/switch';
+    import { Toggle } from '../../components/ui/toggle';
     import { createColumns } from './columns.jsx';
     import { localeIncludes } from '../../shared/utils';
     import removeConfusables, { removeWhitespace } from '../../service/confusables';
@@ -206,9 +217,7 @@
     });
 
     const totalItems = computed(() => {
-        const length = table.getFilteredRowModel().rows.length;
-        const max = vrcxStore.maxTableSize;
-        return length > max ? max : length;
+        return table.getFilteredRowModel().rows.length;
     });
 
     const handlePageSizeChange = (size) => {

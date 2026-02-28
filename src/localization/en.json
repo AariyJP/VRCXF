@@ -7,7 +7,8 @@
         "actions": {
             "open": "Open",
             "confirm": "Confirm",
-            "clear": "Clear"
+            "clear": "Clear",
+            "reset": "Reset"
         },
         "time_units": {
             "y": "y",
@@ -93,7 +94,8 @@
             "sort_secondary": "Then by",
             "sort_tertiary": "Then by",
             "favorite_groups": "Favorite Groups",
-            "favorite_groups_placeholder": "All Groups"
+            "favorite_groups_placeholder": "All Groups",
+            "edit_group_order": "Edit Group Order"
         },
         "notifications": "Notifications",
         "notification_center": {
@@ -2227,6 +2229,18 @@
     },
     "message": {
         "auto_login_delay_countdown": "Auto-login in {seconds}s...",
+        "auth": {
+            "login_greeting": "Hello there, {name}!",
+            "logout_greeting": "See you again, {name}!",
+            "email_2fa_resent": "Email 2FA resent.",
+            "email_2fa_no_credentials": "Cannot send 2FA email without saved credentials. Please login again.",
+            "incorrect_primary_password": "Incorrect primary password",
+            "saved_credentials_invalid": "Saved credentials are no longer valid.",
+            "account_removed": "Account removed.",
+            "auto_login_success": "Automatically logged in.",
+            "auto_login_failed": "Failed to login automatically.",
+            "offline": "You're offline."
+        },
         "vrcx_updater": {
             "failed": "Failed to check for update, {message}",
             "failed_install": "Failed to install update",
