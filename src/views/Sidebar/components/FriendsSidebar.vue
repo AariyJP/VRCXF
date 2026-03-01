@@ -1,5 +1,5 @@
 <template>
-    <div ref="scrollRootRef" class="relative h-full">
+    <div class="relative h-full">
         <div ref="scrollViewportRef" class="h-full w-full overflow-auto">
             <div class="x-friend-list px-1.5 py-2.5">
                 <div v-if="virtualRows.length" class="relative w-full box-border" :style="virtualContainerStyle">
@@ -32,10 +32,17 @@
                                     <div class="avatar" :class="userStatusClass(currentUser)">
                                         <img :src="userImage(currentUser)" loading="lazy" />
                                     </div>
-                                    <div class="detail h-9 flex flex-col justify-between">
-                                        <span class="name" :style="{ color: currentUser.$userColour }">{{
-                                            currentUser.displayName
-                                        }}</span>
+                                    <div class="detail h-auto flex flex-col justify-between">
+                                        <div class="flex items-center">
+                                            <span class="name" :style="{ color: currentUser.$userColour }">{{
+                                                currentUser.displayName
+                                            }}</span>
+                                            <span
+                                                v-if="currentUser.statusDescription"
+                                                class="block truncate text-[11px] text-muted-foreground"
+                                                >{{ '・' + currentUser.statusDescription }}</span
+                                            >
+                                        </div>
                                         <Location
                                             v-if="isGameRunning && !gameLogDisabled"
                                             class="extra block truncate text-xs"
@@ -51,10 +58,6 @@
                                             :location="currentUser.$locationTag"
                                             :traveling="currentUser.$travelingToLocation"
                                             :link="false" />
-
-                                        <span v-else class="extra block truncate text-xs">{{
-                                            currentUser.statusDescription
-                                        }}</span>
                                     </div>
                                 </div>
                             </template>
@@ -85,9 +88,20 @@
     import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
     import { ChevronDown } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
+    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
     import { useVirtualizer } from '@tanstack/vue-virtual';
 
+    import {
+        ContextMenu,
+        ContextMenuCheckboxItem,
+        ContextMenuContent,
+        ContextMenuSeparator,
+        ContextMenuSub,
+        ContextMenuSubContent,
+        ContextMenuSubTrigger,
+        ContextMenuTrigger
+    } from '../../../components/ui/context-menu';
     import {
         useAdvancedSettingsStore,
         useAppearanceSettingsStore,
@@ -97,8 +111,9 @@
         useLocationStore,
         useUserStore
     } from '../../../stores';
-    import { isRealInstance, userImage, userStatusClass } from '../../../shared/utils';
+    import { getFriendsSortFunction, isRealInstance, userImage, userStatusClass } from '../../../shared/utils';
     import { getFriendsLocations } from '../../../shared/utils/location.js';
+    import { userRequest } from '../../../api';
 
     import BackToTop from '../../../components/BackToTop.vue';
     import FriendItem from './FriendItem.vue';
@@ -116,12 +131,15 @@
         offlineFriends,
         friendsInSameInstance
     } = storeToRefs(friendStore);
+    const appearanceSettingsStore = useAppearanceSettingsStore();
     const {
         isSidebarGroupByInstance,
         isHideFriendsInSameInstance,
         isSidebarDivideByFriendGroup,
-        sidebarFavoriteGroups
-    } = storeToRefs(useAppearanceSettingsStore());
+        sidebarFavoriteGroups,
+        sidebarFavoriteGroupOrder,
+        sidebarSortMethods
+    } = storeToRefs(appearanceSettingsStore);
     const { gameLogDisabled } = storeToRefs(useAdvancedSettingsStore());
     const { showUserDialog } = useUserStore();
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } =
@@ -138,7 +156,6 @@
     const isSidebarGroupByInstanceCollapsed = ref(false);
     const collapsedFavGroups = reactive(new Set());
     const scrollViewportRef = ref(null);
-    const scrollRootRef = ref(null);
 
     loadFriendsGroupStates();
 
@@ -163,9 +180,35 @@
         return list.filter((item) => !sameInstanceFriendId.value.has(item.id));
     }
 
-    const onlineFriendsByGroupStatus = computed(() =>
-        excludeSameInstance(onlineFriends.value.filter((f) => !allFavoriteFriendIds.value.has(f.id)))
-    );
+    const onlineFriendsByGroupStatus = computed(() => {
+        const selectedGroups = sidebarFavoriteGroups.value;
+        const hasFilter = selectedGroups.length > 0;
+        if (!hasFilter) {
+            return excludeSameInstance(onlineFriends.value.filter((f) => !allFavoriteFriendIds.value.has(f.id)));
+        }
+        // When group filter is active, friends in unselected groups should appear in the online list
+        const displayedVipIds = new Set();
+        const remoteFriendsByGroup = groupedByGroupKeyFavoriteFriends.value;
+        for (const key of selectedGroups) {
+            if (key.startsWith('local:')) {
+                const groupName = key.slice(6);
+                const userIds = localFriendFavorites.value?.[groupName];
+                if (userIds) {
+                    for (const id of userIds) displayedVipIds.add(id);
+                }
+            } else if (remoteFriendsByGroup[key]) {
+                for (const f of remoteFriendsByGroup[key]) displayedVipIds.add(f.id);
+            }
+        }
+        const nonFavOnline = onlineFriends.value.filter((f) => !displayedVipIds.has(f.id));
+        const existingIds = new Set(nonFavOnline.map((f) => f.id));
+        const unselectedGroupFriends = allFavoriteOnlineFriends.value.filter(
+            (f) => !displayedVipIds.has(f.id) && !existingIds.has(f.id)
+        );
+        return excludeSameInstance(
+            [...nonFavOnline, ...unselectedGroupFriends].sort(getFriendsSortFunction(sidebarSortMethods.value))
+        );
+    });
 
     const vipFriendsByGroupStatus = computed(() => {
         const selectedGroups = sidebarFavoriteGroups.value;
@@ -228,7 +271,15 @@
             }
         }
 
-        return result.sort((a, b) => a[0].key.localeCompare(b[0].key));
+        const order = sidebarFavoriteGroupOrder.value;
+        return result.sort((a, b) => {
+            const idxA = order.indexOf(a[0]?.key);
+            const idxB = order.indexOf(b[0]?.key);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return (a[0]?.key ?? '').localeCompare(b[0]?.key ?? '');
+        });
     });
 
     const buildToggleRow = ({
@@ -538,4 +589,45 @@
             virtualizer.value?.measure?.();
         });
     });
+
+    const statusOptions = computed(() => [
+        {
+            value: 'join me',
+            statusClass: 'joinme',
+            label: t('dialog.user.status.join_me')
+        },
+        {
+            value: 'active',
+            statusClass: 'online',
+            label: t('dialog.user.status.online')
+        },
+        {
+            value: 'ask me',
+            statusClass: 'askme',
+            label: t('dialog.user.status.ask_me')
+        },
+        {
+            value: 'busy',
+            statusClass: 'busy',
+            label: t('dialog.user.status.busy')
+        }
+    ]);
+
+    const recentStatuses = computed(() => {
+        const history = currentUser.value?.statusHistory;
+        if (!history || !history.length) return [];
+        return history.slice(0, 10);
+    });
+
+    function changeStatus(value) {
+        userRequest.saveCurrentUser({ status: value }).then(() => {
+            toast.success('Status updated');
+        });
+    }
+
+    function setStatusFromHistory(status) {
+        userRequest.saveCurrentUser({ statusDescription: status }).then(() => {
+            toast.success('Status updated');
+        });
+    }
 </script>

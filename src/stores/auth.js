@@ -149,9 +149,9 @@ export const useAuthStore = defineStore('Auth', () => {
         if (watchState.isLoggedIn) {
             new Noty({
                 type: 'success',
-                text: `See you again, <strong>${escapeTag(
-                    userStore.currentUser.displayName
-                )}</strong>!`
+                text: t('message.auth.logout_greeting', {
+                    name: `<strong>${escapeTag(userStore.currentUser.displayName)}</strong>`
+                })
             }).show();
         }
         userStore.userDialog.visible = false;
@@ -232,7 +232,7 @@ export const useAuthStore = defineStore('Auth', () => {
                 relogin(user).then(() => {
                     new Noty({
                         type: 'success',
-                        text: 'Email 2FA resent.'
+                        text: t('message.auth.email_2fa_resent')
                     }).show();
                 });
                 return;
@@ -240,7 +240,7 @@ export const useAuthStore = defineStore('Auth', () => {
         }
         new Noty({
             type: 'error',
-            text: 'Cannot send 2FA email without saved credentials. Please login again.'
+            text: t('message.auth.email_2fa_no_credentials')
         }).show();
     }
 
@@ -456,7 +456,7 @@ export const useAuthStore = defineStore('Auth', () => {
                 try {
                     password = await checkPrimaryPassword(loginParams);
                 } catch (err) {
-                    toast.error('Incorrect primary password');
+                    toast.error(t('message.auth.incorrect_primary_password'));
                     throw err;
                 }
             }
@@ -475,7 +475,7 @@ export const useAuthStore = defineStore('Auth', () => {
             }
         } catch (err) {
             if (err.message.includes('Invalid Username/Email or Password')) {
-                toast.error('Saved credentials are no longer valid.');
+                toast.error(t('message.auth.saved_credentials_invalid'));
                 await deleteSavedLogin(user.user.id);
             }
             throw err;
@@ -500,7 +500,7 @@ export const useAuthStore = defineStore('Auth', () => {
         );
         new Noty({
             type: 'success',
-            text: 'Account removed.'
+            text: t('message.auth.account_removed')
         }).show();
     }
 
@@ -818,7 +818,7 @@ export const useAuthStore = defineStore('Auth', () => {
                 }
                 AppDebug.errorNoty = new Noty({
                     type: 'success',
-                    text: 'Automatically logged in.'
+                    text: t('message.auth.auto_login_success')
                 }).show();
                 console.log('Automatically logged in.');
             })
@@ -828,15 +828,16 @@ export const useAuthStore = defineStore('Auth', () => {
                 }
                 AppDebug.errorNoty = new Noty({
                     type: 'error',
-                    text: 'Failed to login automatically.'
+                    text: t('message.auth.auto_login_failed')
                 }).show();
                 console.error('Failed to login automatically.', err);
             })
             .finally(() => {
+                attemptingAutoLogin.value = false;
                 if (!navigator.onLine) {
                     AppDebug.errorNoty = new Noty({
                         type: 'error',
-                        text: `You're offline.`
+                        text: t('message.auth.offline')
                     }).show();
                     console.error(`You're offline.`);
                 }

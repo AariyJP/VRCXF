@@ -249,7 +249,6 @@
     import { Badge } from '@/components/ui/badge';
     import { Separator } from '@/components/ui/separator';
     import { TooltipWrapper } from '@/components/ui/tooltip';
-    import { notificationRequest } from '@/api';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
@@ -273,14 +272,14 @@
     const notificationStore = useNotificationStore();
     const { lastLocation } = storeToRefs(useLocationStore());
     const { isGameRunning } = storeToRefs(useGameStore());
-    const { openNotificationLink, isNotificationExpired, handleNotificationV2Hide } = useNotificationStore();
+    const { openNotificationLink, isNotificationExpired } = useNotificationStore();
 
     const senderName = computed(() => {
         const n = props.notification;
         // if (n.senderUsername && n.senderUsername?.Value === null) {
         //     return n.title || n.data?.groupName || n.groupName || n.details?.groupName || '';
         // }
-        return n.senderUsername || n.data?.groupName || n.groupName || n.details?.groupName || '';
+        return n.title || n.senderUsername || n.data?.groupName || n.groupName || n.details?.groupName || '';
     });
 
     const avatarUrl = computed(() => {
@@ -392,7 +391,7 @@
 
     const groupDisplayName = computed(() => {
         const n = props.notification;
-        return n.data?.groupName || n.groupName || n.details?.groupName || n.senderUsername || '';
+        return n.title || n.data?.groupName || n.groupName || n.details?.groupName || n.senderUsername || '';
     });
 
     const hoverTitle = computed(() => {
@@ -479,34 +478,11 @@
     }
 
     onBeforeUnmount(() => {
-        // Mark as seen
+        // Mark as seen (queued to avoid 429 rate-limiting)
         if (isNotificationExpired(props.notification) || isSeen.value) {
             return;
         }
-        const params = { notificationId: props.notification.id };
-        if (!props.notification.version || props.notification.version < 2) {
-            notificationRequest.seeNotification({ notificationId: props.notification.id }).then((args) => {
-                console.log('Marked notification-v1 as seen:', args.json);
-                notificationStore.handleNotificationSee(props.notification.id);
-            });
-            return;
-        }
-        notificationRequest
-            .seeNotificationV2(params)
-            .then((args) => {
-                console.log('Marked notification-v2 as seen:', args.json);
-                const newArgs = {
-                    params,
-                    json: {
-                        ...args.json,
-                        seen: true
-                    }
-                };
-                notificationStore.handleNotificationV2Update(newArgs);
-            })
-            .catch((err) => {
-                console.error('Failed to mark notification-v2 as seen:', err);
-                handleNotificationV2Hide(props.notification.id);
-            });
+        const version = props.notification.version || 1;
+        notificationStore.queueMarkAsSeen(props.notification.id, version);
     });
 </script>

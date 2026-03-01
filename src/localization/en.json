@@ -7,7 +7,8 @@
         "actions": {
             "open": "Open",
             "confirm": "Confirm",
-            "clear": "Clear"
+            "clear": "Clear",
+            "reset": "Reset"
         },
         "time_units": {
             "y": "y",
@@ -93,7 +94,8 @@
             "sort_secondary": "Then by",
             "sort_tertiary": "Then by",
             "favorite_groups": "Favorite Groups",
-            "favorite_groups_placeholder": "All Groups"
+            "favorite_groups_placeholder": "All Groups",
+            "edit_group_order": "Edit Group Order"
         },
         "notifications": "Notifications",
         "notification_center": {
@@ -433,7 +435,13 @@
                     "layout_spacing": "Layout spacing",
                     "layout_spacing_help": "How spread out the graph is. Higher means less crowded.",
                     "edge_curvature": "Edge curvature",
-                    "edge_curvature_help": "How curved the lines are. Higher means smoother lines in dense areas."
+                    "edge_curvature_help": "How curved the lines are. Higher means smoother lines in dense areas.",
+                    "community_separation": "Community separation",
+                    "community_separation_help": "How far apart different communities are pushed. Higher means more distinct clusters.",
+                    "reset_defaults": "Reset to defaults",
+                    "exclude_friends": "Exclude friends",
+                    "exclude_friends_placeholder": "Select friends to exclude",
+                    "exclude_friends_help": "Selected friends will be hidden from the graph."
                 }
             }
         },
@@ -2221,6 +2229,18 @@
     },
     "message": {
         "auto_login_delay_countdown": "Auto-login in {seconds}s...",
+        "auth": {
+            "login_greeting": "Hello there, {name}!",
+            "logout_greeting": "See you again, {name}!",
+            "email_2fa_resent": "Email 2FA resent.",
+            "email_2fa_no_credentials": "Cannot send 2FA email without saved credentials. Please login again.",
+            "incorrect_primary_password": "Incorrect primary password",
+            "saved_credentials_invalid": "Saved credentials are no longer valid.",
+            "account_removed": "Account removed.",
+            "auto_login_success": "Automatically logged in.",
+            "auto_login_failed": "Failed to login automatically.",
+            "offline": "You're offline."
+        },
         "vrcx_updater": {
             "failed": "Failed to check for update, {message}",
             "failed_install": "Failed to install update",

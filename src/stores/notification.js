@@ -10,6 +10,7 @@ import {
     checkCanInvite,
     displayLocation,
     escapeTag,
+    executeWithBackoff,
     extractFileId,
     extractFileVersion,
     getUserMemo,
@@ -145,6 +146,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         friendNotifications.value.filter(
             (n) =>
                 !unseenSet.value.has(n.id) &&
+                n.seen !== false &&
                 getNotificationTs(n) > recentCutoff.value
         )
     );
@@ -152,6 +154,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         groupNotifications.value.filter(
             (n) =>
                 !unseenSet.value.has(n.id) &&
+                n.seen !== false &&
                 getNotificationTs(n) > recentCutoff.value
         )
     );
@@ -159,6 +162,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         otherNotifications.value.filter(
             (n) =>
                 !unseenSet.value.has(n.id) &&
+                n.seen !== false &&
                 getNotificationTs(n) > recentCutoff.value
         )
     );
@@ -397,7 +401,72 @@ export const useNotificationStore = defineStore('Notification', () => {
         if (ref) {
             ref.seen = true;
         }
-        database.seenNotificationV2(ref);
+        database.seenNotificationV2(notificationId);
+    }
+
+    const seeQueue = [];
+    const seenIds = new Set();
+    let seeProcessing = false;
+    const SEE_CONCURRENCY = 5;
+
+    async function processSeeQueue() {
+        if (seeProcessing) return;
+        seeProcessing = true;
+        const worker = async () => {
+            let item;
+            while ((item = seeQueue.shift())) {
+                const { id, version } = item;
+                try {
+                    await executeWithBackoff(
+                        async () => {
+                            if (version >= 2) {
+                                const args =
+                                    await notificationRequest.seeNotificationV2(
+                                        { notificationId: id }
+                                    );
+                                handleNotificationV2Update({
+                                    params: { notificationId: id },
+                                    json: { ...args.json, seen: true }
+                                });
+                            } else {
+                                await notificationRequest.seeNotification({
+                                    notificationId: id
+                                });
+                                handleNotificationSee(id);
+                            }
+                        },
+                        {
+                            maxRetries: 3,
+                            baseDelay: 1000,
+                            shouldRetry: (err) =>
+                                err?.status === 429 ||
+                                (err?.message || '').includes('429')
+                        }
+                    );
+                } catch (err) {
+                    console.warn('Failed to mark notification as seen:', id);
+                    if (version >= 2) {
+                        handleNotificationV2Hide(id);
+                    }
+                }
+            }
+        };
+        await Promise.all(
+            Array.from({ length: SEE_CONCURRENCY }, () => worker())
+        );
+        seeProcessing = false;
+    }
+
+    /**
+     * Queue a notification to be marked as seen.
+     * @param {string} notificationId
+     * @param {number} [version=1]
+     */
+    function queueMarkAsSeen(notificationId, version = 1) {
+        if (seenIds.has(notificationId)) return;
+        seenIds.add(notificationId);
+        seeQueue.push({ id: notificationId, version });
+        processSeeQueue();
     }
 
     function handleNotificationAccept(args) {
@@ -2751,6 +2820,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         hasUnseenNotifications,
         getNotificationCategory,
         isNotificationExpired,
-        openNotificationLink
+        openNotificationLink,
+        queueMarkAsSeen
     };
 });
