@@ -1,254 +1,252 @@
-# 推奨コマンド
+# Suggested Commands
 
-## 開発コマンド
+## Development Commands
 
-### フロントエンド開発
+### Frontend Development
 
 ```bash
-# Windows版開発サーバー起動 (ポート9000)
+# Start Windows development server (port 9000)
 npm run dev
 
-# Linux版開発サーバー起動
+# Start Linux development server
 npm run dev-linux
 
-# 開発サーバー + テスト監視
+# Dev server + Test monitoring
 npm run dev:test
 ```
 
-### テスト
+### Testing
 
 ```bash
-# テスト実行
+# Run tests
 npm test
 
-# カバレッジ付きテスト
+# Run tests with coverage
 npm run test:coverage
 ```
 
-### ビルド
+### Build
 
 ```bash
-# Windows版プロダクションビルド
+# Windows production build
 npm run prod
 
-# Linux版プロダクションビルド
+# Linux production build
 npm run prod-linux
 
-# Electronビルド (x64)
+# Electron build (macOS/Linux only)
 npm run build-electron
-
-# Electronビルド (arm64)
 npm run build-electron-arm64
 
-# Electron起動 (ホットリロード付き)
+# Start Electron (macOS/Linux only)
 npm run start-electron
 ```
 
-### ユーティリティ
+### Utility
 
 ```bash
-# i18nヘルパーCLI
+# i18n helper CLI
 npm run localization
 ```
 
-## .NETビルド
+## .NET Build
 
-### Visual Studio
+### Visual Studio / dotnet CLI
 
 ```bash
-# Windows CEF版ビルド (Release, x64)
+# Build Windows CEF version (Release, x64, MUST be --self-contained)
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 -p:RestorePackagesConfig=true -t:"Restore;Clean;Build" -m --self-contained
 
-# Electron版ビルド (x64)
+# Build Electron version (x64)
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
 
-# Electron版ビルド (arm64)
+# Build Electron version (arm64)
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=x64
 ```
 
-### ソリューション全体
+### Solution-wide
 
 ```bash
-# Visual Studioソリューションビルド
+# Visual Studio solution build
 msbuild VRCX.sln /p:Configuration=Release /p:Platform=x64
 ```
 
-## 完全ビルド (Windows)
+## Full Build (Windows)
 
 ```powershell
-# すべてをビルド (PowerShell)
+# Build everything (PowerShell)
 .\build-scripts\build-all.ps1
 ```
 
-このスクリプトは以下を実行:
-1. .NETビルド (VRCX-Cef.csproj)
-2. Node.jsビルド (`npm ci` + `npm run prod`)
-3. Zipファイル作成
-4. NSISインストーラー作成
-5. SHA256ハッシュ生成
+This script executes:
+1. .NET build (VRCX-Cef.csproj)
+2. Node.js build (`npm ci` + `npm run prod`)
+3. Create Zip file
+4. Create NSIS installer
+5. Generate SHA256 hashes
 
-## パッケージ管理
+## Package Management
 
 ```bash
-# 依存関係インストール
+# Install dependencies
 npm ci
 
-# 依存関係インストール (開発環境)
+# Install dependencies (Development environment)
 npm install
 
-# 依存関係更新
+# Update dependencies
 npm update
 ```
 
-## コード品質
+## Code Quality
 
 ### Linting
 
 ```bash
-# ESLint実行
+# Run ESLint
 npx eslint .
 
-# ESLint自動修正
+# Auto-fix ESLint issues
 npx eslint . --fix
 ```
 
 ### Formatting
 
 ```bash
-# Prettier実行 (チェックのみ)
+# Run Prettier (Check only)
 npx prettier --check .
 
-# Prettier自動修正
+# Auto-fix Formatting with Prettier
 npx prettier --write .
 ```
 
-## Git操作
+## Git Operations
 
 ```bash
-# ステータス確認
+# Check status
 git status
 
-# 変更をステージング
+# Stage changes
 git add .
 
-# コミット
-git commit -m "コミットメッセージ"
+# Commit
+git commit -m "commit message"
 
-# プッシュ
+# Push
 git push
 
-# プル
+# Pull
 git pull
 
-# ブランチ作成
-git checkout -b ブランチ名
+# Create branch
+git checkout -b branch-name
 
-# ブランチ切り替え
-git checkout ブランチ名
+# Switch branch
+git checkout branch-name
 
-# ブランチ一覧
+# List branches
 git branch
 ```
 
-## Windows固有のユーティリティコマンド
+## Windows-specific Utility Commands
 
 ```cmd
-# ディレクトリ一覧
+# List directories
 dir
 
-# ディレクトリ移動
-cd パス
+# Change directory
+cd path
 
-# ファイル検索
-where ファイル名
+# Search for file
+where filename
 
-# ファイル内容表示
-type ファイル名
+# Display file contents
+type filename
 
-# ファイル/ディレクトリコピー
-xcopy /E /I ソース 宛先
+# Copy files/directories
+xcopy /E /I source destination
 
-# ファイル/ディレクトリ削除
-rmdir /S /Q ディレクトリ名
-del ファイル名
+# Remove files/directories
+rmdir /S /Q directory-name
+del filename
 
-# 環境変数表示
+# Display environment variables
 set
 
-# プロセス一覧
+# List processes
 tasklist
 
-# プロセス終了
-taskkill /F /PID プロセスID
+# Terminate process
+taskkill /F /PID process-id
 ```
 
-## デバッグ
+## Debugging
 
 ### Electron DevTools
 
 ```bash
-# Electron起動時に自動的にDevToolsが開く
+# DevTools automatically opens when starting Electron
 npm run start-electron
 ```
 
 ### Vite DevTools
 
-開発サーバー起動時にブラウザで `http://localhost:9000` にアクセス
+Access `http://localhost:9000` in your browser when the development server is running.
 
-## データベース操作
+## Database Operations
 
 ### DBMerger
 
 ```bash
-# DBマージツール実行
+# Run database merge tool
 dotnet run --project Dotnet\DBMerger\DBMerger.csproj
 ```
 
-## クリーンアップ
+## Cleanup
 
 ```bash
-# node_modules削除
+# Delete node_modules
 rmdir /S /Q node_modules
 
-# buildディレクトリ削除
+# Delete build directory
 rmdir /S /Q build
 
-# .NETビルド成果物削除
+# Delete .NET build artifacts
 dotnet clean
 ```
 
 ## CI/CD
 
-GitHub Actionsワークフロー:
-- `.github/workflows/build.yml`: ビルド
+GitHub Actions Workflows:
+- `.github/workflows/build.yml`: Build
 - `.github/workflows/github_actions.yml`: GitHub Actions
-- `.github/workflows/release.yml`: リリース
+- `.github/workflows/release.yml`: Release
 
-## 環境変数
+## Environment Variables
 
 ### Vite
 
 ```bash
-# プラットフォーム指定 (windows/linux)
+# Specify platform (windows/linux)
 set PLATFORM=windows
 npm run dev
 
-# Sentry認証トークン (ソースマップアップロード用)
+# Sentry Auth Token (for source map upload)
 set SENTRY_AUTH_TOKEN=your_token
 npm run prod
 ```
 
-## トラブルシューティング
+## Troubleshooting
 
 ```bash
-# node_modules再インストール
+# Reinstall node_modules
 rmdir /S /Q node_modules
 npm ci
 
-# キャッシュクリア
+# Clear cache
 npm cache clean --force
 
-# .NETビルドキャッシュクリア
+# Clear .NET build cache
 dotnet clean
 rmdir /S /Q Dotnet\bin
 rmdir /S /Q Dotnet\obj

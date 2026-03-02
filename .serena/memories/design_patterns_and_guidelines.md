@@ -1,8 +1,8 @@
-# デザインパターンとガイドライン
+# Design Patterns and Guidelines
 
-## アーキテクチャパターン
+## Architecture Patterns
 
-### 1. レイヤードアーキテクチャ
+### 1. Layered Architecture
 
 ```
 Presentation Layer (Vue Components)
@@ -12,24 +12,24 @@ Service Layer (src/service/)
 Data Layer (SQLite, VRChat API)
 ```
 
-### 2. Store パターン (Pinia)
+### 2. Store Pattern (Pinia)
 
-- グローバル状態管理に Pinia を使用
-- Store は機能ごとに分割 (`auth`, `user`, `friend`, `notification`, etc.)
-- `createGlobalStores()` で全 Store を初期化し `window.$pinia` に保存
+- Use Pinia for global state management.
+- Stores are divided by functionality (`auth`, `user`, `friend`, `notification`, etc.).
+- All stores are initialized in `createGlobalStores()` and saved in `window.$pinia`.
 
-### 3. Repository パターン
+### 3. Repository Pattern
 
-- `ConfigRepository` (`src/service/config.js`): 設定の永続化
-- `database.js`: データベース操作の集約
+- `ConfigRepository` (`src/service/config.js`): Persistence of settings.
+- `database.js`: Centralization of database operations.
 
-### 4. Service パターン
+### 4. Service Pattern
 
-- `webApiService`: VRChat API呼び出しのラッパー
-- `websocket`: WebSocket接続管理
-- `request`: HTTP リクエスト管理
+- `webApiService`: Wrapper for VRChat API calls.
+- `websocket`: WebSocket connection management.
+- `request`: HTTP request management.
 
-## Vue コンポーネントパターン
+## Vue Component Patterns
 
 ### 1. Composition API + `<script setup>`
 
@@ -43,18 +43,18 @@ const count = ref(0);
 const doubleCount = computed(() => count.value * 2);
 
 onMounted(() => {
-    // 初期化処理
+    // Initialization logic
 });
 </script>
 ```
 
 ### 2. Composables
 
-再利用可能なロジックは Composables に抽出:
-- `src/composables/` に配置
-- `use` プレフィックスを使用 (例: `useAuth`, `useUser`)
+Extract reusable logic into Composables:
+- Place in `src/composables/`.
+- Use the `use` prefix (e.g., `useAuth`, `useUser`).
 
-### 3. Props と Emits
+### 3. Props and Emits
 
 ```vue
 <script setup>
@@ -71,17 +71,17 @@ const handleUpdate = () => {
 </script>
 ```
 
-## 状態管理パターン
+## State Management Patterns
 
-### 1. ローカル状態 vs グローバル状態
+### 1. Local State vs Global State
 
-- **ローカル状態**: コンポーネント内の `ref`/`reactive`
-- **グローバル状態**: Pinia Store
+- **Local State**: `ref`/`reactive` within a component.
+- **Global State**: Pinia Store.
 
-### 2. 算出プロパティ
+### 2. Computed Properties
 
-- 派生状態は `computed` を使用
-- Store 内でも `computed` を活用
+- Use `computed` for derived state.
+- Utilize `computed` within Stores as well.
 
 ### 3. Watchers
 
@@ -95,7 +95,7 @@ watch(() => authStore.isLoggedIn, (newVal) => {
 });
 ```
 
-## 非同期処理パターン
+## Asynchronous Patterns
 
 ### 1. async/await
 
@@ -111,26 +111,26 @@ const fetchUser = async (userId) => {
 };
 ```
 
-### 2. Promise チェーン
+### 2. Promise Chains
 
-必要に応じて使用するが、基本的には async/await を優先
+Use when necessary, but prioritize async/await by default.
 
-### 3. エラーハンドリング
+### 3. Error Handling
 
 ```javascript
 try {
     await someAsyncOperation();
 } catch (error) {
-    // Sentry にエラーを送信
+    // Send error to Sentry
     console.error(error);
-    // ユーザーに通知
-    showNotification('エラーが発生しました');
+    // Notify user
+    showNotification('An error occurred');
 }
 ```
 
-## API 呼び出しパターン
+## API Call Patterns
 
-### 1. request サービス
+### 1. request service
 
 ```javascript
 import { request } from '@/service/request';
@@ -145,44 +145,44 @@ const result = await request('auth/user/login', {
 });
 ```
 
-### 2. GET リクエストの重複排除
+### 2. GET Request Deduplication
 
-- 10秒間の重複リクエストは自動的に排除
-- 404/403 エラーは 15分間キャッシュ
+- Duplicate requests within 10 seconds are automatically deduplicated.
+- 404/403 errors are cached for 15 minutes.
 
-### 3. バルク処理
+### 3. Bulk Processing
 
 ```javascript
 import { processBulk } from '@/service/request';
 
-// ページネーション自動処理
+// Automatic pagination processing
 const allItems = await processBulk('endpoint', {
     params: { n: 100 }
 });
 ```
 
-## WebSocket パターン
+## WebSocket Patterns
 
-### 1. 接続管理
+### 1. Connection Management
 
 ```javascript
 import { websocket } from '@/service/websocket';
 
-// イベントリスナー登録
+// Register event listeners
 websocket.on('friend-online', (data) => {
     console.log('Friend online:', data);
 });
 
-// 自動再接続 (5秒間隔)
+// Auto-reconnect (5-second interval)
 ```
 
-### 2. worker-timers の使用
+### 2. Use of worker-timers
 
-バックグラウンドタブでもタイマーが動作するように `worker-timers` を使用
+Use `worker-timers` to ensure timers operate even in background tabs.
 
-## データベースパターン
+## Database Patterns
 
-### 1. トランザクション
+### 1. Transactions
 
 ```javascript
 import { database } from '@/service/database';
@@ -193,12 +193,12 @@ try {
     await SQLite.ExecuteNonQuery('UPDATE ...');
     await database.commit();
 } catch (error) {
-    // エラー時は自動的にロールバック
+    // Automatically roll back on error
     throw error;
 }
 ```
 
-### 2. クエリ実行
+### 2. Query Execution
 
 ```javascript
 // SELECT
@@ -208,17 +208,17 @@ const result = await SQLite.Execute('SELECT * FROM users WHERE id = ?', [userId]
 await SQLite.ExecuteNonQuery('INSERT INTO users (id, name) VALUES (?, ?)', [userId, name]);
 ```
 
-## クロスプラットフォームパターン
+## Cross-Platform Patterns
 
-### 1. プラットフォーム分岐
+### 1. Platform Branching
 
 ```javascript
 if (WINDOWS) {
-    // Windows (CEF) 専用コード
+    // Windows (CEF) specific code
     await CefSharp.BindObjectAsync('AppApi');
 } else {
-    // macOS/Linux (Electron) 専用コード
-    await window.interopApi.getDotNetObject('AppApi');
+    // macOS/Linux (Electron) specific code
+    await window.interopApi.callDotNetMethod('AppApi', 'MethodName', [args]);
 }
 ```
 
@@ -228,25 +228,25 @@ if (WINDOWS) {
 // Windows
 const result = await AppApi.SomeMethod(arg1, arg2);
 
-// Linux (Proxy経由)
+// Linux (via Proxy)
 const result = await window.interopApi.callDotNetMethod('AppApi', 'SomeMethod', [arg1, arg2]);
 ```
 
-### 3. WebApi 実行
+### 3. WebApi Execution
 
 ```javascript
 import { webApiService } from '@/service/webapi';
 
-// プラットフォームに応じて自動的に分岐
+// Automatically branch based on platform
 const result = await webApiService.execute({
     url: 'https://api.vrchat.cloud/api/1/users/usr_12345678-1234-1234-1234-123456789012',
     method: 'GET'
 });
 ```
 
-## UI/UXパターン
+## UI/UX Patterns
 
-### 1. shadcn-vue コンポーネント
+### 1. shadcn-vue Components
 
 ```vue
 <script setup>
@@ -259,47 +259,47 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
     <Dialog>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>タイトル</DialogTitle>
+                <DialogTitle>Title</DialogTitle>
             </DialogHeader>
             <Input v-model="value" />
-            <Button @click="handleSubmit">送信</Button>
+            <Button @click="handleSubmit">Submit</Button>
         </DialogContent>
     </Dialog>
 </template>
 ```
 
-### 2. 通知
+### 2. Notifications
 
 ```javascript
 import { toast } from 'vue-sonner';
 
-// 成功通知
-toast.success('保存しました');
+// Success notification
+toast.success('Saved');
 
-// エラー通知
-toast.error('エラーが発生しました');
+// Error notification
+toast.error('An error occurred');
 
-// 情報通知
-toast.info('情報メッセージ');
+// Info notification
+toast.info('Information message');
 ```
 
-### 3. モーダル管理
+### 3. Modal Management
 
 ```javascript
 import { useModalStore } from '@/stores/modal';
 
 const modalStore = useModalStore();
 
-// モーダルを開く
+// Open modal
 modalStore.openModal('user-detail', { userId: 'usr_12345678-1234-1234-1234-123456789012' });
 
-// モーダルを閉じる
+// Close modal
 modalStore.closeModal();
 ```
 
-## ルーティングパターン
+## Routing Patterns
 
-### 1. 認証ガード
+### 1. Authentication Guard
 
 ```javascript
 router.beforeEach((to, from, next) => {
@@ -311,7 +311,7 @@ router.beforeEach((to, from, next) => {
 });
 ```
 
-### 2. 遅延ロード
+### 2. Lazy Loading
 
 ```javascript
 const Charts = () => import('@/views/Charts/Charts.vue');
@@ -325,9 +325,9 @@ const routes = [
 ];
 ```
 
-## パフォーマンス最適化パターン
+## Performance Optimization Patterns
 
-### 1. 仮想スクロール
+### 1. Virtual Scrolling
 
 ```vue
 <script setup>
@@ -341,67 +341,67 @@ const virtualizer = useVirtualizer({
 </script>
 ```
 
-### 2. メモ化
+### 2. Memoization
 
 ```javascript
 import { computed } from 'vue';
 
 const expensiveComputation = computed(() => {
-    // 重い計算
+    // Expensive calculation
     return items.value.filter(/* ... */).map(/* ... */);
 });
 ```
 
-### 3. デバウンス/スロットル
+### 3. Debounce/Throttle
 
 ```javascript
 import { useDebounceFn, useThrottleFn } from '@vueuse/core';
 
 const debouncedSearch = useDebounceFn((query) => {
-    // 検索処理
+    // Search processing
 }, 300);
 
 const throttledScroll = useThrottleFn(() => {
-    // スクロール処理
+    // Scroll processing
 }, 100);
 ```
 
-## エラーハンドリングパターン
+## Error Handling Patterns
 
-### 1. グローバルエラーハンドラ
+### 1. Global Error Handler
 
 ```javascript
 app.config.errorHandler = (err, instance, info) => {
     console.error('Global error:', err, info);
-    // Sentry に送信
+    // Send to Sentry
 };
 ```
 
-### 2. API エラーハンドリング
+### 2. API Error Handling
 
 ```javascript
 try {
     const result = await request('endpoint');
 } catch (error) {
     if (error.status === 401) {
-        // 認証エラー
+        // Authentication error
         router.push('/login');
     } else if (error.status === 404) {
         // Not Found
-        toast.error('リソースが見つかりません');
+        toast.error('Resource not found');
     } else {
-        // その他のエラー
-        toast.error('エラーが発生しました');
+        // Other errors
+        toast.error('An error occurred');
     }
 }
 ```
 
-## テストパターン
+## Testing Patterns (Vitest)
 
-### 1. ユニットテスト
+### 1. Unit Testing
 
 ```javascript
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { someFunction } from '@/shared/utils/common';
 
 describe('someFunction', () => {
@@ -412,43 +412,45 @@ describe('someFunction', () => {
 });
 ```
 
-### 2. モック
+### 2. Mocking
 
 ```javascript
-jest.mock('@/service/request', () => ({
-    request: jest.fn()
+import { vi } from 'vitest';
+
+vi.mock('@/service/request', () => ({
+    request: vi.fn()
 }));
 ```
 
-## セキュリティパターン
+## Security Patterns
 
-### 1. XSS 対策
+### 1. XSS Prevention
 
 ```vue
-<!-- 安全 -->
+<!-- Safe -->
 <div>{{ userInput }}</div>
 
-<!-- 危険 (必要な場合のみ使用) -->
+<!-- Dangerous (use only when necessary) -->
 <div v-html="sanitizedHtml"></div>
 ```
 
-### 2. CSRF 対策
+### 2. CSRF Prevention
 
-VRChat API は Cookie ベースの認証を使用するため、適切な Cookie 管理が重要
+As VRChat API uses cookie-based authentication, proper cookie management is critical.
 
-### 3. 認証トークン管理
+### 3. Authentication Token Management
 
 ```javascript
-// VRCXStorage に保存
+// Save in VRCXStorage
 await VRCXStorage.Set('authToken', token);
 
-// 取得
+// Retrieve
 const token = await VRCXStorage.Get('authToken');
 ```
 
-## 国際化 (i18n) パターン
+## Internationalization (i18n) Patterns
 
-### 1. テキストの翻訳
+### 1. Text Translation
 
 ```vue
 <script setup>
@@ -462,13 +464,13 @@ const { t } = useI18n();
 </template>
 ```
 
-### 2. 動的な翻訳
+### 2. Dynamic Translation
 
 ```javascript
 const message = t('user.greeting', { name: userName });
 ```
 
-### 3. 複数形
+### 3. Pluralization
 
 ```javascript
 const message = t('item.count', itemCount, { count: itemCount });

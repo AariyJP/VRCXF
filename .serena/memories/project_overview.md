@@ -1,77 +1,85 @@
-# VRCXFプロジェクト概要
+# VRCXF Project Overview
 
-## プロジェクトの目的
+## Project Purpose
 
-VRCXFは、VRChatのフレンド管理を行うデスクトップアプリケーションです。元々の[vrcx-team/VRCX](https://github.com/vrcx-team/VRCX)のフォーク版で、AariyJPによって開発されています（MITライセンス）。
+VRCXF is a desktop application for managing friends in VRChat. It is a fork of the original [vrcx-team/VRCX](https://github.com/vrcx-team/VRCX), developed by AariyJP (MIT License).
 
-### 主な機能
-- **フレンド管理**: VRChatのフレンドリストの管理・追跡
-- **ロケーション追跡**: フレンドの現在地確認
-- **通知システム**: フレンドのオンライン/オフライン、招待などの通知
-- **ゲームログ**: VRChatのプレイ履歴記録
-- **VRオーバーレイ**: VR内での情報表示
-- **Discord Rich Presence**: Discordへのステータス表示
-- **お気に入り管理**: アバター、ワールド、フレンドのお気に入り
-- **統計・チャート**: インスタンス活動、相互フレンドなどの可視化
+### Key Features
 
-## 技術スタック
+- **Friend Management**: Manage and track VRChat friend lists.
+- **Location Tracking**: Check current locations of friends.
+- **Notification System**: Notifications for friend online/offline, invites, etc.
+- **Game Log**: Play history recording for VRChat.
+- **VR Overlay**: Display information within VR.
+- **Discord Rich Presence**: Show status on Discord.
+- **Favorites Management**: Favorites for avatars, worlds, and friends.
+- **Statistics & Charts**: Visualization of instance activity, mutual friends, etc.
 
-### フロントエンド
+## Tech Stack
+
+### Frontend
+
 - **Vue 3** (Composition API / `<script setup>`)
-- **Pinia** (状態管理)
-- **Vue Router** (ルーティング、hash mode)
-- **Vite 7** (ビルドツール)
-- **TailwindCSS 4** (スタイリング)
+- **Pinia** (State management)
+- **Vue Router** (Routing, hash mode)
+- **Vite 7** (Build tool)
+- **TailwindCSS 4** (Styling)
 - **shadcn-vue** (reka-ui, new-york style)
 - **LightningCSS** (CSS transformer)
-- **ECharts** (チャート)
-- **Graphology + Sigma** (グラフ可視化)
-- **vue-i18n** (14言語対応: cs, en, es, fr, hu, ja, ko, pl, pt, ru, th, vi, zh-CN, zh-TW)
-- **Jest** (テスト)
-- **Sentry** (エラートラッキング)
+- **ECharts** (Charts)
+- **Graphology + Sigma** (Graph visualization)
+- **vue-i18n** (Multiple languages supported)
+- **Vitest** (Testing)
+- **Sentry** (Error tracking)
 
-### バックエンド
-- **C# / .NET 9**
-- **SQLite** (データベース)
-- **OpenVR** (VRオーバーレイ)
-- **node-api-dotnet** (JS ⇄ .NET連携)
+### Backend
 
-### デスクトップ
-- **Electron 39** (macOS/Linux)
+- **C# / .NET 10 (Windows) / .NET 9 (macOS/Linux)**
+- **SQLite** (Database)
+- **OpenVR** (VR Overlay)
+- **node-api-dotnet** (JS ⇄ .NET interop)
+
+### Desktop
+
+- **Electron 39** (macOS/Linux only)
 - **CEF (CefSharp)** (Windows)
-- **electron-builder** (パッケージング)
+- **electron-builder** (Packaging)
 
-### プラットフォーム
-- Windows (x64) - CEF版
-- Linux (x64, arm64) - Electron版 (AppImage)
-- macOS (x64, arm64) - Electron版 (dmg)
+### Platform
 
-## クロスプラットフォーム対応
+- Windows (x64) - CEF version
+- Linux (x64, arm64) - Electron version (AppImage, macOS/Linux only)
+- macOS (x64, arm64) - Electron version (dmg, macOS/Linux only)
 
-**重要**: このプロジェクトは完全なクロスプラットフォーム実装が必須です。
+## Cross-Platform Compatibility
 
-### プラットフォーム構成
+**IMPORTANT**: This project requires complete cross-platform implementation.
+
+### Platform Configuration
+
 - **Windows**: CEF (CefSharp) — `Dotnet/Cef/`, `Dotnet/AppApi/Cef/`, `VRCX-Cef.csproj`
 - **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`, `Dotnet/AppApi/Electron/`, `VRCX-Electron.csproj`
 
-### 分岐パターン
-- **フロントエンドJS**: グローバル定数 `WINDOWS`/`LINUX` で分岐 (`if (WINDOWS) {...} else {...}`)
-- **ネイティブAPI呼び出し**: 
-  - Windows = `CefSharp.BindObjectAsync` による直接バインディング
-  - macOS/Linux = `InteropApi` Proxy (`window.interopApi.callDotNetMethod`)
-- **WebApi実行**: `webApiService.execute()` 内で分岐
-  - WINDOWS = `WebApi.Execute()` (returns `{Item1, Item2}`)
-  - LINUX = `WebApi.ExecuteJson()` (JSON string)
-- **.NET側**: 
-  - `AppApi/Common/` = 共通
-  - `AppApi/Cef/` = Windows専用
-  - `AppApi/Electron/` = macOS/Linux専用
-  - 条件付きコンパイル: `#if LINUX` / `#if !LINUX`
-- **Electron専用**: `window.electron` (preloadで公開) はmacOS/Linuxのみ存在
+### Branching Patterns
 
-## アーキテクチャ
+- **Frontend JS**: Branch using global constants `WINDOWS`/`LINUX` (`if (WINDOWS) {...} else {...}`)
+- **Native API Calls**:
+    - Windows = Direct binding via `CefSharp.BindObjectAsync`
+    - macOS/Linux = `InteropApi` Proxy (`window.interopApi.callDotNetMethod`)
+- **WebApi Execution**: Branching inside `webApiService.execute()`
+    - WINDOWS = `WebApi.Execute()` (returns `{Item1, Item2}`)
+    - LINUX = `WebApi.ExecuteJson()` (JSON string)
+- **.NET Side**:
+    - `AppApi/Common/` = Shared
+    - `AppApi/Cef/` = Windows only
+    - `AppApi/Electron/` = macOS/Linux only
+    - Conditional compilation: `#if LINUX` / `#if !LINUX`
+- **Electron-only**: `window.electron` (exposed via preload) exists only on macOS/Linux.
 
-### 全体構成
+## Architecture
+
+### Overall Structure
+
 ```
 Electron Main (src-electron/main.js)
   ↓ node-api-dotnet
@@ -80,31 +88,35 @@ Electron Main (src-electron/main.js)
 VRChat API / WebSocket
 ```
 
-### フロントエンド (Renderer)
+### Frontend (Renderer)
+
 - Vue 3 SPA
 - VRChat REST API (`src/service/request.js`)
 - WebSocket (`src/service/websocket.js`)
 
-### .NETバックエンド
-- ログ解析 (`LogWatcher.cs`)
-- データベース (`SQLite.cs`)
-- VRオーバーレイ (`Overlay/`)
+### .NET Backend
+
+- Log parsing (`LogWatcher.cs`)
+- Database (`SQLite.cs`)
+- VR overlay (`Overlay/`)
 - Discord Rich Presence (`Discord.cs`)
-- プロセス監視 (`ProcessMonitor.cs`)
+- Process monitoring (`ProcessMonitor.cs`)
 
 ### IPC
+
 - `src-electron/InteropApi.js` ⇄ `Dotnet/AppApi/`
 
-## VRChat API連携
+## VRChat API Integration
 
 - **REST API**: `https://api.vrchat.cloud/api/1` (`AppDebug.endpointDomain`)
 - **WebSocket**: `wss://pipeline.vrchat.cloud` (`AppDebug.websocketDomain`)
 - **HTTP**: `request(endpoint, options)` → `webApiService.execute()` → .NET `WebApi.Execute`
-- **GET request dedup**: 10秒
-- **404/403 retry suppression**: 15分
-- **WebSocket events**: notification, friend-add/delete/online/active/offline/update/location, user-update/location, group-*, instance-*, content-refresh
+- **GET request dedup**: 10 seconds
+- **404/403 retry suppression**: 15 minutes
+- **WebSocket events**: notification, friend-add/delete/online/active/offline/update/location, user-update/location, group-_, instance-_, content-refresh
+- **VRChat API docs**: `https://vrchat.community`
 
-## バージョン管理
+## Version Management
 
-- バージョンファイル: `./Version` (現在: `0.0.0-develop`)
-- `NIGHTLY`: 開発モードまたはバージョンが7文字のコミットハッシュで終わる場合にtrue
+- Version file: `./Version`
+- `NIGHTLY`: true in development mode or when version ends with a 7-char commit hash.
