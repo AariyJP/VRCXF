@@ -1,223 +1,225 @@
-# タスク完了時のチェックリスト
+# Task Completion Checklist
 
-## コード変更後の必須手順
+## Required Steps After Code Changes
 
-### 1. コード品質チェック
+### 1. Code Quality Check
 
 #### Linting
 ```bash
-# ESLint実行
+# Run ESLint
 npx eslint .
 
-# 自動修正可能な問題を修正
+# Fix auto-fixable issues
 npx eslint . --fix
 ```
 
 #### Formatting
 ```bash
-# Prettier実行 (チェックのみ)
+# Run Prettier (Check only)
 npx prettier --check .
 
-# 自動フォーマット
+# Auto-format
 npx prettier --write .
 ```
 
-### 2. テスト実行
+### 2. Run Tests
 
 ```bash
-# 全テスト実行
+# Run all tests (Vitest)
 npm test
 
-# カバレッジ確認 (必要に応じて)
+# Check coverage (if necessary)
 npm run test:coverage
 ```
 
-### 3. ビルド確認
+### 3. Verify Build
 
-#### フロントエンド
+#### Frontend
 
 ```bash
-# Windows版ビルド
+# Windows build
 npm run prod
 
-# Linux版ビルド (クロスプラットフォーム対応の場合)
+# Linux build (for cross-platform compatibility)
 npm run prod-linux
 ```
 
-#### .NET (必要に応じて)
+#### .NET (if necessary)
 
 ```bash
-# Windows CEF版
-dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
+# Windows CEF version (MUST be --self-contained)
+dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
 
-# Electron版
+# Electron version (macOS/Linux only)
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
 ```
 
-### 4. 動作確認
+### 4. Verification in App
 
 ```bash
-# 開発サーバーで動作確認
+# Verify behavior on development server
 npm run dev
 
-# または Electron版で確認
+# Or verify with Electron version
 npm run start-electron
 ```
 
-### 5. Git操作
+### 5. Git Operations
 
 ```bash
-# 変更内容確認
+# Check status
 git status
 git diff
 
-# ステージング
+# Staging
 git add .
 
-# コミット (意味のあるメッセージを記述)
-git commit -m "feat: 新機能の説明" 
-# または
-git commit -m "fix: バグ修正の説明"
-# または
-git commit -m "refactor: リファクタリングの説明"
+# Commit (using meaningful messages)
+git commit -m "feat: description of new feature" 
+# OR
+git commit -m "fix: description of bug fix"
+# OR
+git commit -m "refactor: description of refactoring"
 
-# プッシュ (必要に応じて)
+# Push (if necessary)
 git push
 ```
 
-## クロスプラットフォーム対応の確認
+## Cross-Platform Verification
 
-新しいネイティブAPI呼び出しを追加した場合:
+When adding a new native API call:
 
-### 1. 共通APIの追加
-- `Dotnet/AppApi/Common/` に共通メソッドを追加
+### 1. Add Shared API
+- Add the shared method in `Dotnet/AppApi/Common/`.
 
-### 2. プラットフォーム固有の実装
-- Windows: `Dotnet/AppApi/Cef/` に実装
-- macOS/Linux: `Dotnet/AppApi/Electron/` に実装
+### 2. Platform-specific Implementation
+- Windows: Implement in `Dotnet/AppApi/Cef/`.
+- macOS/Linux: Implement in `Dotnet/AppApi/Electron/`.
 
-### 3. フロントエンドの分岐
-- `WINDOWS`/`LINUX` グローバル定数で分岐
-- 既存パターンを参照:
+### 3. Frontend Branching
+- Branch using global constants `WINDOWS`/`LINUX`.
+- Refer to existing patterns:
   - `src/plugin/interopApi.js`
   - `src/service/webapi.js`
 
-### 4. Electron専用APIの使用
-- `window.electron.*` を使用する場合、Windows (CEF) のフォールバック実装を検討
+### 4. Use of Electron-only APIs
+- If using `window.electron.*`, consider a fallback implementation for Windows (CEF).
 
-### 5. ビルド確認
-- 両方の .csproj でビルドが成功することを確認:
+### 5. Build Verification
+- Confirm build success in both .csproj files:
   ```bash
-  dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
+  dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
   dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
   ```
 
-## i18n対応の確認
+## i18n Verification
 
-テキストを追加/変更した場合:
+When adding/changing text:
 
-### 1. 翻訳キーの追加
-- `src/localization/` の各言語ファイル (14言語) に翻訳を追加
-- 最低限 `en.json` と `ja.json` は必須
+### 1. Add Translation Keys
+- Add translations to each language file in `src/localization/` (14 languages).
+- At minimum, `en.json` and `ja.json` are required.
 
-### 2. i18nヘルパーの使用
+### 2. Use i18n Helper
 ```bash
 npm run localization
 ```
 
-### 3. 翻訳の確認
-- 開発サーバーで各言語に切り替えて表示を確認
+### 3. Verify Translations
+- Switch languages on the development server to check the display.
 
-## データベーススキーマ変更の確認
+## Database Schema Change Verification
 
-スキーマを変更した場合:
+When modifying the schema:
 
-### 1. マイグレーションの追加
-- `src/service/database/tableAlter.js` にマイグレーションを追加
+### 1. Add Migration
+- Add a migration in `src/service/database/tableAlter.js`.
 
-### 2. テーブル定義の更新
-- 該当する `src/service/database/` のファイルを更新
+### 2. Update Table Definitions
+- Update the relevant files in `src/service/database/`.
 
-### 3. 動作確認
-- 既存データベースでのマイグレーションテスト
-- 新規データベースでの作成テスト
+### 3. Verify Behavior
+- Test migrations on an existing database.
+- Test creation on a new database.
 
-## VRChat API変更の確認
+## VRChat API Change Verification
 
-VRChat APIエンドポイントを追加/変更した場合:
+When adding/changing VRChat API endpoints:
 
-### 1. APIラッパーの更新
-- `src/api/` の該当ファイルを更新
+### 1. Update API Wrapper
+- Update the corresponding file in `src/api/`.
 
-### 2. 型定義の更新
-- `src/types/api/` の該当ファイルを更新
+### 2. Update Type Definitions
+- Update the corresponding file in `src/types/api/`.
 
-### 3. レート制限の確認
-- VRChat APIのレート制限に違反していないか確認
+### 3. Verify Rate Limits
+- Confirm that VRChat API rate limits are not violated.
 
-## UIコンポーネント追加の確認
+## UI Component Addition Verification
 
-新しいコンポーネントを追加した場合:
+When adding new components:
 
-### 1. shadcn-vueの使用
-- 可能な限り `src/components/ui/` の既存コンポーネントを使用
+### 1. Use of shadcn-vue
+- Utilize existing components in `src/components/ui/` as much as possible.
 
-### 2. スタイリング
-- TailwindCSS 4を使用
-- カスタムCSSは `src/styles/globals.css` または `src/styles/themes/` に追加
+### 2. Styling
+- Use TailwindCSS 4.
+- Add custom CSS to `src/styles/globals.css` or `src/styles/themes/`.
 
-### 3. レスポンシブ対応
-- モバイル、タブレット、デスクトップでの表示確認
+### 3. Responsive Compatibility
+- Check display on mobile, tablet, and desktop.
 
-## パフォーマンス確認
+## Performance Verification
 
-### 1. バンドルサイズ
-- ビルド後のバンドルサイズを確認
-- 必要に応じて動的インポートを使用
+### 1. Bundle Size
+- Check the bundle size after build.
+- Use dynamic imports where necessary.
 
-### 2. メモリリーク
-- 長時間実行時のメモリ使用量を確認
-- 不要なリスナーやタイマーの削除を確認
+### 2. Memory Leaks
+- Check memory usage during long-running sessions.
+- Confirm removal of unnecessary listeners or timers.
 
-### 3. WebSocket接続
-- WebSocket接続の安定性を確認
-- 自動再接続が正常に動作することを確認
+### 3. WebSocket Connection
+- Verify stability of the WebSocket connection.
+- Confirm auto-reconnect works as expected.
 
-## セキュリティ確認
+## Security Verification
 
-### 1. XSS対策
-- ユーザー入力を適切にエスケープ
-- `v-html` の使用を最小限に
+### 1. XSS Prevention
+- Properly escape user input.
+- Minimize the use of `v-html`.
 
-### 2. 認証/認可
-- 認証が必要なページへのアクセス制御を確認
-- トークンの適切な管理を確認
+### 2. Authentication/Authorization
+- Check access control for authenticated pages.
+- Confirm proper token management.
 
-### 3. 依存関係の脆弱性
+### 3. Dependency Vulnerabilities
 ```bash
 npm audit
 npm audit fix
 ```
 
-## ドキュメント更新
+## Documentation Update
 
-### 1. コメント
-- 複雑なロジックには説明コメントを追加
+### 1. No Code Comments
+- **DO NOT WRITE COMMENTS IN GENERATED CODE.**
+- Ensure no new comments were added during the task.
 
-### 2. README/AGENTS.md/CLAUDE.md
-- 重要な変更は該当ドキュメントを更新
+### 2. AGENTS.md
+- Update `AGENTS.md` (Source of Truth) for significant changes.
 
-### 3. 型定義
-- TypeScript型定義 (`src/types/`) を最新に保つ
+### 3. Type Definitions
+- Keep TypeScript type definitions (`src/types/`) up to date.
 
-## 最終チェック
+## Final Checklist
 
-- [ ] ESLint エラーなし
-- [ ] Prettier フォーマット済み
-- [ ] テスト全て成功
-- [ ] ビルド成功 (Windows/Linux両方)
-- [ ] 動作確認完了
-- [ ] クロスプラットフォーム対応確認 (該当する場合)
-- [ ] i18n対応確認 (該当する場合)
-- [ ] Git コミット完了
-- [ ] ドキュメント更新 (必要に応じて)
+- [ ] No ESLint errors
+- [ ] Prettier formatted
+- [ ] All tests passed
+- [ ] Build successful (Both Windows and Linux)
+- [ ] Verification in app completed
+- [ ] Cross-platform compatibility confirmed (if applicable)
+- [ ] i18n compatibility confirmed (if applicable)
+- [ ] **Git Operations (🚨 Commit and Push must NOT be performed by the agent)**
+- [ ] No comments added to the code
+- [ ] Documentation updated (if necessary)

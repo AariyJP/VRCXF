@@ -1,389 +1,389 @@
-# Windowsシステムユーティリティコマンド
+# Windows System Utility Commands
 
-## ファイルシステム操作
+## File System Operations
 
-### ディレクトリ操作
+### Directory Operations
 
 ```cmd
-# 現在のディレクトリ表示
+# Display current directory
 cd
 
-# ディレクトリ移動
-cd パス
+# Change directory
+cd path
 
-# 親ディレクトリに移動
+# Move to parent directory
 cd ..
 
-# ルートディレクトリに移動
+# Move to root directory
 cd \
 
-# ドライブ変更
+# Change drive
 D:
 
-# ディレクトリ作成
-mkdir ディレクトリ名
-md ディレクトリ名
+# Create directory
+mkdir directory-name
+md directory-name
 
-# ディレクトリ削除 (空の場合)
-rmdir ディレクトリ名
-rd ディレクトリ名
+# Remove directory (if empty)
+rmdir directory-name
+rd directory-name
 
-# ディレクトリ削除 (中身ごと、確認なし)
-rmdir /S /Q ディレクトリ名
-rd /S /Q ディレクトリ名
+# Remove directory (including contents, without confirmation)
+rmdir /S /Q directory-name
+rd /S /Q directory-name
 
-# ディレクトリ一覧
+# List directories
 dir
 
-# 詳細表示
+# Detailed view
 dir /A
 
-# サブディレクトリも含めて表示
+# List including subdirectories
 dir /S
 
-# ファイルのみ表示
+# Display files only
 dir /A-D
 
-# ディレクトリのみ表示
+# Display directories only
 dir /AD
 ```
 
-### ファイル操作
+### File Operations
 
 ```cmd
-# ファイル内容表示
-type ファイル名
+# Display file contents
+type filename
 
-# ファイルコピー
-copy ソース 宛先
+# Copy file
+copy source destination
 
-# ディレクトリコピー (サブディレクトリ含む)
-xcopy /E /I ソース 宛先
+# Copy directory (including subdirectories)
+xcopy /E /I source destination
 
-# ファイル移動
-move ソース 宛先
+# Move file
+move source destination
 
-# ファイル削除
-del ファイル名
+# Delete file
+del filename
 
-# ファイル削除 (確認なし)
-del /Q ファイル名
+# Delete file (without confirmation)
+del /Q filename
 
-# ワイルドカード使用
+# Use wildcards
 del *.log
 del /Q /S *.tmp
 
-# ファイル検索
-where ファイル名
+# Search for file
+where filename
 
-# ディレクトリ内のファイル検索
-dir /S /B ファイル名
+# Search for file within directory
+dir /S /B filename
 
-# ファイル名変更
-ren 旧ファイル名 新ファイル名
-rename 旧ファイル名 新ファイル名
+# Rename file
+ren old-filename new-filename
+rename old-filename new-filename
 ```
 
-## テキスト検索
+## Text Search
 
-### findstr (grep相当)
+### findstr (Equivalent to grep)
 
 ```cmd
-# ファイル内のテキスト検索
-findstr "検索文字列" ファイル名
+# Search for text within a file
+findstr "search-string" filename
 
-# 複数ファイルから検索
-findstr "検索文字列" *.js
+# Search across multiple files
+findstr "search-string" *.js
 
-# 再帰的に検索
-findstr /S "検索文字列" *.js
+# Recursive search
+findstr /S "search-string" *.js
 
-# 大文字小文字を区別しない
-findstr /I "検索文字列" ファイル名
+# Case-insensitive search
+findstr /I "search-string" filename
 
-# 正規表現使用
-findstr /R "パターン" ファイル名
+# Use regular expressions
+findstr /R "pattern" filename
 
-# 行番号表示
-findstr /N "検索文字列" ファイル名
+# Display line numbers
+findstr /N "search-string" filename
 
-# 複数パターン検索
-findstr /C:"パターン1" /C:"パターン2" ファイル名
+# Search multiple patterns
+findstr /C:"pattern1" /C:"pattern2" filename
 ```
 
-## プロセス管理
+## Process Management
 
 ```cmd
-# プロセス一覧
+# List processes
 tasklist
 
-# 特定のプロセス検索
-tasklist | findstr "プロセス名"
+# Search for a specific process
+tasklist | findstr "process-name"
 
-# プロセス終了 (PID指定)
-taskkill /PID プロセスID
+# Terminate process (using PID)
+taskkill /PID process-id
 
-# プロセス終了 (名前指定)
-taskkill /IM プロセス名.exe
+# Terminate process (using name)
+taskkill /IM process-name.exe
 
-# 強制終了
-taskkill /F /PID プロセスID
-taskkill /F /IM プロセス名.exe
+# Force terminate
+taskkill /F /PID process-id
+taskkill /F /IM process-name.exe
 
-# 複数プロセス終了
+# Terminate multiple processes
 taskkill /F /IM node.exe
 taskkill /F /IM electron.exe
 ```
 
-## ネットワーク
+## Network
 
 ```cmd
-# ネットワーク接続状態
+# Network connection status
 netstat
 
-# リスニングポート表示
+# Display listening ports
 netstat -an | findstr LISTENING
 
-# 特定ポートの使用状況
+# Usage status of specific port
 netstat -ano | findstr :9000
 
-# IPアドレス確認
+# Check IP address
 ipconfig
 
-# 詳細情報
+# Detailed info
 ipconfig /all
 
-# DNS キャッシュクリア
+# Clear DNS cache
 ipconfig /flushdns
 
 # ping
-ping ホスト名またはIPアドレス
+ping hostname-or-ip
 
 # traceroute
-tracert ホスト名またはIPアドレス
+tracert hostname-or-ip
 ```
 
-## 環境変数
+## Environment Variables
 
 ```cmd
-# 環境変数一覧
+# List environment variables
 set
 
-# 特定の環境変数表示
+# Display specific environment variable
 echo %PATH%
 echo %USERPROFILE%
 echo %TEMP%
 
-# 環境変数設定 (現在のセッションのみ)
-set 変数名=値
+# Set environment variable (Current session only)
+set variable-name=value
 
-# 環境変数削除
-set 変数名=
+# Remove environment variable
+set variable-name=
 
-# 永続的な環境変数設定 (システム全体)
-setx 変数名 値
+# Persistent environment variable setting (System-wide)
+setx variable-name value
 
-# 永続的な環境変数設定 (ユーザー)
-setx 変数名 値 /M
+# Persistent environment variable setting (User-specific)
+setx variable-name value /M
 ```
 
-## システム情報
+## System Information
 
 ```cmd
-# システム情報表示
+# Display system info
 systeminfo
 
-# OS バージョン
+# OS version
 ver
 
-# コンピューター名
+# Computer name
 hostname
 
-# 現在のユーザー
+# Current user
 whoami
 
-# ディスク使用量
+# Disk usage
 wmic logicaldisk get size,freespace,caption
 ```
 
-## パーミッション
+## Permissions
 
 ```cmd
-# ファイル/ディレクトリの所有者変更
-takeown /F ファイル名
+# Change owner of file/directory
+takeown /F filename
 
-# アクセス権限表示
-icacls ファイル名
+# Display access permissions
+icacls filename
 
-# アクセス権限変更
-icacls ファイル名 /grant ユーザー名:F
+# Change access permissions
+icacls filename /grant user-name:F
 ```
 
-## 圧縮/解凍
+## Compression/Extraction
 
 ```cmd
-# PowerShell で圧縮
-powershell Compress-Archive -Path ソース -DestinationPath 出力.zip
+# Compress using PowerShell
+powershell Compress-Archive -Path source -DestinationPath output.zip
 
-# PowerShell で解凍
-powershell Expand-Archive -Path 入力.zip -DestinationPath 出力先
+# Extract using PowerShell
+powershell Expand-Archive -Path input.zip -DestinationPath destination
 
-# 7-Zip 使用 (インストール済みの場合)
-7z a 出力.zip ソース
-7z x 入力.zip
+# Use 7-Zip (if installed)
+7z a output.zip source
+7z x input.zip
 ```
 
-## Git 操作
+## Git Operations
 
 ```cmd
-# ステータス確認
+# Check status
 git status
 
-# 変更内容確認
+# Check changes
 git diff
 
-# ステージング
+# Staging
 git add .
-git add ファイル名
+git add filename
 
-# コミット
-git commit -m "コミットメッセージ"
+# Commit
+git commit -m "commit message"
 
-# プッシュ
+# Push
 git push
 
-# プル
+# Pull
 git pull
 
-# ブランチ一覧
+# List branches
 git branch
 
-# ブランチ作成
-git branch ブランチ名
+# Create branch
+git branch branch-name
 
-# ブランチ切り替え
-git checkout ブランチ名
+# Switch branch
+git checkout branch-name
 
-# ブランチ作成 + 切り替え
-git checkout -b ブランチ名
+# Create branch + Switch
+git checkout -b branch-name
 
-# ログ表示
+# Display logs
 git log
 git log --oneline
 
-# リモートリポジトリ確認
+# Check remote repository
 git remote -v
 
-# 変更の取り消し (未ステージング)
-git checkout -- ファイル名
+# Discard changes (unstaged)
+git checkout -- filename
 
-# ステージングの取り消し
-git reset HEAD ファイル名
+# Discard staging
+git reset HEAD filename
 
-# 直前のコミット修正
+# Fix last commit
 git commit --amend
 ```
 
-## PowerShell 操作
+## PowerShell Operations
 
 ```powershell
-# PowerShell 起動
+# Start PowerShell
 powershell
 
-# 管理者権限で PowerShell 起動
+# Start PowerShell with Administrator privileges
 powershell -Command "Start-Process powershell -Verb RunAs"
 
-# スクリプト実行
-powershell -ExecutionPolicy Bypass -File スクリプト.ps1
+# Execute script
+powershell -ExecutionPolicy Bypass -File script.ps1
 
-# ディレクトリ一覧 (PowerShell)
+# List directories (PowerShell)
 Get-ChildItem
 ls
 dir
 
-# ファイル内容表示 (PowerShell)
-Get-Content ファイル名
-cat ファイル名
+# Display file contents (PowerShell)
+Get-Content filename
+cat filename
 
-# ファイル検索 (PowerShell)
+# Search for file (PowerShell)
 Get-ChildItem -Recurse -Filter "*.js"
 
-# テキスト検索 (PowerShell)
-Select-String -Path "*.js" -Pattern "検索文字列"
+# Search for text (PowerShell)
+Select-String -Path "*.js" -Pattern "search-string"
 ```
 
-## その他のユーティリティ
+## Miscellaneous Utilities
 
 ```cmd
-# 画面クリア
+# Clear screen
 cls
 
-# コマンド履歴
+# Command history
 doskey /history
 
-# ファイルハッシュ計算 (PowerShell)
-powershell Get-FileHash ファイル名 -Algorithm SHA256
+# Calculate file hash (PowerShell)
+powershell Get-FileHash filename -Algorithm SHA256
 
-# 日時表示
+# Display date/time
 date /T
 time /T
 
-# エコー
-echo メッセージ
+# Echo
+echo message
 
-# 一時停止
+# Pause
 pause
 
-# 終了
+# Exit
 exit
 ```
 
-## バッチファイル
+## Batch Files
 
 ```cmd
-# バッチファイル実行
-バッチファイル.bat
+# Execute batch file
+batch-file.bat
 
-# 引数付きで実行
-バッチファイル.bat 引数1 引数2
+# Execute with arguments
+batch-file.bat arg1 arg2
 
-# バッチファイル内でのコメント
-REM これはコメントです
+# Comment within batch file
+REM This is a comment
 
-# エコーオフ (コマンド表示を抑制)
+# Echo off (Suppress command display)
 @echo off
 
-# 変数設定
-set VAR=値
+# Set variable
+set VAR=value
 
-# 変数使用
+# Use variable
 echo %VAR%
 
-# 条件分岐
-if exist ファイル名 (
-    echo ファイルが存在します
+# Conditional branching
+if exist filename (
+    echo File exists
 ) else (
-    echo ファイルが存在しません
+    echo File does not exist
 )
 
-# ループ
+# Loop
 for %%i in (*.txt) do echo %%i
 ```
 
-## トラブルシューティング
+## Troubleshooting
 
 ```cmd
-# ポートを使用しているプロセスを特定
-netstat -ano | findstr :ポート番号
+# Identify process using a port
+netstat -ano | findstr :port-number
 tasklist | findstr "PID"
 
-# ファイルロックを解除
-# (プロセスを終了する必要がある)
-taskkill /F /IM プロセス名.exe
+# Unlock file lock
+# (Requires terminating the process)
+taskkill /F /IM process-name.exe
 
-# ディスクチェック
+# Check disk
 chkdsk C: /F
 
-# システムファイルチェック
+# System file check
 sfc /scannow
 ```

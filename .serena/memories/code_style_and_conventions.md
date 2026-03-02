@@ -1,41 +1,41 @@
-# コードスタイルと規約
+# Code Style and Conventions
 
-## Prettier設定 (`.prettierrc.json`)
+## Prettier Configuration (`.prettierrc.json`)
 
-### 基本設定
+### Basic Settings
 - `printWidth`: 80 (JS) / 120 (Vue)
 - `tabWidth`: 4
-- `semi`: true (セミコロン必須)
-- `singleQuote`: true (シングルクォート)
+- `semi`: true (Semicolons required)
+- `singleQuote`: true (Single quotes)
 - `quoteProps`: "as-needed"
-- `trailingComma`: "none" (末尾カンマなし)
+- `trailingComma`: "none" (No trailing commas)
 - `bracketSpacing`: true
 - `arrowParens`: "always"
 - `endOfLine`: "auto"
 
-### ファイル別オーバーライド
+### File-specific Overrides
 - **JS**: `parser: "meriyah"`
 - **Vue**: 
   - `printWidth: 120`
   - `bracketSameLine: true`
   - `vueIndentScriptAndStyle: true`
 
-## ESLint設定 (`eslint.config.mjs`)
+## ESLint Configuration (`eslint.config.mjs`)
 
-### プラグイン
+### Plugins
 - `@eslint/js` (recommended)
 - `eslint-plugin-vue` (flat/essential)
 - `eslint-plugin-prettier` (recommended)
-- `@kamiya4047/eslint-plugin-pretty-import` (import整理)
+- `@kamiya4047/eslint-plugin-pretty-import` (Import organization)
 
-### グローバル変数
-- ブラウザグローバル + 以下のカスタムグローバル:
+### Global Variables
+- Browser globals + the following custom globals:
   - `CefSharp`, `VRCX`, `VRCXStorage`, `SQLite`, `LogWatcher`, `Discord`
   - `AppApi`, `AppApiVr`, `WebApi`, `AssetBundleManager`
   - `WINDOWS`, `LINUX`, `VERSION`, `NIGHTLY`
   - `webApiService`, `process`
 
-### ルール
+### Rules
 - `no-unused-vars`: "warn"
 - `no-case-declarations`: "off"
 - `no-control-regex`: "warn"
@@ -47,91 +47,86 @@
 - `pretty-import/sort-import-groups`: "warn" (groupStyleImports: true)
 - `pretty-import/sort-import-names`: "warn"
 
-### 特殊ファイル設定
-- **Node.js環境** (`webpack.*.js`, `jest.config.js`, `src-electron/*.js`, `src/localization/*.js`):
+### Special File Settings
+- **Node.js Environment** (`vitest.config.js`, `src-electron/*.js`, `src/localization/*.js`):
   - `sourceType: "commonjs"`
   - `globals: node`
-- **テストファイル** (`**/__tests__/**/*.{js,mjs,cjs,vue}`, `**/*.spec.{js,mjs,cjs,vue}`, `**/*.test.{js,mjs,cjs,vue}`):
-  - `globals: jest`
+- **Test Files** (`**/__tests__/**/*.{js,mjs,cjs,vue}`, `**/*.spec.{js,mjs,cjs,vue}`, `**/*.test.{js,mjs,cjs,vue}`):
+  - `globals: vitest`
 
-## TypeScript設定 (`tsconfig.json`)
+## TypeScript Configuration (`tsconfig.json`)
 
-### 基本設定
+### Basic Settings
 - `allowJs`: true
 - `checkJs`: true
 - `strict`: false
 - `noEmit`: true
 - `moduleResolution`: "bundler"
 
-### パスエイリアス
+### Path Aliases
 - `@/*` → `./src/*`
 - `*` → `./*`
 
-## ファイル形式
+## File Formats
 
-- 主にJS (`.js` / `.vue`)
-- 型定義のみ `.d.ts`
-- **i18n翻訳ファイル (`src/localization/*.json`) は変更禁止** (翻訳の修正は別途指示がある場合のみ)
+- Primarily JS (`.js` / `.vue`)
+- Type definitions only in `.d.ts`
+- **i18n translation files (`src/localization/*.json`) must not be modified** (Translation fixes only by separate instruction)
 
+## Naming Conventions
 
-
-- 主にJS (`.js` / `.vue`)
-- 型定義のみ `.d.ts`
-
-## 命名規約
-
-### Vue コンポーネント
-- PascalCase (例: `NavMenu.vue`, `MainLayout.vue`)
+### Vue Components
+- PascalCase (e.g., `NavMenu.vue`, `MainLayout.vue`)
 - UI primitives: `src/components/ui/` (shadcn-vue)
 - Dialogs: `src/components/dialogs/`
 
-### ファイル/ディレクトリ
-- camelCase (例: `webapi.js`, `appConfig.js`)
-- kebab-case (例: `friend-log`, `screenshot-metadata`)
+### Files/Directories
+- camelCase (e.g., `webapi.js`, `appConfig.js`)
+- kebab-case (e.g., `friend-log`, `screenshot-metadata`)
 
-### 変数/関数
-- camelCase (例: `isLoggedIn`, `applyUser`, `createGlobalStores`)
+### Variables/Functions
+- camelCase (e.g., `isLoggedIn`, `applyUser`, `createGlobalStores`)
 
-### 定数
-- UPPER_SNAKE_CASE (グローバル定数)
-- camelCase (ローカル定数)
+### Constants
+- UPPER_SNAKE_CASE (Global constants)
+- camelCase (Local constants)
 
-## Vue スタイル
+## Vue Style
 
 ### Composition API
-- `<script setup>` を使用
+- Use `<script setup>`
 - Pinia stores
 - Composables (`src/composables/`)
 
-### インポート順序 (pretty-import)
-1. 外部ライブラリ
-2. 内部モジュール
-3. スタイルインポート (groupStyleImports: true)
+### Import Order (pretty-import)
+1. External libraries
+2. Internal modules
+3. Style imports (groupStyleImports: true)
 
-## .NET コードスタイル
+## .NET Code Style
 
-### プロジェクト
-- `VRCX-Cef.csproj`: Windows (CEF)
-- `VRCX-Electron.csproj`: Electron x64
-- `VRCX-Electron-arm64.csproj`: Electron arm64
+### Projects
+- `VRCX-Cef.csproj`: Windows (CEF) - .NET 10
+- `VRCX-Electron.csproj`: Electron x64 - .NET 9
+- `VRCX-Electron-arm64.csproj`: Electron arm64 - .NET 9
 
-### 条件付きコンパイル
+### Conditional Compilation
 - `#if LINUX` / `#if !LINUX`
-- プラットフォーム固有のコードは `AppApi/Cef/` または `AppApi/Electron/` に配置
-- 共通コードは `AppApi/Common/` に配置
+- Platform-specific code placed in `AppApi/Cef/` or `AppApi/Electron/`
+- Shared code placed in `AppApi/Common/`
 
-### 命名
-- PascalCase (クラス、メソッド、プロパティ)
-- camelCase (ローカル変数、パラメータ)
+### Naming
+- PascalCase (Classes, Methods, Properties)
+- camelCase (Local variables, Parameters)
 
-## プラットフォーム分岐パターン
+## Platform Branching Patterns
 
-### フロントエンド
+### Frontend
 ```javascript
 if (WINDOWS) {
-    // Windows (CEF) 専用コード
+    // Windows (CEF) specific code
 } else {
-    // macOS/Linux (Electron) 専用コード
+    // macOS/Linux (Electron) specific code
 }
 ```
 
@@ -144,22 +139,24 @@ await CefSharp.BindObjectAsync('AppApi');
 window.interopApi.callDotNetMethod('AppApi', 'MethodName', [args]);
 ```
 
-### WebApi実行
+### WebApi Execution
 ```javascript
-// webApiService.execute() 内で自動分岐
+// Automatically branched inside webApiService.execute()
 // WINDOWS: WebApi.Execute() → {Item1, Item2}
 // LINUX: WebApi.ExecuteJson() → JSON string
 ```
 
-## コメント
+## 🚨 Comments (Strict Rule)
+- **DO NOT WRITE COMMENTS IN GENERATED CODE.**
+- Code should be self-explanatory through clear variable/function names and structure.
+- Explanatory comments, TODOs, and complex logic explanations are prohibited in the code.
 
-- 重要なロジックには説明コメントを追加
-- TODOコメント: `// TODO: 説明`
-- 複雑な正規表現や条件には説明を追加
-
-## グローバル定数 (Vite define)
+## Global Constants (Vite define)
 
 - `WINDOWS`: `process.env.PLATFORM === 'windows'`
 - `LINUX`: `process.env.PLATFORM === 'linux'`
-- `VERSION`: `./Version` ファイルの内容
-- `NIGHTLY`: 開発モードまたはバージョンが7文字のコミットハッシュで終わる場合にtrue
+- `VERSION`: Content of `./Version` file
+- `NIGHTLY`: true in development mode or when version ends with a 7-char commit hash
+
+## 🚨 Git Operation Restrictions
+- **Commit and Push**: `git commit` and `git push` are generally performed by the user. Agents MUST NOT perform these operations without explicit permission.
