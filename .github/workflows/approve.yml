@@ -1,4 +1,4 @@
-name: Auto Merge PR
+name: Auto Approve PR
 
 on:
     pull_request:
@@ -9,16 +9,14 @@ on:
 
 jobs:
     auto-merge:
-        if: github.event.pull_request.head.ref == 'develop' && contains(github.event.pull_request.labels.*.name, 'merge')
+        if: github.event.pull_request.head.ref == 'develop' && contains(github.event.pull_request.labels.*.name, 'approved')
         runs-on: ubuntu-slim
         permissions:
             contents: write
             pull-requests: write
         steps:
             - uses: actions/checkout@v5
-            - name: Merge PR
-              run: |
-                  MERGE_MSG=$(date +'%Y.%m.%d')
-                  gh pr merge "${{ github.event.pull_request.html_url }}" --merge --subject "$MERGE_MSG" --body ""
+            - name: Approve PR
+              run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

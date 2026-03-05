@@ -9,7 +9,11 @@
             "options": {
                 "cwd": "${workspaceFolder}/build-scripts"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

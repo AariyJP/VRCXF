@@ -4,6 +4,10 @@
     "common": {
         "no_data": "No data",
         "no_matching_records": "No matching records",
+        "feature_relocated": {
+            "title": "Deprecation Notice",
+            "description": "This feature will be removed in a future update. Please use {feature} instead."
+        },
         "actions": {
             "open": "Open",
             "confirm": "Confirm",
@@ -28,6 +32,7 @@
         "favorite_friends": "Favorite Friends",
         "favorite_worlds": "Favorite Worlds",
         "favorite_avatars": "Favorite Avatars",
+        "my_avatars": "My Avatars",
         "social": "Social",
         "friend_log": "Friend Log",
         "moderation": "Moderation",
@@ -54,21 +59,20 @@
         "custom_nav": {
             "header": "Customize Navigation",
             "dialog_title": "Customize Navigation Menu",
-            "add_folder": "Add Folder",
+            "new_folder": "New Folder",
             "folder_name_placeholder": "Folder name",
             "folder_icon_placeholder": "Icon class (e.g. ri-menu-fold-line)",
             "edit_folder": "Edit Folder",
-            "folder_available": "Available items",
-            "folder_selected": "Folder items",
-            "folder_selected_empty": "No items selected",
             "delete_folder": "Delete Folder",
-            "remove_from_folder": "Remove from folder",
-            "folder_empty": "No items in this folder",
-            "invalid_folder": "Folder must have a name and contain at least two items.",
+            "folder_empty": "This folder is empty",
+            "folder_drop_here": "Drag items here",
+            "hide": "Hide",
+            "show": "Show",
+            "hidden_items": "Hidden",
+            "confirm": "Confirm",
+            "cancel": "Cancel",
             "restore_default": "Restore Default",
-            "restore_default_confirm": "Restore navigation to its default order?",
-            "save": "Save",
-            "cancel": "Cancel"
+            "restore_default_confirm": "Restore navigation to its default order?"
         }
     },
     "side_panel": {
@@ -176,6 +180,10 @@
                 "status_tooltip": "VRCX Companion Status"
             }
         },
+        "my_avatars": {
+            "filter": "Filter",
+            "clear_filters": "Clear All"
+        },
         "search": {
             "search_placeholder": "Search",
             "clear_results_tooltip": "Clear Search Results",
@@ -195,6 +203,7 @@
                 "refresh_tooltip": "Refresh own avatars",
                 "result_count": "Results {count}",
                 "all": "All",
+                "all_tags": "All Tags",
                 "public": "Public",
                 "private": "Private",
                 "local": "Local",
@@ -643,7 +652,6 @@
                     "sort_instance_users_by": "Sort Instance Users by",
                     "sort_instance_users_by_time": "Time",
                     "sort_instance_users_by_alphabet": "Alphabetical",
-                    "table_max_size": "Table Max Size",
                     "table_page_sizes": "Table Page Sizes",
                     "table_page_sizes_error": "Page size must be a number between 1 and 1000",
                     "show_notification_icon_dot": "Show Tray Notification Dot",
@@ -652,7 +660,8 @@
                     "table_density": "Table Density",
                     "table_density_standard": "Standard",
                     "table_density_comfortable": "Comfortable",
-                    "table_density_compact": "Compact"
+                    "table_density_compact": "Compact",
+                    "table_entries_settings": "Table Entries Settings"
                 },
                 "display": {
                     "header": "Display"
@@ -1294,7 +1303,10 @@
                 "delete": "Delete",
                 "delete_impostor": "Delete Impostor",
                 "regenerate_impostor": "Regenerate Impostor",
-                "create_impostor": "Create Impostor"
+                "create_impostor": "Create Impostor",
+                "manage_tags": "Manage Tags",
+                "manage_tags_placeholder": "Add a tag...",
+                "manage_tags_hint": "Click a tag to change its color"
             },
             "info": {
                 "header": "Info",
@@ -1306,7 +1318,11 @@
                 "last_updated": "Last Updated",
                 "version": "Version",
                 "platform": "Platform",
+                "pc_performance": "PC Performance",
+                "android_performance": "Android Performance",
+                "ios_performance": "iOS Performance",
                 "time_spent": "Time Spent",
+                "tags": "Tags",
                 "memo": "Memo",
                 "memo_placeholder": "Click to add a memo",
                 "listings": "Listings",
@@ -1694,7 +1710,8 @@
             "drone_skin": "Drone Skin",
             "emoji": "Emoji",
             "redeem": "Redeem",
-            "create_animated_emoji": "Animated Emoji Generator"
+            "create_animated_emoji": "Animated Emoji Generator",
+            "crop_image": "Confirm Upload"
         },
         "gallery_select": {
             "header": "Select Image",
@@ -1707,7 +1724,9 @@
             "avatar": "Change Avatar Image",
             "world": "Change World Image",
             "description": "Recommended image size: 1200x900px (4:3)",
-            "upload": "Upload Image"
+            "upload": "Upload Image",
+            "confirm": "Confirm Crop",
+            "cancel": "Cancel"
         },
         "screenshot_metadata": {
             "header": "Screenshot Metadata",
@@ -2163,17 +2182,6 @@
                 "success": "World YouTube preview changed"
             }
         },
-        "change_table_size": {
-            "header": "Max Table Size",
-            "description": "Limit amount of entries loaded from database to UI pages, larger table sizes will impact RAM usage and performance",
-            "table_max_size": "Table Max Size",
-            "table_max_size_error": "Enter a number between {min} and {max}.",
-            "search_limit": "Search limit",
-            "search_limit_error": "Enter a number between {min} and {max}.",
-            "search_limit_warning": "Too large values can freeze the app.",
-            "cancel": "Cancel",
-            "save": "Save"
-        },
         "photon_lobby_timeout": {
             "header": "User Timeout Threshold",
             "description": "Enter amount of seconds (default: 3)",
@@ -2225,6 +2233,19 @@
             "cancel": "Cancel",
             "redeem": "Redeem",
             "success": "Code redeemed successfully"
+        },
+        "table_entries_settings": {
+            "header": "Table Entries Settings",
+            "description": "Limit the number of entries the VRCX logs from the database to the UI. A large number may impact RAM usage and performance",
+            "table_max_entries": "Table Max Entries",
+            "table_max_entries_error": "Enter a number between {min} and {max}.",
+            "table_max_entries_hint": "Valid range: {min} – {max}.",
+            "search_limit_returns": "Search Limit Returns",
+            "search_limit_returns_error": "Enter a number between {min} and {max}.",
+            "search_limit_returns_hint": "Valid range: {min} – {max}.",
+            "search_limit_returns_warning": "Too large values can freeze the app.",
+            "cancel": "Cancel",
+            "save": "Save"
         }
     },
     "message": {

@@ -744,9 +744,19 @@
             <NewInstanceDialog
                 :new-instance-dialog-location-tag="newInstanceDialogLocationTag"
                 :last-location="lastLocation" />
-            <ChangeWorldImageDialog
-                v-model:change-world-image-dialog-visible="changeWorldImageDialogVisible"
-                v-model:previousImageUrl="previousImageUrl" />
+            <input
+                id="WorldImageUploadButton"
+                type="file"
+                accept="image/*"
+                style="display: none"
+                @change="onFileChangeWorldImage" />
+            <ImageCropDialog
+                :open="cropDialogOpen"
+                :title="t('dialog.change_content_image.world')"
+                :aspect-ratio="4 / 3"
+                :file="cropDialogFile"
+                @update:open="cropDialogOpen = $event"
+                @confirm="onCropConfirmWorld" />
         </template>
     </div>
 </template>
@@ -813,7 +823,6 @@
         useInstanceStore,
         useInviteStore,
         useLocationStore,
-        useModalStore,
         useUserStore,
         useWorldStore
     } from '../../../stores';
@@ -824,21 +833,24 @@
         DropdownMenuSeparator,
         DropdownMenuTrigger
     } from '../../ui/dropdown-menu';
+    import {
+        handleImageUploadInput,
+        readFileAsBase64,
+        resizeImageToFitLimits,
+        uploadImageLegacy,
+        withUploadTimeout
+    } from '../../../shared/utils/imageUpload';
     import { favoriteRequest, miscRequest, userRequest, worldRequest } from '../../../api';
     import { Badge } from '../../ui/badge';
     import { database } from '../../../service/database.js';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
 
+    import ImageCropDialog from '../ImageCropDialog.vue';
     import InstanceActionBar from '../../InstanceActionBar.vue';
 
-    const modalStore = useModalStore();
-    const { translateText } = useAdvancedSettingsStore();
-    const { bioLanguage, translationApi } = storeToRefs(useAdvancedSettingsStore());
-
-    const NewInstanceDialog = defineAsyncComponent(() => import('../NewInstanceDialog.vue'));
-    const ChangeWorldImageDialog = defineAsyncComponent(() => import('./ChangeWorldImageDialog.vue'));
     const SetWorldTagsDialog = defineAsyncComponent(() => import('./SetWorldTagsDialog.vue'));
     const WorldAllowedDomainsDialog = defineAsyncComponent(() => import('./WorldAllowedDomainsDialog.vue'));
+    const NewInstanceDialog = defineAsyncComponent(() => import('../NewInstanceDialog.vue'));
 
     const { isAgeGatedInstancesVisible, isDarkMode } = storeToRefs(useAppearanceSettingsStore());
     const { showUserDialog } = useUserStore();
@@ -853,6 +865,8 @@
     const { instanceJoinHistory } = storeToRefs(useInstanceStore());
     const { isGameRunning } = storeToRefs(useGameStore());
     const { showFullscreenImageDialog } = useGalleryStore();
+    const { translationApi } = storeToRefs(useAdvancedSettingsStore());
+
     const { t } = useI18n();
     const worldDialogTabs = computed(() => [
         { value: 'Instances', label: t('dialog.world.instances.header') },
@@ -868,8 +882,9 @@
     });
     const isSetWorldTagsDialogVisible = ref(false);
     const newInstanceDialogLocationTag = ref('');
-    const changeWorldImageDialogVisible = ref(false);
-    const previousImageUrl = ref('');
+    const cropDialogOpen = ref(false);
+    const cropDialogFile = ref(null);
+    const changeWorldImageLoading = ref(false);
     const translatedDescription = ref('');
     const isTranslating = ref(false);
 
@@ -1008,9 +1023,50 @@
     }
 
     function showChangeWorldImageDialog() {
-        const { imageUrl } = worldDialog.value.ref;
-        previousImageUrl.value = imageUrl;
-        changeWorldImageDialogVisible.value = true;
+        document.getElementById('WorldImageUploadButton').click();
+    }
+
+    function onFileChangeWorldImage(e) {
+        const { file, clearInput } = handleImageUploadInput(e, {
+            inputSelector: '#WorldImageUploadButton',
+            tooLargeMessage: () => t('message.file.too_large'),
+            invalidTypeMessage: () => t('message.file.not_image')
+        });
+        if (!file) {
+            return;
+        }
+        if (!worldDialog.value.visible || worldDialog.value.loading) {
+            clearInput();
+            return;
+        }
+        clearInput();
+        cropDialogFile.value = file;
+        cropDialogOpen.value = true;
+    }
+
+    async function onCropConfirmWorld(blob) {
+        changeWorldImageLoading.value = true;
+        try {
+            await withUploadTimeout(
+                (async () => {
+                    const base64Body = await readFileAsBase64(blob);
+                    const base64File = await resizeImageToFitLimits(base64Body);
+                    await uploadImageLegacy('world', {
+                        entityId: worldDialog.value.id,
+                        imageUrl: worldDialog.value.ref.imageUrl,
+                        base64File,
+                        blob
+                    });
+                })()
+            );
+            toast.success(t('message.upload.success'));
+        } catch (error) {
+            console.error('World image upload process failed:', error);
+            toast.error(t('message.upload.error'));
+        } finally {
+            changeWorldImageLoading.value = false;
+            cropDialogOpen.value = false;
+        }
     }
 
     function showNewInstanceDialog(tag) {
