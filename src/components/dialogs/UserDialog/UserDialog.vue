@@ -1303,6 +1303,7 @@
         useLocationStore,
         useModalStore,
         useModerationStore,
+        useNotificationStore,
         useUiStore,
         useUserStore,
         useWorldStore
@@ -1972,9 +1973,18 @@
                     });
                     handleSendFriendRequest(args);
                 } else {
-                    notificationRequest.acceptFriendRequestNotification({
-                        notificationId: key
-                    });
+                    notificationRequest
+                        .acceptFriendRequestNotification({
+                            notificationId: key
+                        })
+                        .then((args) => {
+                            useNotificationStore().handleNotificationAccept(args);
+                        })
+                        .catch((err) => {
+                            if (err && err.message && err.message.includes('404')) {
+                                useNotificationStore().handleNotificationHide(key);
+                            }
+                        });
                 }
                 break;
             case 'Decline Friend Request':
@@ -1985,9 +1995,13 @@
                     });
                     handleCancelFriendRequest(args);
                 } else {
-                    notificationRequest.hideNotification({
-                        notificationId: key
-                    });
+                    notificationRequest
+                        .hideNotification({
+                            notificationId: key
+                        })
+                        .then(() => {
+                            useNotificationStore().handleNotificationHide(key);
+                        });
                 }
                 break;
             case 'Cancel Friend Request': {
