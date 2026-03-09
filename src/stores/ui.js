@@ -30,6 +30,7 @@ export const useUiStore = defineStore('Ui', () => {
 
     const ctrlR = keys['Ctrl+R'];
     const ctrlD = keys['Ctrl+D'];
+    const metaD = keys['Meta+D'];
     const shift = keys['Shift'];
     const ctrlShiftI = keys['Ctrl+Shift+I'];
     const altShiftR = keys['Alt+Shift+R'];
@@ -46,6 +47,12 @@ export const useUiStore = defineStore('Ui', () => {
     });
 
     watch(ctrlD, (isPressed) => {
+        if (isPressed) {
+            directAccessPaste();
+        }
+    });
+
+    watch(metaD, (isPressed) => {
         if (isPressed) {
             directAccessPaste();
         }
@@ -183,10 +190,10 @@ export const useUiStore = defineStore('Ui', () => {
         const groupStore = useGroupStore();
         const instanceStore = useInstanceStore();
 
-        userStore.userDialog.visible = false;
-        worldStore.worldDialog.visible = false;
-        avatarStore.avatarDialog.visible = false;
-        groupStore.groupDialog.visible = false;
+        userStore.setUserDialogVisible(false);
+        worldStore.setWorldDialogVisible(false);
+        avatarStore.setAvatarDialogVisible(false);
+        groupStore.setGroupDialogVisible(false);
         instanceStore.hidePreviousInstancesDialogs();
         clearDialogCrumbs();
     }
@@ -222,22 +229,22 @@ export const useUiStore = defineStore('Ui', () => {
             (instanceStore.previousInstancesListDialog.visible && !isPrevList);
 
         if (type !== 'user') {
-            userStore.userDialog.visible = false;
+            userStore.setUserDialogVisible(false);
         }
         if (type !== 'world') {
-            worldStore.worldDialog.visible = false;
+            worldStore.setWorldDialogVisible(false);
         }
         if (type !== 'avatar') {
-            avatarStore.avatarDialog.visible = false;
+            avatarStore.setAvatarDialogVisible(false);
         }
         if (type !== 'group') {
-            groupStore.groupDialog.visible = false;
+            groupStore.setGroupDialogVisible(false);
         }
         if (!isPrevInfo) {
-            instanceStore.previousInstancesInfoDialog.visible = false;
+            instanceStore.setPreviousInstancesInfoDialogVisible(false);
         }
         if (!isPrevList) {
-            instanceStore.previousInstancesListDialog.visible = false;
+            instanceStore.setPreviousInstancesListDialogVisible(false);
         }
         if (!hadActiveDialog) {
             clearDialogCrumbs();
@@ -279,7 +286,7 @@ export const useUiStore = defineStore('Ui', () => {
                 const name = String(routeName);
                 removeNotify(name);
                 if (name === 'notification') {
-                    notificationStore.unseenNotifications = [];
+                    notificationStore.clearUnseenNotifications();
                 }
             }
         }
@@ -298,6 +305,11 @@ export const useUiStore = defineStore('Ui', () => {
 
     function removeNotify(index) {
         notifiedMenus.value = notifiedMenus.value.filter((i) => i !== index);
+        updateTrayIconNotify();
+    }
+
+    function clearAllNotifications() {
+        notifiedMenus.value = [];
         updateTrayIconNotify();
     }
 
@@ -325,6 +337,7 @@ export const useUiStore = defineStore('Ui', () => {
 
         notifyMenu,
         removeNotify,
+        clearAllNotifications,
         showConsole,
         updateTrayIconNotify,
         pushDialogCrumb,

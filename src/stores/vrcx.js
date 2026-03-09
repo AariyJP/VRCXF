@@ -83,7 +83,11 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     const maxTableSize = ref(DEFAULT_MAX_TABLE_SIZE);
     const searchLimit = ref(DEFAULT_SEARCH_LIMIT);
     const proxyServer = ref('');
+    const appStartAt = Date.now();
 
+    /**
+     *
+     */
     async function init() {
         if (LINUX) {
             window.electron.ipcRenderer.on('launch-command', (command) => {
@@ -176,6 +180,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
 
     init();
 
+    /**
+     *
+     */
     async function updateDatabaseVersion() {
         // requires dbVars.userPrefix to be already set
         const databaseVersion = 13;
@@ -226,6 +233,44 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         }
     }
 
+    /**
+     * @param {string} value
+     */
+    function setProxyServer(value) {
+        proxyServer.value = value;
+    }
+
+    /**
+     * @param {boolean} value
+     */
+    function setIpcEnabled(value) {
+        ipcEnabled.value = value;
+    }
+
+    /**
+     * @param {number} value
+     */
+    function setClearVRCXCacheFrequency(value) {
+        clearVRCXCacheFrequency.value = value;
+    }
+
+    /**
+     * @param {number} value
+     */
+    function setMaxTableSize(value) {
+        maxTableSize.value = value;
+    }
+
+    /**
+     * @param {number} value
+     */
+    function setSearchLimit(value) {
+        searchLimit.value = value;
+    }
+
+    /**
+     *
+     */
     function clearVRCXCache() {
         console.log('Clearing VRCX cache...');
         failedGetRequests.clear();
@@ -280,6 +325,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         galleryStore.cachedEmoji.clear();
     }
 
+    /**
+     *
+     * @param data
+     */
     function eventVrcxMessage(data) {
         let entry;
         switch (data.MsgType) {
@@ -337,6 +386,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         }
     }
 
+    /**
+     *
+     */
     async function saveVRCXWindowOption() {
         if (LINUX) {
             VRCXStorage.Set('VRCX_LocationX', state.locationX.toString());
@@ -347,6 +399,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         }
     }
 
+    /**
+     *
+     * @param path
+     */
     async function processScreenshot(path) {
         let newPath = path;
         if (advancedSettingsStore.screenshotHelper) {
@@ -401,6 +457,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     }
 
     // use in C# side
+    /**
+     *
+     * @param json
+     */
     function ipcEvent(json) {
         if (!watchState.isLoggedIn) {
             return;
@@ -483,7 +543,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                 for (const [id, dt] of Object.entries(data.Event7List)) {
                     photonStore.photonEvent7List.set(parseInt(id, 10), dt);
                 }
-                photonStore.photonLastEvent7List = Date.parse(data.dt);
+                photonStore.setPhotonLastEvent7List(Date.parse(data.dt));
                 break;
             case 'VrcxMessage':
                 if (AppDebug.debugPhotonLogging || AppDebug.debugIPC) {
@@ -499,7 +559,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                     photonStore.setPhotonLoggingEnabled();
                 }
                 ipcEnabled.value = true;
-                updateLoopStore.ipcTimeout = 60; // 30 seconds
+                updateLoopStore.setIpcTimeout(60); // 30 seconds
                 break;
             case 'MsgPing':
                 if (AppDebug.debugIPC) {
@@ -537,6 +597,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         { flush: 'sync' }
     );
 
+    /**
+     *
+     */
     async function startupLaunchCommand() {
         const command = await AppApi.GetLaunchCommand();
         if (!command) {
@@ -585,6 +648,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     }
 
     // called from C#
+    /**
+     *
+     * @param input
+     */
     function eventLaunchCommand(input) {
         if (!watchState.isLoggedIn) {
             return;
@@ -673,13 +740,13 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                 if (!type) break;
                 const data = input.replace(`import/${type}/`, '');
                 if (type === 'avatar') {
-                    favoriteStore.avatarImportDialogInput = data;
+                    favoriteStore.setAvatarImportDialogInput(data);
                     favoriteStore.showAvatarImportDialog();
                 } else if (type === 'world') {
-                    favoriteStore.worldImportDialogInput = data;
+                    favoriteStore.setWorldImportDialogInput(data);
                     favoriteStore.showWorldImportDialog();
                 } else if (type === 'friend') {
-                    favoriteStore.friendImportDialogInput = data;
+                    favoriteStore.setFriendImportDialogInput(data);
                     favoriteStore.showFriendImportDialog();
                 }
                 break;
@@ -689,6 +756,10 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         }
     }
 
+    /**
+     *
+     * @param name
+     */
     async function backupVrcRegistry(name) {
         let regJson;
         try {
@@ -722,6 +793,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         // await this.updateRegistryBackupDialog();
     }
 
+    /**
+     *
+     */
     async function checkAutoBackupRestoreVrcRegistry() {
         if (
             !advancedSettingsStore.vrcRegistryAutoBackup ||
@@ -764,10 +838,16 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         }
     }
 
+    /**
+     *
+     */
     function showRegistryBackupDialog() {
         isRegistryBackupDialogVisible.value = true;
     }
 
+    /**
+     *
+     */
     async function tryAutoBackupVrcRegistry() {
         if (!advancedSettingsStore.vrcRegistryAutoBackup) {
             return;
@@ -815,7 +895,13 @@ export const useVrcxStore = defineStore('Vrcx', () => {
     return {
         state,
 
+        appStartAt,
         proxyServer,
+        setProxyServer,
+        setIpcEnabled,
+        setClearVRCXCacheFrequency,
+        setMaxTableSize,
+        setSearchLimit,
         currentlyDroppingFile,
         isRegistryBackupDialogVisible,
         ipcEnabled,

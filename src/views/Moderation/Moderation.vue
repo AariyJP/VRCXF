@@ -23,7 +23,7 @@
             <InputGroupField
                 v-model="playerModerationTable.filters[1].value"
                 :placeholder="t('view.moderation.search_placeholder')"
-                class="filter-input flex-[0.4]" />
+                class="w-[150px] mx-2.5 flex-[0.4]" />
             <TooltipWrapper side="bottom" :content="t('view.moderation.refresh_tooltip')">
                 <Button
                     class="rounded-full"
@@ -152,11 +152,6 @@
     });
 
     const pageSizes = computed(() => appearanceSettingsStore.tablePageSizes);
-    const pageSize = computed(() =>
-        playerModerationTable.value.pageSizeLinked
-            ? appearanceSettingsStore.tablePageSize
-            : playerModerationTable.value.pageSize
-    );
 
     const { table, pagination } = useVrcxVueTable({
         persistKey: 'moderation',
@@ -168,7 +163,7 @@
         initialSorting: [{ id: 'created', desc: true }],
         initialPagination: {
             pageIndex: 0,
-            pageSize: pageSize.value
+            pageSize: appearanceSettingsStore.tablePageSize
         }
     });
 
@@ -177,29 +172,10 @@
     });
 
     const handlePageSizeChange = (size) => {
-        if (playerModerationTable.value.pageSizeLinked) {
-            appearanceSettingsStore.setTablePageSize(size);
-        } else {
-            playerModerationTable.value.pageSize = size;
-        }
-    };
-
-    watch(pageSize, (size) => {
-        if (pagination.value.pageSize === size) {
-            return;
-        }
         pagination.value = {
             ...pagination.value,
             pageIndex: 0,
             pageSize: size
         };
-        table.setPageSize(size);
-    });
+    };
 </script>
-
-<style scoped>
-    .filter-input {
-        width: 150px;
-        margin: 0 10px;
-    }
-</style>

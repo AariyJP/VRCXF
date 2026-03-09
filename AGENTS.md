@@ -6,25 +6,25 @@
 
 **All responses to the user MUST be in Japanese (日本語).**
 
-VRChat friend management desktop app. Fork of [vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) (by AariyJP). MIT license.
+VRChat friend management desktop app. Fork of [vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) maintained as VRCXF by AariyJP. MIT license.
 
 ## 🔧 Serena MCP Integration
 
 **When Serena MCP server is available, you MUST maximize its usage for all code-related tasks.**
 
-Serena MCP provides powerful tools for code exploration, analysis, and editing. Always prefer Serena tools over standard file operations when:
+Always prefer Serena tools over manual file reads when possible:
 
-- **Exploring code structure**: Use `mcp_serena_get_symbols_overview` and `mcp_serena_find_symbol` instead of manual file reading
-- **Searching code**: Use `mcp_serena_search_for_pattern` for pattern matching and `mcp_serena_find_referencing_symbols` for reference tracking
-- **Editing code**: Use symbol-level editing tools (`mcp_serena_replace_symbol_body`, `mcp_serena_insert_before_symbol`, `mcp_serena_insert_after_symbol`) for precise modifications
-- **Refactoring**: Use `mcp_serena_rename_symbol` for safe, project-wide symbol renaming
-- **Understanding project context**: Read relevant memories from `mcp_serena_list_memories` and `mcp_serena_read_memory`
+- **Code structure**: `mcp_serena_get_symbols_overview`, `mcp_serena_find_symbol`
+- **Search**: `mcp_serena_search_for_pattern`, `mcp_serena_find_referencing_symbols`
+- **Edits**: `mcp_serena_replace_symbol_body`, `mcp_serena_replace_content`, `mcp_serena_insert_before_symbol`, `mcp_serena_insert_after_symbol`
+- **Refactors**: `mcp_serena_rename_symbol`
+- **Context**: `mcp_serena_list_memories`, `mcp_serena_read_memory`
 
-Before starting any code task:
+Before starting a code task:
 
-1. Check `mcp_serena_check_onboarding_performed` to verify project setup
-2. Review available memories with `mcp_serena_list_memories` for relevant context
-3. Use Serena's symbol-aware tools for all code exploration and modification
+1. Check `mcp_serena_check_onboarding_performed`
+2. Review relevant memories with `mcp_serena_list_memories`
+3. Use symbol-aware exploration/editing whenever feasible
 
 ## ⚠ Required: Cross-Platform Implementation
 
@@ -32,281 +32,274 @@ Before starting any code task:
 
 Platform configuration:
 
-- **Windows**: CEF (CefSharp) — `Dotnet/Cef/`, `Dotnet/AppApi/Cef/`, `VRCX-Cef.csproj` (Windows only)
-- **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`, `Dotnet/AppApi/Electron/`, `VRCX-Electron.csproj` (macOS/Linux only)
+- **Windows**: CEF (CefSharp) — `Dotnet/Cef/`, `Dotnet/AppApi/Cef/`, `Dotnet/Overlay/Cef/`, `Dotnet/VRCX-Cef.csproj`
+- **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`, `Dotnet/AppApi/Electron/`, `Dotnet/Overlay/Electron/`, `Dotnet/VRCX-Electron.csproj`
 
 Branching patterns:
 
-- **Frontend JS**: Branch using global constants `WINDOWS`/`LINUX` (`if (WINDOWS) {...} else {...}`)
-- **Native API calls**: Windows = direct binding via `CefSharp.BindObjectAsync`, macOS/Linux = `InteropApi` Proxy (`window.interopApi.callDotNetMethod`)
-- **WebApi execution**: Branching inside `webApiService.execute()` — WINDOWS = `WebApi.Execute()` (returns `{Item1, Item2}`), LINUX = `WebApi.ExecuteJson()` (JSON string)
-- **.NET side**: `AppApi/Common/` = shared, `AppApi/Cef/` = Windows only, `AppApi/Electron/` = macOS/Linux only. Conditional compilation via `#if LINUX` / `#if !LINUX` in csproj
-- **Electron-specific**: `window.electron` (exposed via preload) exists only on macOS/Linux. File dialogs, desktop notifications, window operations, etc.
+- **Frontend JS**: branch with `WINDOWS` / `LINUX`
+- **Native API calls**: Windows = direct globals via `CefSharp.BindObjectAsync`, macOS/Linux = proxy via `window.interopApi.callDotNetMethod`
+- **Interop bootstrap**: `src/plugin/interopApi.js` initializes globals, `src/ipc-electron/interopApi.js` exposes the Electron-side proxy helper
+- **WebApi execution**: `src/service/webapi.js` branches to `WebApi.Execute()` on Windows and `WebApi.ExecuteJson()` on macOS/Linux
+- **.NET side**: shared logic in `Dotnet/AppApi/Common/`, platform-specific code in `Dotnet/AppApi/Cef/` and `Dotnet/AppApi/Electron/`
+- **Electron-only APIs**: `window.electron.*` exists only on macOS/Linux
 
 Implementation checklist:
 
-1. When calling a new native API from the frontend → add a shared method in `AppApi/Common/`, or implement in both `Cef/` and `Electron/`
-2. For `WINDOWS`/`LINUX` branching logic, refer to existing patterns (`src/plugin/interopApi.js`, `src/service/webapi.js`)
-3. When using Electron-only APIs (`window.electron.*`), consider fallback implementations for Windows (CEF)
-4. When modifying .NET code, ensure it builds successfully with both `VRCX-Cef.csproj` and `VRCX-Electron.csproj`
+1. When adding a new native API used by the frontend, implement it in a shared surface or in both platform backends
+2. For frontend platform branching, follow existing patterns in `src/plugin/interopApi.js` and `src/service/webapi.js`
+3. If using `window.electron.*`, provide a Windows-compatible path when required
+4. When modifying .NET code, keep both `Dotnet/VRCX-Cef.csproj` and `Dotnet/VRCX-Electron.csproj` buildable
 
 ## Stack
 
-- **Frontend**: Vue 3 (Composition API / `<script setup>`), Pinia, Vue Router (hash mode), Vite 7, TailwindCSS 4, shadcn-vue (reka-ui, new-york style), LightningCSS, ECharts, Graphology + Sigma, vue-i18n (Multiple languages), Vitest, Sentry
-- **Backend**: C# / .NET 10 (Windows) / .NET 9 (macOS/Linux), SQLite, OpenVR, node-api-dotnet (JS ⇄ .NET interop)
-- **Desktop**: Electron 39 (macOS/Linux only), electron-builder, CEF (Windows only)
-- **Platform**: Windows / Linux (AppImage) / macOS (dmg), x64 + arm64
+- **Frontend**: Vue 3, Pinia, Vue Router, Vite 7, TailwindCSS 4, shadcn-vue, reka-ui, LightningCSS, vue-i18n, Vitest, Vue Query, ECharts, Graphology + Sigma, vue-sonner
+- **Backend**: C# / .NET 10 (Windows) / .NET 9 (macOS/Linux), SQLite, OpenVR, node-api-dotnet
+- **Desktop**: Electron 39 (macOS/Linux), CEF/CefSharp 144 (Windows), electron-builder
+- **Platform**: Windows / Linux / macOS, x64 + arm64
 
 ## Architecture
 
-Electron Main (`src-electron/main.js`) → .NET Runtime (`Dotnet/`) via node-api-dotnet → VRChat API / WebSocket
+Renderer (`src/`) → native bridge (`src/plugin/interopApi.js`, `src/ipc-electron/interopApi.js`) → .NET runtime (`Dotnet/`) → VRChat REST/WebSocket, SQLite, OS integration
 
-- Frontend (Renderer): Vue 3 SPA → VRChat REST API (`src/service/request.js`) + WebSocket (`src/service/websocket.js`)
-- .NET side: Log parsing (`LogWatcher.cs`), DB (`SQLite.cs`), VR overlay (`Overlay/`), Discord RP (`Discord.cs`), Process monitoring (`ProcessMonitor.cs`)
-- IPC: `src-electron/InteropApi.js` ⇄ `Dotnet/AppApi/`
+Current frontend shape:
+
+- Vue SPA with Pinia stores and Vue Query
+- Plugin bootstrap in `src/plugin/`
+- API wrappers in `src/api/`
+- request / websocket / database / config services in `src/service/`
+- shared utilities/constants in `src/shared/`
+- route views in `src/views/`
+
+Recent structural patterns now in active use:
+
+- **Coordinator pattern** in `src/stores/coordinators/`
+- **Query layer** in `src/query/`
+- **Electron IPC helper surface** in `src/ipc-electron/`
+- **Public static assets** in `src/public/`
+- **App shell CSS split** across `src/styles/globals.css` and `src/app.css`
 
 ## Directory Structure
 
-```
-src/                    # Frontend (Vue 3)
-  app.js                # Entry: createApp → pinia, i18n, router, sentry → mount('#root')
-  App.vue               # Root: TooltipProvider, RouterView, Toaster, AlertDialog, VRCXUpdateDialog
-  index.html            # Main HTML (root=#root, preconnect: api.vrchat.cloud, files.vrchat.cloud)
-  vr.html               # VR overlay HTML
-  vite.config.js        # Vite config (base:'', port:9000, outDir:../build/html, target:chrome140)
-  api/                  # VRChat API wrappers (auth, avatar, avatarModeration, favorite, friend, group, image, instance, inventory, inviteMessages, misc, notification, playerModeration, prop, user, vrcPlusIcon, vrcPlusImage, world)
-  components/           # UI components
-    ui/                 #   shadcn-vue UI primitives
-    dialogs/            #   Dialogs
-    NavMenu.vue         #   Main navigation
-  composables/          # Vue Composables
-  lib/                  # Utilities (includes utils, shadcn-vue alias @/lib/utils)
-  localization/         # i18n JSON (cs, en, es, fr, hu, ja, ko, pl, pt, ru, th, vi, zh-CN, zh-TW)
-  plugin/               # Vue plugin initialization
-    router.js           #   Route definitions + nav guards (auth check)
-    i18n.js             #   vue-i18n configuration
-    interopApi.js       #   .NET binding init (WINDOWS → CefSharp.BindObjectAsync, LINUX → InteropApi proxy)
-    sentry.js           #   Sentry initialization
-    components.js       #   Global component registration
-  service/              # Service layer
-    websocket.js        #   VRChat WebSocket (wss://pipeline.vrchat.cloud, auto-reconnect 5s)
-    request.js          #   HTTP (GET dedup 10s, 404/403 cache 15min, processBulk pagination)
-    webapi.js           #   WebApiService: LINUX → ExecuteJson, WINDOWS → Execute (Item1, Item2)
-    database.js         #   DB operations aggregation (initTables, initUserTables, begin/commit/vacuum/optimize)
-    database/           #   DB schemas (feed, gameLog, notifications, moderation, friendLogHistory, friendLogCurrent, memos, avatarFavorites, avatarTags, friendFavorites, worldFavorites, tableAlter, tableFixes, tableSize, mutualGraph)
-    config.js           #   ConfigRepository: SQLite configs table (getString/setString/getBool/getInt/getObject/getArray)
-    sqlite.js           #   SQLite service wrapper
-    appConfig.js        #   AppDebug: endpointDomain (api.vrchat.cloud/api/1), websocketDomain (wss://pipeline.vrchat.cloud), debug flags
-    confusables.js      #   Unicode confusable character handling
-    jsonStorage.js      #   VRCXStorage JSON wrapper
-    gamelog.js          #   Game log service
-    watchState.js       #   Reactive state (isLoggedIn, isFriendsLoaded)
+```text
+src/
+  app.js                  # initPlugins -> initPiniaPlugins -> createApp -> pinia/i18n/VueQuery -> initComponents -> initRouter -> initSentry -> mount
+  App.vue                 # Root shell: TooltipProvider, MacOSTitleBar, RouterView, Toaster, dialog modals, updater dialog
+  app.css                 # Layout/app-shell CSS
+  index.html              # Main entry
+  vr.html                 # VR overlay entry
+  vite.config.js          # Vite config (port 9000, outDir ../build/html, target chrome144)
+  api/                    # VRChat API wrappers
+  components/             # Shared components and dialogs
+  composables/            # Vue composables
+  ipc-electron/           # Electron interop helpers for renderer
+  lib/                    # Shared library helpers
+  localization/           # i18n JSON files
+  plugin/                 # Bootstrap plugins (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
+  public/                 # Static assets copied by Vite
+  query/                  # Vue Query client, keys, cache helpers, entity query utilities
+  service/                # Services (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
   shared/
-    constants/          # Constants (accessType, api, discord, emoji, feedFilters, fonts, group, instance, language, link, moderation, ossLicenses, photon, settings, tags, themes, ui, user, world + remixIconTags.json)
-    utils/              # Utilities (avatar, chart, common, compare, friend, gallery, group, imageUpload, instance, invite, location, memos, retry, setting, throttle, user, world + base/ + __tests__/)
-  stores/               # Pinia stores
-    index.js            #   createGlobalStores(): creates all stores and stores them in window.$pinia
-    auth.js             #   Authentication (login/logout/2FA/migrateStoredUsers/autoLogin)
-    user.js             #   User (cachedUsers: Map, currentUser, applyUser, applyCurrentUser)
-    friend.js           #   Friend management
-    notification.js     #   Notifications
-    instance.js         #   Instance (includes queue management)
-    favorite.js         #   Favorites
-    gameLog.js          #   Game log
-    photon.js           #   Photon network
-    gallery.js          #   Gallery / VRC+ images
-    group.js            #   Groups
-    search.js           #   Search
-    location.js         #   Current location
-    modal.js            #   Modal / dialog state
-    updateLoop.js       #   Periodic update loop
-    vrcx.js             #   VRCX-specific features
-    vrcxUpdater.js      #   App auto-updater
-    vrcStatus.js        #   VRChat status
-    ui.js               #   UI state (notifyMenu, etc.)
-    feed.js             #   Feed
-    sharedFeed.js       #   Shared feed
-    avatar.js           #   Avatar
-    avatarProvider.js   #   Avatar provider
-    world.js            #   World
-    charts.js           #   Charts
-    moderation.js       #   Moderation
-    invite.js           #   Invite
-    launch.js           #   App launch
-    game.js             #   VRChat game state
-    vr.js               #   VR overlay
-    settings/           #   Settings stores
-      appearance.js     #     Theme / language / font / table density / trust color / sidebar sort / nav width
-      advanced.js       #     Advanced settings
-      general.js        #     General settings
-      notifications.js  #     Notification settings
-      discordPresence.js #    Discord RP settings
-      wristOverlay.js   #     Wrist overlay settings
+    constants/            # Shared constants
+    utils/                # Shared utility modules and tests
+  stores/
+    coordinators/         # Coordinator layer for auth/friend/game/user flows
+    gameLog/              # Game log submodules
+    notification/         # Notification submodules
+    settings/             # Settings stores
+    __tests__/            # Store tests
+    index.js              # createGlobalStores() + pinia plugin registration
+    globalSearch.js       # Global search store
   styles/
-    globals.css         #   TailwindCSS + CSS variables (theme colors)
-    fonts.css           #   Font settings
-    noty.css            #   Notification toast
-    flags.css           #   Country flag icons
-    animated-emoji.css  #   Animated emoji
-    themes/             #   Theme CSS (blue, green, midnight, orange, red, rednight, rose, violet, yellow)
-  types/                # TypeScript type definitions
-    globals.d.ts        #   Global types (AppApi, VRCXStorage, SQLite, LogWatcher, Discord, WebApi, AppApiVr, AssetBundleManager, webApiService, window.electron)
-    api/                #   API type definitions
-    common.d.ts         #   Common types
-  views/                # Pages
-    Login/              #   Login (2FA support)
-    Layout/MainLayout   #   Main layout (requires auth)
-    Feed/               #   Feed (default page)
-    FriendsLocations/   #   Friend locations
-    GameLog/            #   Game log
-    PlayerList/         #   Player list
-    Search/             #   Search
-    Favorites/          #   Favorites (Friend/World/Avatar)
-    Charts/             #   Charts (InstanceActivity, MutualFriends)
-    Notifications/      #   Notifications
-    FriendLog/          #   Friend log
-    FriendList/         #   Friend list
-    Moderation/         #   Moderation
-    Settings/           #   Settings
-    Tools/              #   Tools (Gallery, ScreenshotMetadata, etc.)
-    Sidebar/            #   Sidebar
-  vr/                   # VR overlay UI
-src-electron/           # Electron Main
-  main.js               # Main process: window mgmt, tray, IPC, VR overlay (shared memory), single instance lock
-  preload.js            # Preload: exposes ipcRenderer via contextBridge
-  InteropApi.js         # .NET interop (getDotNetObject → Proxy pattern)
-  offscreen.html        # VR overlay offscreen window
-Dotnet/                 # .NET Backend
-  Program.cs            # Entry point (Program: CEF version, ProgramElectron: Electron version)
-  AppApi/
-    Common/             #   Cross-platform shared API
-    Cef/                #   CEF-specific API
-    Electron/           #   Electron-specific API
-  LogWatcher.cs         # VRChat log monitoring
-  WebApi.cs             # Web API client (cookie management, HTTP execution)
-  SQLite.cs             # DB (Execute/ExecuteJson/ExecuteNonQuery)
-  Discord.cs            # Discord Rich Presence (SetAssets/SetActive)
-  ProcessMonitor.cs     # VRChat process monitoring
-  ImageCache.cs         # Image cache
-  VRCXStorage.cs        # Key-value settings storage (Get/Set/Remove/Save/Load)
-  Update.cs             # Auto-update (DownloadUpdate/CheckUpdateProgress)
-  AssetBundleManager.cs # VRChat cache management
-  AutoAppLaunchManager.cs # Auto app launch on VRChat start
-  StartupArgs.cs        # Startup argument parser
-  Overlay/              # VR overlay (OpenVR, CEF/Electron branching)
-  ScreenshotMetadata/   # Screenshot metadata (PNG XMP tag read/write)
-  IPC/                  # Inter-process communication
-  Cef/                  # CEF browser
-  DBMerger/             # DB merge tool
-  VRCX-Cef.csproj       # Windows CEF build (.NET 10)
-  VRCX-Electron.csproj  # Electron x64 build (.NET 9)
+    globals.css           # Tailwind/base CSS variables
+    themes/               # Theme CSS
+  types/                  # Type definitions
+  views/
+    MyAvatars/            # My Avatars page
+    Sidebar/              # Sidebar UI and tests
+    ...                   # Feed, FriendsLocations, GameLog, Search, Favorites, Charts, Notifications, Tools, Settings, etc.
+  vr/                     # VR overlay UI
+src-electron/
+  main.js                 # Electron main process
+  preload.js              # preload bridge
+  InteropApi.js           # .NET interop entry
+  download-dotnet-runtime.js
+  patch-node-api-dotnet.js
+  patch-package-version.js
+  rename-builds.js
+Dotnet/
+  AppApi/Common/          # Shared native API surface
+  AppApi/Cef/             # Windows-only API layer
+  AppApi/Electron/        # Electron/macOS/Linux API layer
+  Overlay/                # VR overlay implementations
+  IPC/                    # IPC infrastructure
+  ScreenshotMetadata/     # Screenshot metadata support
+  VRCX-Cef.csproj         # Windows build (.NET 10)
+  VRCX-Electron.csproj    # Electron x64 build (.NET 9)
   VRCX-Electron-arm64.csproj
-Installer/              # NSIS (installer.nsi)
-build-scripts/          # Build scripts (build-all.ps1, etc.)
-.github/workflows/      # CI/CD (build.yml, github_actions.yml, release.yml)
 ```
 
-## Routes (`src/plugin/router.js`)
+## Routes
 
-`/login` → Login (public), `/` → MainLayout (requiresAuth) children: `/feed` (default), `/friends-locations`, `/game-log`, `/player-list`, `/search`, `/favorites/friends|worlds|avatars`, `/social/friend-log|moderation|friend-list`, `/notification`, `/charts/instance|mutual` (lazy import), `/tools`, `/tools/gallery|screenshot-metadata`, `/settings`
+Defined in `src/plugin/router.js`.
 
-Auth guard: checks `watchState.isLoggedIn`, redirects to `/login` when unauthenticated
+- Public: `/login`
+- Authenticated shell: `/`
+- Children:
+  - `/feed`
+  - `/friends-locations`
+  - `/game-log`
+  - `/player-list`
+  - `/search`
+  - `/favorites/friends`
+  - `/favorites/worlds`
+  - `/favorites/avatars`
+  - `/social/friend-log`
+  - `/social/moderation`
+  - `/social/friend-list`
+  - `/my-avatars`
+  - `/notification`
+  - `/charts/instance`
+  - `/charts/mutual`
+  - `/tools`
+  - `/tools/gallery`
+  - `/tools/screenshot-metadata`
+  - `/settings`
 
-## Global Objects (window)
+Router notes:
 
-On WINDOWS (CEF), bound via `CefSharp.BindObjectAsync`. On LINUX (Electron), bound via `InteropApi` Proxy. Exposed objects:
-`AppApi`, `WebApi`, `VRCXStorage`, `SQLite`, `LogWatcher`, `Discord`, `AssetBundleManager`
-Type definitions: see `src/types/globals.d.ts`.
+- Auth guard uses return-based navigation in `router.beforeEach`
+- `/social` itself is blocked
+- Unauthenticated access redirects to `/login`, preserving `redirect` query when relevant
 
-Key APIs:
+## Global Objects
 
-- `AppApi`: App operations (DevTools, VR, zoom, notifications, clipboard, game launch/quit, registry, images, screenshots, updates, folder operations)
-- `VRCXStorage`: KV storage (Get/Set/Remove/GetAll/Flush/Save/Load/GetArray/SetArray/GetObject/SetObject)
-- `SQLite`: DB operations (Execute/ExecuteJson/ExecuteNonQuery)
-- `LogWatcher`: VRChat log (Get/SetDateTill/GetLogLines/Reset)
-- `Discord`: Rich Presence (SetAssets/SetActive)
-- `WebApi`: HTTP (ClearCookies/GetCookies/SetCookies/Execute/ExecuteJson)
-- `webApiService`: JS wrapper for WebApi (LINUX → ExecuteJson, WINDOWS → Execute)
+Window globals are typed in `src/types/globals.d.ts`.
+
+Primary globals:
+
+- `AppApi`
+- `AppApiVr`
+- `WebApi`
+- `VRCXStorage`
+- `SQLite`
+- `LogWatcher`
+- `Discord`
+- `AssetBundleManager`
+- `webApiService`
+- `window.interopApi`
+- `window.electron`
+- `window.$pinia`
+
+## Query / Data Fetching
+
+- Vue Query client lives in `src/query/client.js`
+- App bootstrap installs `VueQueryPlugin` in `src/app.js`
+- Default query options: retry once, no refetch on window focus, refetch on reconnect
+- `request()` in `src/service/request.js` still handles direct REST access and request deduplication
+
+## Store Patterns
+
+- Stores are still created in `createGlobalStores()`
+- Cross-store workflow orchestration is increasingly moving into `src/stores/coordinators/`
+- Tests for coordinators live under `src/stores/coordinators/__tests__/`
+- ESLint now enforces a **store boundary rule** that disallows direct `xxxStore.foo = ...` and `xxxStore.foo++/--` mutations across store boundaries
 
 ## Settings Persistence
 
-`ConfigRepository` (`src/service/config.js`): KV storage in SQLite `configs` table. Keys prefixed with `config:`.
-`VRCXStorage`: .NET-side KV (file-based).
+- `src/service/config.js`: SQLite-backed config repository using `config:`-prefixed keys
+- `VRCXStorage`: file-backed native storage
 
-Config key examples (configRepository): `VRCX_appLanguage`, `VRCX_ThemeMode`, `VRCX_lastDarkTheme`, `VRCX_fontFamily`, `VRCX_tablePageSize`, `VRCX_navPanelWidth`, `VRCX_sidebarGroupByInstance`, `VRCX_hideNicknames`, `VRCX_randomUserColours`, `VRCX_trustColor`, `VRCX_tableDensity`, etc.
+Representative config keys:
+
+- `VRCX_appLanguage`
+- `VRCX_ThemeMode`
+- `VRCX_lastDarkTheme`
+- `VRCX_fontFamily`
+- `VRCX_tablePageSize`
+- `VRCX_navPanelWidth`
+- `VRCX_tableDensity`
 
 ## VRChat API
 
-- REST: `https://api.vrchat.cloud/api/1` (`AppDebug.endpointDomain`)
-- WebSocket: `wss://pipeline.vrchat.cloud` (`AppDebug.websocketDomain`)
-- HTTP: `request(endpoint, options)` in `src/service/request.js` → `webApiService.execute()` → .NET `WebApi.Execute`
-- GET request dedup (10s), 404/403 retry suppression (15min)
-- WebSocket events: notification, notification-v2, see-notification, hide-notification, friend-add/delete/online/active/offline/update/location, user-update/location, group-joined/left/role-updated/member-updated, instance-queue-\*, content-refresh, instance-closed
+- REST endpoint base: `https://api.vrchat.cloud/api/1`
+- WebSocket base: `wss://pipeline.vrchat.cloud`
+- Request path: `src/service/request.js` → `src/service/webapi.js` → native `WebApi`
+- GET dedup window: 10s
+- 404/403 suppression window: 15min
 
-## DB Schema (`src/service/database/`)
+## DB Schema
 
-Tables: feed, gameLog, notifications, moderation, friendLogHistory, friendLogCurrent, memos, avatarFavorites, avatarTags, friendFavorites, worldFavorites + tableAlter (migration), tableFixes, tableSize, mutualGraph
+`src/service/database/` currently includes:
 
-## Themes
+- `feed`
+- `gameLog`
+- `notifications`
+- `moderation`
+- `friendLogHistory`
+- `friendLogCurrent`
+- `memos`
+- `avatarFavorites`
+- `avatarTags`
+- `friendFavorites`
+- `worldFavorites`
+- `mutualGraph`
+- `tableAlter`
+- `tableFixes`
+- `tableSize`
 
-9 themes: blue, green, midnight, orange, red, rednight, rose, violet, yellow (CSS files in `src/styles/themes/`)
-Theme modes: light / dark / system + color themes
+## Styling
+
+- TailwindCSS 4 + CSS variables
+- Base theme/styles in `src/styles/globals.css`
+- Layout shell rules in `src/app.css`
+- Theme files in `src/styles/themes/`
+- Current theme set: `blue`, `green`, `midnight`, `orange`, `red`, `rednight`, `rose`, `violet`, `yellow`
 
 ## Dev Commands
 
-````
-npm run dev              # Vite dev (PLATFORM=windows, port 9000)
-npm run dev-linux        # Vite dev (PLATFORM=linux)
-npm test                 # Vitest
-npm run test:coverage    # Vitest coverage
 ```bash
-# Windows production build
+npm run dev
+npm run dev-linux
+npm test
+npm run test:coverage
 npm run prod
-
-# Linux production build
 npm run prod-linux
-
-# Electron build (macOS/Linux only)
 npm run build-electron
 npm run build-electron-arm64
-
-# Start Electron (macOS/Linux only)
 npm run start-electron
-
-# i18n helper CLI
 npm run localization
-````
+npm run dotnet-win
+npm run dotnet-arm64
+```
 
 ## .NET Build
 
 ```bash
-# Build Windows CEF version (Release, x64, MUST be --self-contained)
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
+dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
+dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
+```
 
-- Prettier: printWidth: 80 (JS) / 120 (Vue), tabWidth: 4, singleQuote, trailingComma: none, parser: meriyah (JS), bracketSameLine + vueIndentScriptAndStyle (Vue)
-- ESLint: flat config, vue/essential, prettier plugin, pretty-import plugin (import sorting)
-- Global variables: CefSharp, VRCXStorage, SQLite, LogWatcher, Discord, AppApi, AppApiVr, WebApi, AssetBundleManager, WINDOWS, LINUX, VERSION, NIGHTLY
-- TypeScript: allowJs + checkJs, strict: false, noEmit, moduleResolution: bundler
-- Files are primarily JS (.js / .vue), type definitions only in .d.ts
-- **No code comments**: Do not insert explanatory comments in code changes. Code should be self-explanatory through clear variable/function names and structure
+## Tooling / Conventions
+
+- **Prettier**: `printWidth: 80`, `tabWidth: 4`, `semi: true`, `singleQuote: true`, `trailingComma: none`, Vue `printWidth: 120`
+- **ESLint**: flat config, `vue/essential`, `eslint-plugin-prettier`, `eslint-plugin-jsdoc`, `pretty-import`
+- **TypeScript config**: `allowJs`, `checkJs`, `strict: false`, `moduleResolution: bundler`, `noEmit`
+- **Vitest**: `jsdom`, `src/**/*.{test,spec}.js`, setup via `vitest.setup.js`
+- **Path alias**: `@/*` → `./src/*`
+- **Do not modify i18n JSON files unless explicitly instructed**
+- **No generated code comments**: do not add new explanatory comments in code changes
 
 ## Key Notes
 
-- `PLATFORM` env var (`windows` / `linux`) for platform branching. Vite define creates `LINUX` / `WINDOWS` / `VERSION` / `NIGHTLY` global constants
-- `NIGHTLY`: true in development mode or when version ends with a 7-char commit hash
-- WebSocket auto-reconnect (5s interval), uses `worker-timers` (works even in background tabs)
-- VR overlay: Linux = shared memory (`/dev/shm/vrcx_overlay`), Windows = CEF offscreen
-- .NET projects: VRCX-Cef (Win), VRCX-Electron (x64), VRCX-Electron-arm64, DBMerger
-- Path alias: `@` → `src/` (vite.config.js + tsconfig)
+- `src/vite.config.js` uses `chrome144` targets and LightningCSS
+- `src/public/` is copied into build output by Vite
+- `NIGHTLY` is true in development or when version suffix is a 7-char hash
+- `window.electron` is macOS/Linux only
+- VR overlay remains split between Windows CEF and Electron/shared-memory flows
+- Recent project direction includes coordinator extraction, Vue Query adoption, CSS tokenization, and upstream sync merges
 
 ## 🚨 Git Operation Restrictions
 
 - **Commit and Push**: `git commit` and `git push` are generally performed by the user. Agents MUST NOT perform these operations without explicit permission.
-
-- Vue app init order: initPlugins → initPiniaPlugins → createApp → pinia, i18n → initComponents → initRouter → initSentry → mount
-- Store init: `createGlobalStores()` creates all stores → stored in `window.$pinia` → `onBeforeMount` starts updateLoop → `onMounted` initializes gameLog/auth/vrcx/game
-- `.NET interop` pattern: Electron version uses Proxy via `window.interopApi.callDotNetMethod(className, methodName, args)`
-- Preconnect targets: api.vrchat.cloud, files.vrchat.cloud, d348imysud55la.cloudfront.net
-- i18n: dynamic loading (Vite chunk splitting per language code), fonts also chunked per language
-- components.json: shadcn-vue CLI configuration
-```

@@ -68,7 +68,7 @@
                                 <Button variant="outline" @click="showBulkUnfriendSelectionConfirm">
                                     {{ t('view.friend_list.bulk_unfriend_selection') }}
                                 </Button>
-                                <!-- el-button(size="small" @click="showBulkUnfriendAllConfirm" style="margin-right:5px") Bulk Unfriend All-->
+                                <!-- el-button(size="small" @click="showBulkUnfriendAllConfirm") Bulk Unfriend All-->
                             </div>
                             <div class="flex items-center mr-2">
                                 <span class="name mr-2 text-xs">{{ t('view.friend_list.bulk_unfriend') }}</span>
@@ -98,12 +98,12 @@
                     <DialogHeader>
                         <DialogTitle>{{ t('view.friend_list.load_dialog_title') }}</DialogTitle>
                     </DialogHeader>
-                    <div style="margin-bottom: 10px" v-text="t('view.friend_list.load_dialog_message')"></div>
+                    <div style="margin-bottom: 8px" v-text="t('view.friend_list.load_dialog_message')"></div>
                     <div class="flex items-center gap-2">
                         <Progress :model-value="friendsListLoadingPercent" class="h-4 w-full" />
                         <span class="text-xs w-10 text-right">{{ friendsListLoadingPercent }}%</span>
                     </div>
-                    <div style="margin-top: 10px; text-align: right">
+                    <div style="margin-top: 8px; text-align: right">
                         <span>{{ friendsListLoadingCurrent }} / {{ friendsListLoadingTotal }}</span>
                     </div>
                     <DialogFooter>
@@ -171,7 +171,6 @@
     const selectedFriends = ref(new Set());
     const friendsListDisplayData = ref([]);
     const pageSizes = computed(() => appearanceSettingsStore.tablePageSizes);
-    const pageSize = computed(() => appearanceSettingsStore.tablePageSize);
     const defaultSorting = [{ id: 'friendNumber', desc: true }];
 
     // const initialColumnPinning = {
@@ -212,7 +211,7 @@
         initialSorting: defaultSorting,
         initialPagination: {
             pageIndex: 0,
-            pageSize: pageSize.value
+            pageSize: appearanceSettingsStore.tablePageSize
         }
     });
 
@@ -221,7 +220,11 @@
     });
 
     const handlePageSizeChange = (size) => {
-        appearanceSettingsStore.setTablePageSize(size);
+        pagination.value = {
+            ...pagination.value,
+            pageIndex: 0,
+            pageSize: size
+        };
     };
 
     const handleRowClick = (row) => {
@@ -251,18 +254,6 @@
         { immediate: true }
     );
 
-    watch(pageSize, (size) => {
-        if (pagination.value.pageSize === size) {
-            return;
-        }
-        pagination.value = {
-            ...pagination.value,
-            pageIndex: 0,
-            pageSize: size
-        };
-        table.setPageSize(size);
-    });
-
     const route = useRoute();
 
     watch(
@@ -280,6 +271,9 @@
         }
     );
 
+    /**
+     *
+     */
     function friendsListSearchChange() {
         friendsListLoading.value = true;
         let query = '';
@@ -333,6 +327,10 @@
         });
     }
 
+    /**
+     *
+     * @param id
+     */
     function toggleFriendSelection(id) {
         if (selectedFriends.value.has(id)) {
             selectedFriends.value.delete(id);
@@ -341,12 +339,18 @@
         }
     }
 
+    /**
+     *
+     */
     function toggleFriendsListBulkUnfriendMode() {
         if (!friendsListBulkUnfriendMode.value) {
             selectedFriends.value.clear();
         }
     }
 
+    /**
+     *
+     */
     function showBulkUnfriendSelectionConfirm() {
         const pending = friendsListDisplayData.value
             .filter((item) => selectedFriends.value.has(item.id))
@@ -367,6 +371,9 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     */
     async function bulkUnfriendSelection() {
         if (!selectedFriends.value.size) return;
         const selectedFriendsCount = selectedFriends.value.size;
@@ -384,6 +391,9 @@
         selectedFriends.value.clear();
     }
 
+    /**
+     *
+     */
     async function friendsListLoadUsers() {
         const toFetch = Array.from(friends.value.values())
             .filter((ctx) => ctx.ref && !ctx.ref.date_joined)
@@ -419,31 +429,37 @@
         }
     }
 
+    /**
+     *
+     */
     function cancelFriendsListLoad() {
         friendsListLoading.value = false;
         friendsListLoadDialogVisible.value = false;
     }
 
+    /**
+     *
+     * @param val
+     */
     function selectFriendsListRow(val) {
         if (!val) return;
         if (!val.id) emit('lookup-user', val);
         else showUserDialog(val.id);
     }
 
+    /**
+     *
+     */
     function openChartsTab() {
         router.push({ name: 'charts' });
     }
 
+    /**
+     *
+     * @param value
+     */
     function handleFriendListFilterChange(value) {
         friendsListSearchFilters.value = Array.isArray(value) ? value : [];
         friendsListSearchChange();
     }
 </script>
-
-<style scoped>
-    .friends-list-avatar {
-        object-fit: cover;
-        height: 22px;
-        width: 22px;
-    }
-</style>

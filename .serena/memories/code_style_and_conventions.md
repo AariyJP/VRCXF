@@ -1,162 +1,66 @@
 # Code Style and Conventions
 
-## Prettier Configuration (`.prettierrc.json`)
+## Formatting
 
-### Basic Settings
-- `printWidth`: 80 (JS) / 120 (Vue)
-- `tabWidth`: 4
-- `semi`: true (Semicolons required)
-- `singleQuote`: true (Single quotes)
-- `quoteProps`: "as-needed"
-- `trailingComma`: "none" (No trailing commas)
-- `bracketSpacing`: true
-- `arrowParens`: "always"
-- `endOfLine`: "auto"
+`.prettierrc.json` currently defines:
 
-### File-specific Overrides
-- **JS**: `parser: "meriyah"`
-- **Vue**: 
-  - `printWidth: 120`
-  - `bracketSameLine: true`
-  - `vueIndentScriptAndStyle: true`
+- `printWidth: 80`
+- `tabWidth: 4`
+- `semi: true`
+- `singleQuote: true`
+- `quoteProps: as-needed`
+- `trailingComma: none`
+- `arrowParens: always`
+- Vue override: `printWidth: 120`, `bracketSameLine: true`, `vueIndentScriptAndStyle: true`
+- JS override: parser `meriyah`
 
-## ESLint Configuration (`eslint.config.mjs`)
+## ESLint
 
-### Plugins
-- `@eslint/js` (recommended)
-- `eslint-plugin-vue` (flat/essential)
-- `eslint-plugin-prettier` (recommended)
-- `@kamiya4047/eslint-plugin-pretty-import` (Import organization)
+`eslint.config.mjs` currently uses:
 
-### Global Variables
-- Browser globals + the following custom globals:
-  - `CefSharp`, `VRCX`, `VRCXStorage`, `SQLite`, `LogWatcher`, `Discord`
-  - `AppApi`, `AppApiVr`, `WebApi`, `AssetBundleManager`
-  - `WINDOWS`, `LINUX`, `VERSION`, `NIGHTLY`
-  - `webApiService`, `process`
+- `@eslint/js`
+- `eslint-plugin-vue`
+- `eslint-plugin-prettier`
+- `eslint-plugin-jsdoc`
+- `@kamiya4047/eslint-plugin-pretty-import`
 
-### Rules
-- `no-unused-vars`: "warn"
-- `no-case-declarations`: "off"
-- `no-control-regex`: "warn"
-- `vue/no-mutating-props`: "warn"
-- `vue/multi-word-component-names`: "off"
-- `vue/no-v-text-v-html-on-component`: "off"
-- `vue/no-use-v-if-with-v-for`: "warn"
-- `pretty-import/separate-type-imports`: "warn"
-- `pretty-import/sort-import-groups`: "warn" (groupStyleImports: true)
-- `pretty-import/sort-import-names`: "warn"
+Important rules/conventions:
 
-### Special File Settings
-- **Node.js Environment** (`vitest.config.js`, `src-electron/*.js`, `src/localization/*.js`):
-  - `sourceType: "commonjs"`
-  - `globals: node`
-- **Test Files** (`**/__tests__/**/*.{js,mjs,cjs,vue}`, `**/*.spec.{js,mjs,cjs,vue}`, `**/*.test.{js,mjs,cjs,vue}`):
-  - `globals: vitest`
+- `no-unused-vars: warn`
+- `no-case-declarations: off`
+- `no-control-regex: warn`
+- `vue/no-mutating-props: warn`
+- `vue/multi-word-component-names: off`
+- `vue/no-v-text-v-html-on-component: off`
+- `vue/no-use-v-if-with-v-for: warn`
+- `pretty-import/*` rules enabled
+- `no-restricted-syntax` forbids direct cross-store mutation via `xxxStore.foo = ...` and `xxxStore.foo++/--`
 
-## TypeScript Configuration (`tsconfig.json`)
+## TypeScript / JS
 
-### Basic Settings
-- `allowJs`: true
-- `checkJs`: true
-- `strict`: false
-- `noEmit`: true
-- `moduleResolution`: "bundler"
+- Main app code is JS / Vue SFCs
+- Type definitions live in `.d.ts`
+- `tsconfig.app.json` uses `allowJs`, `checkJs`, `strict: false`, `moduleResolution: bundler`, `noEmit`
+- Vitest globals are included in TS types
 
-### Path Aliases
-- `@/*` → `./src/*`
-- `*` → `./*`
+## Testing
 
-## File Formats
+- Test runner: Vitest
+- Environment: `jsdom`
+- Include pattern: `src/**/*.{test,spec}.js`
+- Setup file: `vitest.setup.js`
+- Coordinator tests live in `src/stores/coordinators/__tests__/`
 
-- Primarily JS (`.js` / `.vue`)
-- Type definitions only in `.d.ts`
-- **i18n translation files (`src/localization/*.json`) must not be modified** (Translation fixes only by separate instruction)
+## Naming / Structure
 
-## Naming Conventions
+- Vue components: PascalCase
+- Stores and helpers: camelCase filenames
+- Routes mostly use kebab-case paths
+- Shared orchestration logic should prefer coordinator modules over bloating large stores further
+- Query/cache logic should live under `src/query/` when it belongs to fetch/cache coordination rather than view-local state
 
-### Vue Components
-- PascalCase (e.g., `NavMenu.vue`, `MainLayout.vue`)
-- UI primitives: `src/components/ui/` (shadcn-vue)
-- Dialogs: `src/components/dialogs/`
+## Comments Policy
 
-### Files/Directories
-- camelCase (e.g., `webapi.js`, `appConfig.js`)
-- kebab-case (e.g., `friend-log`, `screenshot-metadata`)
-
-### Variables/Functions
-- camelCase (e.g., `isLoggedIn`, `applyUser`, `createGlobalStores`)
-
-### Constants
-- UPPER_SNAKE_CASE (Global constants)
-- camelCase (Local constants)
-
-## Vue Style
-
-### Composition API
-- Use `<script setup>`
-- Pinia stores
-- Composables (`src/composables/`)
-
-### Import Order (pretty-import)
-1. External libraries
-2. Internal modules
-3. Style imports (groupStyleImports: true)
-
-## .NET Code Style
-
-### Projects
-- `VRCX-Cef.csproj`: Windows (CEF) - .NET 10
-- `VRCX-Electron.csproj`: Electron x64 - .NET 9
-- `VRCX-Electron-arm64.csproj`: Electron arm64 - .NET 9
-
-### Conditional Compilation
-- `#if LINUX` / `#if !LINUX`
-- Platform-specific code placed in `AppApi/Cef/` or `AppApi/Electron/`
-- Shared code placed in `AppApi/Common/`
-
-### Naming
-- PascalCase (Classes, Methods, Properties)
-- camelCase (Local variables, Parameters)
-
-## Platform Branching Patterns
-
-### Frontend
-```javascript
-if (WINDOWS) {
-    // Windows (CEF) specific code
-} else {
-    // macOS/Linux (Electron) specific code
-}
-```
-
-### .NET Interop
-```javascript
-// Windows
-await CefSharp.BindObjectAsync('AppApi');
-
-// Linux
-window.interopApi.callDotNetMethod('AppApi', 'MethodName', [args]);
-```
-
-### WebApi Execution
-```javascript
-// Automatically branched inside webApiService.execute()
-// WINDOWS: WebApi.Execute() → {Item1, Item2}
-// LINUX: WebApi.ExecuteJson() → JSON string
-```
-
-## 🚨 Comments (Strict Rule)
-- **DO NOT WRITE COMMENTS IN GENERATED CODE.**
-- Code should be self-explanatory through clear variable/function names and structure.
-- Explanatory comments, TODOs, and complex logic explanations are prohibited in the code.
-
-## Global Constants (Vite define)
-
-- `WINDOWS`: `process.env.PLATFORM === 'windows'`
-- `LINUX`: `process.env.PLATFORM === 'linux'`
-- `VERSION`: Content of `./Version` file
-- `NIGHTLY`: true in development mode or when version ends with a 7-char commit hash
-
-## 🚨 Git Operation Restrictions
-- **Commit and Push**: `git commit` and `git push` are generally performed by the user. Agents MUST NOT perform these operations without explicit permission.
+- Existing comments may remain
+- Agents should not add new explanatory code comments unless explicitly required
+- i18n JSON files should not be modified unless the task explicitly calls for translation changes

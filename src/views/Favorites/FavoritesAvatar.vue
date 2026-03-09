@@ -110,7 +110,8 @@
                                         v-for="group in favoriteAvatarGroups"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
+                                            `group-item--${group.visibility}`,
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]"
                                         @click="handleGroupClick('remote', group.key)">
@@ -121,11 +122,11 @@
                                             >
                                         </div>
                                         <div class="group-item__bottom">
-                                            <Badge
-                                                :class="avatarGroupVisibilityColors[group.visibility]"
-                                                variant="outline">
-                                                {{ t(`view.favorite.visibility.${group.visibility}`) }}
-                                            </Badge>
+                                            <span class="group-item__visibility">
+                                                <span class="group-item__visibility-text">{{
+                                                    t(`view.favorite.visibility.${group.visibility}`)
+                                                }}</span>
+                                            </span>
                                             <DropdownMenu
                                                 :open="activeGroupMenu === remoteGroupMenuKey(group.key)"
                                                 @update:open="
@@ -183,7 +184,7 @@
                                         v-for="group in avatarGroupPlaceholders"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             'group-item--placeholder',
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]">
@@ -192,7 +193,7 @@
                                             <span class="group-item__count">--/--</span>
                                         </div>
                                         <div class="group-item__bottom">
-                                            <div class="group-item__placeholder-tag"></div>
+                                            <div class="group-item__placeholder-tag rounded-full"></div>
                                         </div>
                                     </div>
                                 </template>
@@ -222,7 +223,7 @@
                                         v-for="group in localAvatarFavoriteGroups"
                                         :key="group"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             { 'is-active': !hasSearchInput && isGroupActive('local', group) }
                                         ]"
                                         @click="handleGroupClick('local', group)">
@@ -273,7 +274,7 @@
                                     :content="t('view.favorite.avatars.local_favorites')">
                                     <div
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             'group-item--new',
                                             { 'is-disabled': !isLocalUserVrcPlusSupporter }
                                         ]"
@@ -315,7 +316,7 @@
                             <div class="group-section__list">
                                 <div
                                     :class="[
-                                        'group-item',
+                                        'group-item hover:shadow-sm',
                                         { 'is-active': !hasSearchInput && isGroupActive('history', historyGroupKey) }
                                     ]"
                                     @click="handleGroupClick('history', historyGroupKey)">
@@ -405,7 +406,7 @@
                                         <div
                                             v-for="favorite in avatarFavoriteSearchResults"
                                             :key="favorite.id"
-                                            class="favorites-search-card"
+                                            class="favorites-search-card hover:shadow-sm"
                                             @click="showAvatarDialog(favorite.id)">
                                             <div class="favorites-search-card__content">
                                                 <div
@@ -556,7 +557,6 @@
     } from '../../stores';
     import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../components/ui/resizable';
     import { avatarRequest, favoriteRequest } from '../../api';
-    import { Badge } from '../../components/ui/badge';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { debounce } from '../../shared/utils';
@@ -575,10 +575,10 @@
         displayName: `Group ${index + 1}`
     }));
 
-    const avatarGroupVisibilityColors = {
-        public: 'text-green-500 border-green-500',
-        friends: 'text-cyan-500 border-cyan-500',
-        private: 'text-red-500 border-red-500'
+    const avatarGroupVisibilityDotColors = {
+        public: 'bg-green-500',
+        friends: 'bg-sky-500',
+        private: 'bg-red-500'
     };
     const avatarGroupVisibilityOptions = ref(['public', 'friends', 'private']);
     const historyGroupKey = 'local-history';
@@ -684,6 +684,10 @@
     const hasUserSelectedAvatarGroup = ref(false);
     const remoteAvatarGroupsResolved = ref(false);
 
+    /**
+     *
+     * @param value
+     */
     function handleSortFavoritesChange(value) {
         const next = Boolean(value);
         if (next !== sortFavorites.value) {
@@ -706,11 +710,17 @@
         avatarToolbarMenuOpen.value = false;
     };
 
+    /**
+     *
+     */
     function handleAvatarImportClick() {
         closeAvatarToolbarMenu();
         showAvatarImportDialog();
     }
 
+    /**
+     *
+     */
     function handleAvatarExportClick() {
         closeAvatarToolbarMenu();
         showAvatarExportDialog();
@@ -720,17 +730,9 @@
         loadAvatarSplitterPreferences();
     });
 
-    function getBadgeVariant(visibility) {
-        switch (visibility) {
-            case 'public':
-                return 'default';
-            case 'friends':
-                return 'secondary';
-            case 'private':
-                return 'destructive';
-        }
-    }
-
+    /**
+     *
+     */
     async function loadAvatarSplitterPreferences() {
         const storedSize = await configRepository.getString('VRCX_FavoritesAvatarSplitter', '260');
         const parsedSize = Number(storedSize);
@@ -932,6 +934,11 @@
         }
     );
 
+    /**
+     *
+     * @param key
+     * @param visible
+     */
     function handleGroupMenuVisible(key, visible) {
         if (visible) {
             activeGroupMenu.value = key;
@@ -942,6 +949,9 @@
         }
     }
 
+    /**
+     *
+     */
     function ensureSelectedGroup() {
         if (selectedGroup.value && isGroupAvailable(selectedGroup.value)) {
             return;
@@ -949,6 +959,9 @@
         selectDefaultGroup();
     }
 
+    /**
+     *
+     */
     function selectDefaultGroup() {
         if (!hasUserSelectedAvatarGroup.value) {
             const remote =
@@ -978,6 +991,10 @@
         clearSelectedAvatars();
     }
 
+    /**
+     *
+     * @param group
+     */
     function isGroupAvailable(group) {
         if (!group) {
             return false;
@@ -997,6 +1014,12 @@
         return false;
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     * @param options
+     */
     function selectGroup(type, key, options = {}) {
         if (selectedGroup.value?.type === type && selectedGroup.value?.key === key) {
             return;
@@ -1008,14 +1031,27 @@
         clearSelectedAvatars();
     }
 
+    /**
+     *
+     */
     function clearSelectedAvatars() {
         selectedFavoriteAvatars.value = [];
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function isGroupActive(type, key) {
         return selectedGroup.value?.type === type && selectedGroup.value?.key === key;
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function handleGroupClick(type, key) {
         if (hasSearchInput.value) {
             avatarFavoriteSearch.value = '';
@@ -1024,6 +1060,9 @@
         selectGroup(type, key, { userInitiated: true });
     }
 
+    /**
+     *
+     */
     function startLocalGroupCreation() {
         if (!isLocalUserVrcPlusSupporter.value || isCreatingLocalGroup.value) {
             return;
@@ -1035,11 +1074,17 @@
         });
     }
 
+    /**
+     *
+     */
     function cancelLocalGroupCreation() {
         isCreatingLocalGroup.value = false;
         newLocalGroupName.value = '';
     }
 
+    /**
+     *
+     */
     function handleLocalGroupCreationConfirm() {
         const name = newLocalGroupName.value.trim();
         if (!name) {
@@ -1055,6 +1100,11 @@
         });
     }
 
+    /**
+     *
+     * @param id
+     * @param value
+     */
     function toggleAvatarSelection(id, value) {
         if (value) {
             if (!selectedFavoriteAvatars.value.includes(id)) {
@@ -1065,40 +1115,71 @@
         }
     }
 
+    /**
+     *
+     */
     function showAvatarExportDialog() {
         avatarExportDialogVisible.value = true;
     }
 
+    /**
+     *
+     */
     function handleRefreshFavorites() {
         refreshFavorites();
         getLocalAvatarFavorites();
     }
 
+    /**
+     *
+     * @param group
+     * @param visibility
+     */
     function handleVisibilitySelection(group, visibility) {
         const menuKey = remoteGroupMenuKey(group.key);
         changeAvatarGroupVisibility(group.name, visibility, menuKey);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteRename(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         changeFavoriteGroupName(group);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteClear(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         clearFavoriteGroup(group);
     }
 
+    /**
+     *
+     * @param groupName
+     */
     function handleLocalRename(groupName) {
         handleGroupMenuVisible(localGroupMenuKey(groupName), false);
         promptLocalAvatarFavoriteGroupRename(groupName);
     }
 
+    /**
+     *
+     * @param groupName
+     */
     function handleLocalDelete(groupName) {
         handleGroupMenuVisible(localGroupMenuKey(groupName), false);
         promptLocalAvatarFavoriteGroupDelete(groupName);
     }
 
+    /**
+     *
+     * @param groupName
+     */
     async function handleCheckInvalidAvatars(groupName) {
         handleGroupMenuVisible(localGroupMenuKey(groupName), false);
 
@@ -1189,11 +1270,18 @@
         }
     }
 
+    /**
+     *
+     */
     function handleHistoryClear() {
         handleGroupMenuVisible(historyGroupMenuKey, false);
         promptClearAvatarHistory();
     }
 
+    /**
+     *
+     * @param group
+     */
     function changeFavoriteGroupName(group) {
         const currentName = group.displayName || group.name;
         modalStore
@@ -1232,6 +1320,12 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param name
+     * @param visibility
+     * @param menuKey
+     */
     function changeAvatarGroupVisibility(name, visibility, menuKey = null) {
         const params = {
             type: 'avatar',
@@ -1254,6 +1348,10 @@
         });
     }
 
+    /**
+     *
+     * @param ctx
+     */
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
@@ -1271,6 +1369,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param group
+     */
     function promptLocalAvatarFavoriteGroupRename(group) {
         modalStore
             .prompt({
@@ -1296,6 +1398,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param group
+     */
     function promptLocalAvatarFavoriteGroupDelete(group) {
         modalStore
             .confirm({
@@ -1310,6 +1416,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param value
+     */
     function doSearchAvatarFavorites(value) {
         if (typeof value === 'string') {
             avatarFavoriteSearch.value = value;
@@ -1364,6 +1474,9 @@
     }
     const searchAvatarFavorites = debounce(doSearchAvatarFavorites, 200);
 
+    /**
+     *
+     */
     async function refreshLocalAvatarFavorites() {
         if (refreshingLocalFavorites.value) {
             return;
@@ -1410,6 +1523,9 @@
         }
     }
 
+    /**
+     *
+     */
     function cancelLocalAvatarRefresh() {
         if (!refreshingLocalFavorites.value) {
             return;
@@ -1427,6 +1543,9 @@
         refreshingLocalFavorites.value = false;
     }
 
+    /**
+     *
+     */
     function toggleSelectAllAvatars() {
         if (!activeRemoteGroup.value) {
             return;
@@ -1438,6 +1557,9 @@
         }
     }
 
+    /**
+     *
+     */
     function copySelectedAvatars() {
         if (!selectedFavoriteAvatars.value.length) {
             return;
@@ -1447,6 +1569,9 @@
         showAvatarImportDialog();
     }
 
+    /**
+     *
+     */
     function showAvatarBulkUnfavoriteSelectionConfirm() {
         if (!selectedFavoriteAvatars.value.length) {
             return;
@@ -1466,6 +1591,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param ids
+     */
     function bulkUnfavoriteSelectedAvatars(ids) {
         ids.forEach((id) => {
             favoriteRequest.deleteFavorite({
@@ -1484,6 +1613,10 @@
         }
     });
 
+    /**
+     *
+     * @param value
+     */
     function formatVisibility(value) {
         if (!value) {
             return '';
@@ -1550,7 +1683,7 @@
     }
 
     .favorites-dropdown {
-        padding: 10px;
+        padding: 8px;
     }
 
     .group-section {
@@ -1575,19 +1708,15 @@
     }
 
     .group-item {
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
         border: 1px solid var(--border);
         padding: 8px;
         cursor: pointer;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
-        transition:
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        transition: background-color 0.15s ease;
     }
 
     .group-item:hover {
-        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
-        transform: translateY(-2px);
+        background-color: var(--accent);
     }
 
     .group-item__top {
@@ -1619,6 +1748,33 @@
         gap: 8px;
     }
 
+    .group-item__visibility {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .group-item__visibility-text {
+        font-size: 11px;
+        color: var(--muted-foreground);
+    }
+
+    .group-item__visibility-dot {
+        display: none;
+    }
+
+    .group-item--public {
+        border-left: 3px solid var(--visibility-public);
+    }
+
+    .group-item--friends {
+        border-left: 3px solid var(--visibility-friends);
+    }
+
+    .group-item--private {
+        border-left: 3px solid var(--visibility-private);
+    }
+
     .group-item--placeholder {
         pointer-events: none;
         opacity: 0.7;
@@ -1627,7 +1783,6 @@
     .group-item__placeholder-tag {
         width: 64px;
         height: 18px;
-        border-radius: 999px;
     }
 
     .group-item--new {
@@ -1635,7 +1790,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 14px;
     }
 
@@ -1754,28 +1909,23 @@
         align-items: center;
         box-sizing: border-box;
         border: 1px solid var(--border);
-        border-radius: calc(8px * var(--favorites-card-scale, 1));
-        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 10px);
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
+        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 8px);
         cursor: pointer;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
+        transition: background-color 0.15s ease;
         width: 100%;
         min-width: var(--favorites-card-min-width, 240px);
         max-width: var(--favorites-card-target-width, 320px);
     }
 
     :deep(.favorites-search-card:hover) {
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
-        transform: translateY(calc(-2px * var(--favorites-card-scale, 1)));
+        background-color: var(--accent);
     }
 
     :deep(.favorites-search-card__content) {
         display: flex;
         align-items: center;
-        gap: var(--favorites-card-content-gap, 10px);
+        gap: var(--favorites-card-content-gap, 8px);
         flex: 1;
         min-width: 0;
     }
@@ -1783,7 +1933,7 @@
     :deep(.favorites-search-card__avatar) {
         width: calc(48px * var(--favorites-card-scale, 1));
         height: calc(48px * var(--favorites-card-scale, 1));
-        border-radius: calc(6px * var(--favorites-card-scale, 1));
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -1829,7 +1979,7 @@
     :deep(.favorites-search-card__title) {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     :deep(.favorites-search-card__badges) {
@@ -1862,7 +2012,7 @@
 
     :deep(.favorites-search-card__action-group) {
         display: flex;
-        gap: var(--favorites-card-action-group-gap, 6px);
+        gap: var(--favorites-card-action-group-gap, 8px);
         width: 100%;
     }
 
@@ -1873,7 +2023,7 @@
     :deep(.favorites-search-card__action--checkbox) {
         align-items: center;
         justify-content: flex-end;
-        margin-right: var(--favorites-card-checkbox-margin, 10px);
+        margin-right: var(--favorites-card-checkbox-margin, 8px);
     }
 
     :deep(.favorites-search-card__action--checkbox [data-slot='checkbox']) {
@@ -1905,7 +2055,7 @@
         justify-content: space-between;
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .favorites-dropdown__control-value {

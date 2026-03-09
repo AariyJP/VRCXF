@@ -21,14 +21,9 @@
             <template #Info>
                 <template v-if="isFriendOnline(userDialog.friend) || currentUser.id === userDialog.id">
                     <div
+                        class="mb-2 pb-2 border-b border-border"
                         v-if="userDialog.ref.location"
-                        style="
-                            display: flex;
-                            flex-direction: column;
-                            margin-bottom: 10px;
-                            padding-bottom: 10px;
-                            border-bottom: 1px solid #e4e7ed14;
-                        ">
+                        style="display: flex; flex-direction: column">
                         <div style="flex: none">
                             <template v-if="isRealInstance(userDialog.$location.tag)">
                                 <InstanceActionBar
@@ -46,21 +41,30 @@
                                 :location="userDialog.ref.location"
                                 :traveling="userDialog.ref.travelingToLocation" />
                         </div>
-                        <div class="x-friend-list" style="flex: 1; margin-top: 10px; max-height: 150px">
+                        <div
+                            class="flex flex-wrap items-start"
+                            style="flex: 1; margin-top: 8px; max-height: 150px; overflow: auto">
                             <div
                                 v-if="userDialog.$location.userId"
-                                class="x-friend-item x-friend-item-border"
+                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                 @click="showUserDialog(userDialog.$location.userId)">
                                 <template v-if="userDialog.$location.user">
-                                    <div class="avatar" :class="userStatusClass(userDialog.$location.user)">
-                                        <img :src="userImage(userDialog.$location.user, true)" loading="lazy" />
+                                    <div
+                                        class="relative inline-block flex-none size-9 mr-2.5"
+                                        :class="userStatusClass(userDialog.$location.user)">
+                                        <img
+                                            class="size-full rounded-full object-cover"
+                                            :src="userImage(userDialog.$location.user, true)"
+                                            loading="lazy" />
                                     </div>
-                                    <div class="detail">
+                                    <div class="flex-1 overflow-hidden">
                                         <span
-                                            class="name"
+                                            class="block truncate font-medium leading-[18px]"
                                             :style="{ color: userDialog.$location.user.$userColour }"
                                             v-text="userDialog.$location.user.displayName"></span>
-                                        <span class="extra">{{ t('dialog.user.info.instance_creator') }}</span>
+                                        <span class="block truncate text-xs">{{
+                                            t('dialog.user.info.instance_creator')
+                                        }}</span>
                                     </div>
                                 </template>
                                 <span v-else v-text="userDialog.$location.userId"></span>
@@ -68,21 +72,26 @@
                             <div
                                 v-for="user in userDialog.users"
                                 :key="user.id"
-                                class="x-friend-item x-friend-item-border"
+                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                 @click="showUserDialog(user.id)">
-                                <div class="avatar" :class="userStatusClass(user)">
-                                    <img :src="userImage(user, true)" loading="lazy" />
+                                <div
+                                    class="relative inline-block flex-none size-9 mr-2.5"
+                                    :class="userStatusClass(user)">
+                                    <img
+                                        class="size-full rounded-full object-cover"
+                                        :src="userImage(user, true)"
+                                        loading="lazy" />
                                 </div>
-                                <div class="detail">
+                                <div class="flex-1 overflow-hidden">
                                     <span
-                                        class="name"
+                                        class="block truncate font-medium leading-[18px]"
                                         :style="{ color: user.$userColour }"
                                         v-text="user.displayName"></span>
-                                    <span v-if="user.location === 'traveling'" class="extra">
+                                    <span v-if="user.location === 'traveling'" class="block truncate text-xs">
                                         <Spinner class="inline-block mr-1" />
                                         <Timer :epoch="user.$travelingToTime" />
                                     </span>
-                                    <span v-else class="extra">
+                                    <span v-else class="block truncate text-xs">
                                         <Timer :epoch="user.$location_at" />
                                     </span>
                                 </div>
@@ -91,15 +100,16 @@
                     </div>
                 </template>
 
-                <div class="x-friend-list" style="max-height: none">
+                <div class="flex flex-wrap items-start px-2.5" style="max-height: none">
                     <div
                         v-if="userDialog.note && !hideUserNotes"
-                        class="x-friend-item"
-                        style="width: 100%; cursor: pointer">
-                        <div class="detail" @click="isEditNoteAndMemoDialogVisible = true">
-                            <span class="name">{{ t('dialog.user.info.note') }}</span>
+                        class="box-border flex items-center p-1.5 text-[13px] w-full cursor-pointer">
+                        <div class="flex-1 overflow-hidden" @click="isEditNoteAndMemoDialogVisible = true">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.note')
+                            }}</span>
                             <pre
-                                class="extra"
+                                class="text-xs"
                                 style="
                                     font-family: inherit;
                                     font-size: 12px;
@@ -114,12 +124,13 @@
                     </div>
                     <div
                         v-if="userDialog.memo && !hideUserMemos"
-                        class="x-friend-item"
-                        style="width: 100%; cursor: pointer">
-                        <div class="detail" @click="isEditNoteAndMemoDialogVisible = true">
-                            <span class="name">{{ t('dialog.user.info.memo') }}</span>
+                        class="box-border flex items-center p-1.5 text-[13px] w-full cursor-pointer">
+                        <div class="flex-1 overflow-hidden" @click="isEditNoteAndMemoDialogVisible = true">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.memo')
+                            }}</span>
                             <pre
-                                class="extra"
+                                class="text-xs"
                                 style="
                                     font-family: inherit;
                                     font-size: 12px;
@@ -132,9 +143,9 @@
                             >
                         </div>
                     </div>
-                    <div class="x-friend-item" style="width: 100%; cursor: default">
-                        <div class="detail">
-                            <span class="name">
+                    <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">
                                 {{
                                     userDialog.id !== currentUser.id &&
                                     userDialog.ref.profilePicOverride &&
@@ -149,7 +160,7 @@
                                     <Info class="inline-block" />
                                 </TooltipWrapper>
                             </span>
-                            <div class="extra">
+                            <div class="text-xs">
                                 <AvatarInfo
                                     :key="userDialog.id"
                                     :imageurl="userDialog.ref.currentAvatarImageUrl"
@@ -159,9 +170,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="x-friend-item" style="width: 100%; cursor: default">
-                        <div class="detail">
-                            <span class="name" style="margin-bottom: 5px">{{
+                    <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]" style="margin-bottom: 6px">{{
                                 t('dialog.user.info.represented_group')
                             }}</span>
                             <div
@@ -169,12 +180,12 @@
                                     userDialog.isRepresentedGroupLoading ||
                                     (userDialog.representedGroup && userDialog.representedGroup.isRepresenting)
                                 "
-                                class="extra">
-                                <div style="display: inline-block; flex: none; margin-right: 5px">
+                                class="text-xs">
+                                <div style="display: inline-block; flex: none; margin-right: 6px">
                                     <Avatar
                                         class="cursor-pointer size-15! rounded-lg!"
                                         :style="{
-                                            background: userDialog.isRepresentedGroupLoading ? '#f5f7fa' : ''
+                                            background: userDialog.isRepresentedGroupLoading ? 'var(--muted)' : ''
                                         }"
                                         @click="showFullscreenImageDialog(userDialog.representedGroup.iconUrl)">
                                         <AvatarImage
@@ -190,21 +201,23 @@
                                     @click="showGroupDialog(userDialog.representedGroup.groupId)">
                                     <span
                                         v-if="userDialog.representedGroup.ownerId === userDialog.id"
-                                        style="margin-right: 5px"
+                                        style="margin-right: 6px"
                                         >👑</span
                                     >
-                                    <span style="margin-right: 5px" v-text="userDialog.representedGroup.name"></span>
+                                    <span style="margin-right: 6px" v-text="userDialog.representedGroup.name"></span>
                                     <span>({{ userDialog.representedGroup.memberCount }})</span>
                                 </span>
                             </div>
-                            <div v-else class="extra">-</div>
+                            <div v-else class="text-xs">-</div>
                         </div>
                     </div>
-                    <div class="x-friend-item" style="width: 100%; cursor: default">
-                        <div class="detail">
-                            <span class="name">{{ t('dialog.user.info.bio') }}</span>
+                    <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.bio')
+                            }}</span>
                             <pre
-                                class="extra truncate"
+                                class="text-xs truncate"
                                 style="
                                     font-family: inherit;
                                     font-size: 12px;
@@ -230,12 +243,12 @@
                                     size="icon-sm"
                                     variant="ghost"
                                     v-if="userDialog.id === currentUser.id"
-                                    style="margin-left: 5px; padding: 0"
+                                    style="margin-left: 6px; padding: 0"
                                     @click="showBioDialog"
                                     ><Pencil class="h-3 w-3" />
                                 </Button>
                             </div>
-                            <div style="margin-top: 5px" class="flex items-center">
+                            <div style="margin-top: 6px" class="flex items-center">
                                 <TooltipWrapper v-for="(link, index) in userDialog.ref.bioLinks" :key="index">
                                     <template #content>
                                         <span v-text="link"></span>
@@ -247,7 +260,7 @@
                                             width: 16px;
                                             height: 16px;
                                             vertical-align: middle;
-                                            margin-right: 5px;
+                                            margin-right: 6px;
                                             cursor: pointer;
                                         "
                                         @click.stop="openExternalLink(link)"
@@ -257,19 +270,23 @@
                         </div>
                     </div>
                     <template v-if="currentUser.id !== userDialog.id">
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.last_seen') }}
                                 </span>
-                                <span class="extra">{{ formatDateFilter(userDialog.lastSeen, 'long') }}</span>
+                                <span class="block truncate text-xs">{{
+                                    formatDateFilter(userDialog.lastSeen, 'long')
+                                }}</span>
                             </div>
                         </div>
 
-                        <div class="x-friend-item" @click="showPreviousInstancesListDialog(userDialog.ref)">
-                            <div class="detail">
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="showPreviousInstancesListDialog(userDialog.ref)">
+                            <div class="flex-1 overflow-hidden">
                                 <div
-                                    class="name"
+                                    class="block truncate font-medium leading-[18px]"
                                     style="display: flex; justify-content: space-between; align-items: center">
                                     <div>
                                         {{ t('dialog.user.info.join_count') }}
@@ -279,18 +296,20 @@
                                         <MoreHorizontal style="margin-right: 16px" />
                                     </TooltipWrapper>
                                 </div>
-                                <span v-if="userDialog.joinCount === 0" class="extra">-</span>
-                                <span v-else class="extra" v-text="userDialog.joinCount"></span>
+                                <span v-if="userDialog.joinCount === 0" class="block truncate text-xs">-</span>
+                                <span v-else class="block truncate text-xs" v-text="userDialog.joinCount"></span>
                             </div>
                         </div>
 
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.time_together') }}
                                 </span>
-                                <span v-if="userDialog.timeSpent === 0" class="extra">-</span>
-                                <span v-else class="extra">{{ timeToText(userDialog.timeSpent) }}</span>
+                                <span v-if="userDialog.timeSpent === 0" class="block truncate text-xs">-</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    timeToText(userDialog.timeSpent)
+                                }}</span>
                             </div>
                         </div>
                     </template>
@@ -299,36 +318,40 @@
                             :disabled="currentUser.id !== userDialog.id"
                             side="top"
                             :content="t('dialog.user.info.open_previous_instance')">
-                            <div class="x-friend-item" @click="showPreviousInstancesListDialog(userDialog.ref)">
-                                <div class="detail">
-                                    <span class="name">
+                            <div
+                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                                @click="showPreviousInstancesListDialog(userDialog.ref)">
+                                <div class="flex-1 overflow-hidden">
+                                    <span class="block truncate font-medium leading-[18px]">
                                         {{ t('dialog.user.info.play_time') }}
                                     </span>
-                                    <span v-if="userDialog.timeSpent === 0" class="extra">-</span>
-                                    <span v-else class="extra">{{ timeToText(userDialog.timeSpent) }}</span>
+                                    <span v-if="userDialog.timeSpent === 0" class="block truncate text-xs">-</span>
+                                    <span v-else class="block truncate text-xs">{{
+                                        timeToText(userDialog.timeSpent)
+                                    }}</span>
                                 </div>
                             </div>
                         </TooltipWrapper>
                     </template>
-                    <div class="x-friend-item" style="cursor: default">
+                    <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
                         <TooltipWrapper :side="currentUser.id !== userDialog.id ? 'bottom' : 'top'">
                             <template #content>
                                 <span>{{ formatDateFilter(userOnlineForTimestamp(userDialog), 'short') }}</span>
                             </template>
-                            <div class="detail">
+                            <div class="flex-1 overflow-hidden">
                                 <span
                                     v-if="userDialog.ref.state === 'online' && userDialog.ref.$online_for"
-                                    class="name">
+                                    class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.online_for') }}
                                 </span>
-                                <span v-else class="name">
+                                <span v-else class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.offline_for') }}
                                 </span>
-                                <span class="extra">{{ userOnlineFor(userDialog.ref) }}</span>
+                                <span class="block truncate text-xs">{{ userOnlineFor(userDialog.ref) }}</span>
                             </div>
                         </TooltipWrapper>
                     </div>
-                    <div class="x-friend-item" style="cursor: default">
+                    <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
                         <TooltipWrapper :side="currentUser.id !== userDialog.id ? 'bottom' : 'top'">
                             <template #content>
                                 <span
@@ -341,22 +364,28 @@
                                     {{ formatDateFilter(userDialog.ref.last_activity, 'long') }}</span
                                 >
                             </template>
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.last_activity') }}</span>
-                                <span v-if="userDialog.ref.last_activity" class="extra">{{
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.last_activity')
+                                }}</span>
+                                <span v-if="userDialog.ref.last_activity" class="block truncate text-xs">{{
                                     timeToText(Date.now() - Date.parse(userDialog.ref.last_activity))
                                 }}</span>
-                                <span v-else class="extra">-</span>
+                                <span v-else class="block truncate text-xs">-</span>
                             </div>
                         </TooltipWrapper>
                     </div>
-                    <div class="x-friend-item" style="cursor: default">
-                        <div class="detail">
-                            <span class="name">{{ t('dialog.user.info.date_joined') }}</span>
-                            <span class="extra" v-text="userDialog.ref.date_joined"></span>
+                    <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.date_joined')
+                            }}</span>
+                            <span class="block truncate text-xs" v-text="userDialog.ref.date_joined"></span>
                         </div>
                     </div>
-                    <div v-if="currentUser.id !== userDialog.id" class="x-friend-item" style="cursor: default">
+                    <div
+                        v-if="currentUser.id !== userDialog.id"
+                        class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
                         <TooltipWrapper side="top" :disabled="userDialog.dateFriendedInfo.length < 2">
                             <template #content>
                                 <template v-for="ref in userDialog.dateFriendedInfo" :key="ref.type">
@@ -364,80 +393,118 @@
                                     ><br />
                                 </template>
                             </template>
-                            <div class="detail">
-                                <span v-if="userDialog.unFriended" class="name">
+                            <div class="flex-1 overflow-hidden">
+                                <span v-if="userDialog.unFriended" class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.unfriended') }}
                                 </span>
-                                <span v-else class="name">
+                                <span v-else class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.user.info.friended') }}
                                 </span>
-                                <span class="extra">{{ formatDateFilter(userDialog.dateFriended, 'long') }}</span>
+                                <span class="block truncate text-xs">{{
+                                    formatDateFilter(userDialog.dateFriended, 'long')
+                                }}</span>
                             </div>
                         </TooltipWrapper>
                     </div>
                     <template v-if="currentUser.id === userDialog.id">
-                        <div class="x-friend-item" @click="toggleAvatarCopying">
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.avatar_cloning') }}</span>
-                                <span v-if="currentUser.allowAvatarCopying" class="extra">{{
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="toggleAvatarCopying">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.avatar_cloning')
+                                }}</span>
+                                <span v-if="currentUser.allowAvatarCopying" class="block truncate text-xs">{{
                                     t('dialog.user.info.avatar_cloning_allow')
                                 }}</span>
-                                <span v-else class="extra">{{ t('dialog.user.info.avatar_cloning_deny') }}</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    t('dialog.user.info.avatar_cloning_deny')
+                                }}</span>
                             </div>
                         </div>
-                        <div class="x-friend-item" @click="toggleAllowBooping">
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.booping') }}</span>
-                                <span v-if="currentUser.isBoopingEnabled" class="extra">{{
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="toggleAllowBooping">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.booping')
+                                }}</span>
+                                <span v-if="currentUser.isBoopingEnabled" class="block truncate text-xs">{{
                                     t('dialog.user.info.avatar_cloning_allow')
                                 }}</span>
-                                <span v-else class="extra">{{ t('dialog.user.info.avatar_cloning_deny') }}</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    t('dialog.user.info.avatar_cloning_deny')
+                                }}</span>
                             </div>
                         </div>
-                        <div class="x-friend-item" @click="toggleSharedConnectionsOptOut">
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.show_mutual_friends') }}</span>
-                                <span v-if="!currentUser.hasSharedConnectionsOptOut" class="extra">{{
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="toggleSharedConnectionsOptOut">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.show_mutual_friends')
+                                }}</span>
+                                <span v-if="!currentUser.hasSharedConnectionsOptOut" class="block truncate text-xs">{{
                                     t('dialog.user.info.avatar_cloning_allow')
                                 }}</span>
-                                <span v-else class="extra">{{ t('dialog.user.info.avatar_cloning_deny') }}</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    t('dialog.user.info.avatar_cloning_deny')
+                                }}</span>
                             </div>
                         </div>
-                        <div class="x-friend-item" @click="toggleDiscordFriendsOptOut">
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.show_discord_connections') }}</span>
-                                <span v-if="!currentUser.hasDiscordFriendsOptOut" class="extra">{{
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="toggleDiscordFriendsOptOut">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.show_discord_connections')
+                                }}</span>
+                                <span v-if="!currentUser.hasDiscordFriendsOptOut" class="block truncate text-xs">{{
                                     t('dialog.user.info.avatar_cloning_allow')
                                 }}</span>
-                                <span v-else class="extra">{{ t('dialog.user.info.avatar_cloning_deny') }}</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    t('dialog.user.info.avatar_cloning_deny')
+                                }}</span>
                             </div>
                         </div>
                     </template>
                     <template v-else>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">{{ t('dialog.user.info.avatar_cloning') }}</span>
-                                <span v-if="userDialog.ref.allowAvatarCopying" class="extra">{{
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">{{
+                                    t('dialog.user.info.avatar_cloning')
+                                }}</span>
+                                <span v-if="userDialog.ref.allowAvatarCopying" class="block truncate text-xs">{{
                                     t('dialog.user.info.avatar_cloning_allow')
                                 }}</span>
-                                <span v-else class="extra">{{ t('dialog.user.info.avatar_cloning_deny') }}</span>
+                                <span v-else class="block truncate text-xs">{{
+                                    t('dialog.user.info.avatar_cloning_deny')
+                                }}</span>
                             </div>
                         </div>
                     </template>
-                    <div v-if="userDialog.ref.id === currentUser.id" class="x-friend-item" @click="getVRChatCredits()">
-                        <div class="detail">
-                            <span class="name">{{ t('view.profile.profile.vrchat_credits') }}</span>
-                            <span class="extra">{{ vrchatCredit ?? t('view.profile.profile.refresh') }}</span>
+                    <div
+                        v-if="userDialog.ref.id === currentUser.id"
+                        class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                        @click="getVRChatCredits()">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('view.profile.profile.vrchat_credits')
+                            }}</span>
+                            <span class="block truncate text-xs">{{
+                                vrchatCredit ?? t('view.profile.profile.refresh')
+                            }}</span>
                         </div>
                     </div>
                     <div
                         v-if="userDialog.ref.id === currentUser.id && currentUser.homeLocation"
-                        class="x-friend-item"
-                        style="width: 100%"
+                        class="box-border flex items-center p-1.5 text-[13px] w-full cursor-pointer"
                         @click="showWorldDialog(currentUser.homeLocation)">
-                        <div class="detail">
-                            <span class="name">{{ t('dialog.user.info.home_location') }}</span>
-                            <span class="extra">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.home_location')
+                            }}</span>
+                            <span class="block truncate text-xs">
                                 <span v-text="userDialog.$homeLocationName"></span>
                                 <Button
                                     class="rounded-full ml-1 text-xs"
@@ -449,10 +516,12 @@
                             </span>
                         </div>
                     </div>
-                    <div class="x-friend-item" style="width: 100%; cursor: default">
-                        <div class="detail">
-                            <span class="name">{{ t('dialog.user.info.id') }}</span>
-                            <span class="extra">
+                    <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                        <div class="flex-1 overflow-hidden">
+                            <span class="block truncate font-medium leading-[18px]">{{
+                                t('dialog.user.info.id')
+                            }}</span>
+                            <span class="block truncate text-xs">
                                 {{ userDialog.id }}
                                 <TooltipWrapper side="top" :content="t('dialog.user.info.id_tooltip')">
                                     <DropdownMenu>
@@ -496,12 +565,12 @@
                             <Spinner v-if="userDialog.isMutualFriendsLoading" />
                             <RefreshCw v-else />
                         </Button>
-                        <span style="margin-left: 5px">{{
+                        <span style="margin-left: 6px">{{
                             t('dialog.user.groups.total_count', { count: userDialog.mutualFriends.length })
                         }}</span>
                     </div>
                     <div style="display: flex; align-items: center">
-                        <span style="margin-right: 5px">{{ t('dialog.user.groups.sort_by') }}</span>
+                        <span style="margin-right: 6px">{{ t('dialog.user.groups.sort_by') }}</span>
                         <Select
                             :model-value="userDialogMutualFriendSortingKey"
                             :disabled="userDialog.isMutualFriendsLoading"
@@ -520,17 +589,22 @@
                         </Select>
                     </div>
                 </div>
-                <ul class="x-friend-list" style="margin-top: 10px; overflow: auto; max-height: 250px; min-width: 130px">
+                <ul
+                    class="flex flex-wrap items-start"
+                    style="margin-top: 8px; overflow: auto; max-height: 250px; min-width: 130px">
                     <li
                         v-for="user in userDialog.mutualFriends"
                         :key="user.id"
-                        class="x-friend-item x-friend-item-border"
+                        class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                         @click="showUserDialog(user.id)">
-                        <div class="avatar">
-                            <img :src="userImage(user)" loading="lazy" />
+                        <div class="relative inline-block flex-none size-9 mr-2.5">
+                            <img class="size-full rounded-full object-cover" :src="userImage(user)" loading="lazy" />
                         </div>
-                        <div class="detail">
-                            <span class="name" :style="{ color: user.$userColour }" v-text="user.displayName"></span>
+                        <div class="flex-1 overflow-hidden">
+                            <span
+                                class="block truncate font-medium leading-[18px]"
+                                :style="{ color: user.$userColour }"
+                                v-text="user.displayName"></span>
                         </div>
                     </li>
                 </ul>
@@ -548,13 +622,13 @@
                             <Spinner v-if="userDialog.isGroupsLoading" />
                             <RefreshCw v-else />
                         </Button>
-                        <span style="margin-left: 5px">{{
+                        <span style="margin-left: 6px">{{
                             t('dialog.user.groups.total_count', { count: userDialog.userGroups.groups.length })
                         }}</span>
                         <template v-if="userDialogGroupEditMode">
                             <span
                                 style="
-                                    margin-left: 10px;
+                                    margin-left: 8px;
 
                                     font-size: 10px;
                                 "
@@ -564,7 +638,7 @@
                     </div>
                     <div style="display: flex; align-items: center">
                         <template v-if="!userDialogGroupEditMode">
-                            <span style="margin-right: 5px">{{ t('dialog.user.groups.sort_by') }}</span>
+                            <span style="margin-right: 6px">{{ t('dialog.user.groups.sort_by') }}</span>
                             <Select
                                 :model-value="userDialogGroupSortingKey"
                                 :disabled="userDialog.isGroupsLoading"
@@ -603,12 +677,14 @@
                         </Button>
                     </div>
                 </div>
-                <div style="margin-top: 10px">
+                <div style="margin-top: 8px">
                     <template v-if="userDialogGroupEditMode">
-                        <div class="x-friend-list" style="margin-top: 10px; margin-bottom: 15px; max-height: unset">
+                        <div
+                            class="flex flex-wrap items-start"
+                            style="margin-top: 8px; margin-bottom: 16px; max-height: unset">
                             <!-- Bulk actions dropdown (shown only in edit mode) -->
                             <Select :model-value="bulkGroupActionValue" @update:modelValue="handleBulkGroupAction">
-                                <SelectTrigger size="sm" style="margin-right: 5px; margin-bottom: 5px" @click.stop>
+                                <SelectTrigger size="sm" style="margin-right: 6px; margin-bottom: 6px" @click.stop>
                                     <SelectValue :placeholder="t('dialog.group.actions.manage_selected')" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -631,7 +707,7 @@
                             <Button
                                 size="sm"
                                 variant="outline"
-                                style="padding: 7px 15px; margin-bottom: 5px"
+                                style="padding: 7px 16px; margin-bottom: 6px"
                                 @click="selectAllGroups">
                                 {{
                                     userDialogGroupAllSelected
@@ -643,14 +719,13 @@
                             <div
                                 v-for="group in userDialogGroupEditGroups"
                                 :key="group.id"
-                                class="x-friend-item x-friend-item-border"
-                                style="width: 100%"
+                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-full hover:rounded-[25px_5px_5px_25px]"
                                 @click="showGroupDialog(group.id)">
                                 <!-- Manual checkbox -->
                                 <div
                                     style="
-                                        margin-left: 5px;
-                                        margin-right: 5px;
+                                        margin-left: 6px;
+                                        margin-right: 6px;
                                         transform: scale(0.8);
                                         transform-origin: left center;
                                     "
@@ -660,7 +735,7 @@
                                         @update:modelValue="() => toggleGroupSelection(group.id)" />
                                 </div>
 
-                                <div style="margin-right: 3px; margin-left: 5px" @click.stop>
+                                <div style="margin-right: 3px; margin-left: 6px" @click.stop>
                                     <Button
                                         size="icon-sm"
                                         variant="ghost"
@@ -682,7 +757,7 @@
                                         <DownloadIcon />
                                     </Button>
                                 </div>
-                                <div style="margin-right: 10px" @click.stop>
+                                <div style="margin-right: 8px" @click.stop>
                                     <Button
                                         size="icon-sm"
                                         variant="outline"
@@ -698,17 +773,20 @@
                                         <ArrowDown />
                                     </Button>
                                 </div>
-                                <div class="avatar">
-                                    <img :src="group.iconUrl" loading="lazy" />
+                                <div class="relative inline-block flex-none size-9 mr-2.5">
+                                    <img
+                                        class="size-full rounded-full object-cover"
+                                        :src="group.iconUrl"
+                                        loading="lazy" />
                                 </div>
-                                <div class="detail">
-                                    <span class="name" v-text="group.name"></span>
-                                    <span class="extra">
+                                <div class="flex-1 overflow-hidden">
+                                    <span class="block truncate font-medium leading-[18px]" v-text="group.name"></span>
+                                    <span class="block truncate text-xs">
                                         <TooltipWrapper
                                             v-if="group.isRepresenting"
                                             side="top"
                                             :content="t('dialog.group.members.representing')">
-                                            <Tag style="margin-right: 5px" />
+                                            <Tag style="margin-right: 6px" />
                                         </TooltipWrapper>
                                         <TooltipWrapper v-if="group.myMember?.visibility !== 'visible'" side="top">
                                             <template #content>
@@ -717,7 +795,7 @@
                                                     {{ group.myMember.visibility }}</span
                                                 >
                                             </template>
-                                            <Eye style="margin-right: 5px" />
+                                            <Eye style="margin-right: 6px" />
                                         </TooltipWrapper>
                                         <span>({{ group.memberCount }})</span>
                                     </span>
@@ -757,11 +835,11 @@
                                             setGroupSubscription(group.id, !group.myMember.isSubscribedToAnnouncements)
                                         ">
                                         <span v-if="group.myMember.isSubscribedToAnnouncements"
-                                            ><BellOff style="margin-left: 5px" />
+                                            ><BellOff style="margin-left: 6px" />
                                             {{ t('dialog.group.tags.subscribed') }}</span
                                         >
                                         <span v-else
-                                            ><Bell style="margin-left: 5px" />
+                                            ><Bell style="margin-left: 6px" />
                                             {{ t('dialog.group.tags.unsubscribed') }}</span
                                         >
                                     </Button> -->
@@ -771,7 +849,7 @@
                                         size="icon-sm"
                                         variant="outline"
                                         v-if="shiftHeld"
-                                        style="margin-left: 5px"
+                                        style="margin-left: 6px"
                                         @click.stop="leaveGroup(group.id)">
                                         <LogOut />
                                     </Button>
@@ -780,7 +858,7 @@
                                         size="icon-sm"
                                         variant="outline"
                                         v-else
-                                        style="margin-left: 5px"
+                                        style="margin-left: 6px"
                                         @click.stop="leaveGroupPrompt(group.id)">
                                         <LogOut />
                                     </Button>
@@ -793,29 +871,36 @@
                             <span style="font-weight: bold; font-size: 16px">{{
                                 t('dialog.user.groups.own_groups')
                             }}</span>
-                            <span style="font-size: 12px; margin-left: 5px"
+                            <span style="font-size: 12px; margin-left: 6px"
                                 >{{ userDialog.userGroups.ownGroups.length }}/{{
                                     // @ts-ignore
                                     cachedConfig?.constants?.GROUPS?.MAX_OWNED
                                 }}</span
                             >
-                            <div class="x-friend-list" style="margin-top: 10px; margin-bottom: 15px; min-height: 60px">
+                            <div
+                                class="flex flex-wrap items-start"
+                                style="margin-top: 8px; margin-bottom: 16px; min-height: 60px">
                                 <div
                                     v-for="group in userDialog.userGroups.ownGroups"
                                     :key="group.id"
-                                    class="x-friend-item x-friend-item-border"
+                                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                     @click="showGroupDialog(group.id)">
-                                    <div class="avatar">
-                                        <img :src="group.iconUrl" loading="lazy" />
+                                    <div class="relative inline-block flex-none size-9 mr-2.5">
+                                        <img
+                                            class="size-full rounded-full object-cover"
+                                            :src="group.iconUrl"
+                                            loading="lazy" />
                                     </div>
-                                    <div class="detail">
-                                        <span class="name" v-text="group.name"></span>
-                                        <span class="extra inline-flex! items-center">
+                                    <div class="flex-1 overflow-hidden">
+                                        <span
+                                            class="block truncate font-medium leading-[18px]"
+                                            v-text="group.name"></span>
+                                        <span class="block truncate text-xs inline-flex! items-center">
                                             <TooltipWrapper
                                                 v-if="group.isRepresenting"
                                                 side="top"
                                                 :content="t('dialog.group.members.representing')">
-                                                <Tag style="margin-right: 5px" />
+                                                <Tag style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <TooltipWrapper v-if="group.memberVisibility !== 'visible'" side="top">
                                                 <template #content>
@@ -824,7 +909,7 @@
                                                         {{ group.memberVisibility }}</span
                                                     >
                                                 </template>
-                                                <Eye style="margin-right: 5px" />
+                                                <Eye style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <span>({{ group.memberCount }})</span>
                                         </span>
@@ -836,26 +921,33 @@
                             <span style="font-weight: bold; font-size: 16px">{{
                                 t('dialog.user.groups.mutual_groups')
                             }}</span>
-                            <span style="font-size: 12px; margin-left: 5px">{{
+                            <span style="font-size: 12px; margin-left: 6px">{{
                                 userDialog.userGroups.mutualGroups.length
                             }}</span>
-                            <div class="x-friend-list" style="margin-top: 10px; margin-bottom: 15px; min-height: 60px">
+                            <div
+                                class="flex flex-wrap items-start"
+                                style="margin-top: 8px; margin-bottom: 16px; min-height: 60px">
                                 <div
                                     v-for="group in userDialog.userGroups.mutualGroups"
                                     :key="group.id"
-                                    class="x-friend-item x-friend-item-border"
+                                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                     @click="showGroupDialog(group.id)">
-                                    <div class="avatar">
-                                        <img :src="group.iconUrl" loading="lazy" />
+                                    <div class="relative inline-block flex-none size-9 mr-2.5">
+                                        <img
+                                            class="size-full rounded-full object-cover"
+                                            :src="group.iconUrl"
+                                            loading="lazy" />
                                     </div>
-                                    <div class="detail">
-                                        <span class="name" v-text="group.name"></span>
-                                        <span class="extra inline-flex! items-center">
+                                    <div class="flex-1 overflow-hidden">
+                                        <span
+                                            class="block truncate font-medium leading-[18px]"
+                                            v-text="group.name"></span>
+                                        <span class="block truncate text-xs inline-flex! items-center">
                                             <TooltipWrapper
                                                 v-if="group.isRepresenting"
                                                 side="top"
                                                 :content="t('dialog.group.members.representing')">
-                                                <Tag style="margin-right: 5px" />
+                                                <Tag style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <TooltipWrapper v-if="group.memberVisibility !== 'visible'" side="top">
                                                 <template #content>
@@ -864,7 +956,7 @@
                                                         {{ group.memberVisibility }}</span
                                                     >
                                                 </template>
-                                                <Eye style="margin-right: 5px" />
+                                                <Eye style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <span>({{ group.memberCount }})</span>
                                         </span>
@@ -874,7 +966,7 @@
                         </template>
                         <template v-if="userDialog.userGroups.remainingGroups.length > 0">
                             <span style="font-weight: bold; font-size: 16px">{{ t('dialog.user.groups.groups') }}</span>
-                            <span style="font-size: 12px; margin-left: 5px">
+                            <span style="font-size: 12px; margin-left: 6px">
                                 {{ userDialog.userGroups.remainingGroups.length }}
                                 <template v-if="currentUser.id === userDialog.id">
                                     /
@@ -886,23 +978,30 @@
                                     </template>
                                 </template>
                             </span>
-                            <div class="x-friend-list" style="margin-top: 10px; margin-bottom: 15px; min-height: 60px">
+                            <div
+                                class="flex flex-wrap items-start"
+                                style="margin-top: 8px; margin-bottom: 16px; min-height: 60px">
                                 <div
                                     v-for="group in userDialog.userGroups.remainingGroups"
                                     :key="group.id"
-                                    class="x-friend-item x-friend-item-border"
+                                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                     @click="showGroupDialog(group.id)">
-                                    <div class="avatar">
-                                        <img :src="group.iconUrl" loading="lazy" />
+                                    <div class="relative inline-block flex-none size-9 mr-2.5">
+                                        <img
+                                            class="size-full rounded-full object-cover"
+                                            :src="group.iconUrl"
+                                            loading="lazy" />
                                     </div>
-                                    <div class="detail">
-                                        <span class="name" v-text="group.name"></span>
-                                        <div class="extra inline-flex! items-center">
+                                    <div class="flex-1 overflow-hidden">
+                                        <span
+                                            class="block truncate font-medium leading-[18px]"
+                                            v-text="group.name"></span>
+                                        <div class="block truncate text-xs inline-flex! items-center">
                                             <TooltipWrapper
                                                 v-if="group.isRepresenting"
                                                 side="top"
                                                 :content="t('dialog.group.members.representing')">
-                                                <Tag style="margin-right: 5px" />
+                                                <Tag style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <TooltipWrapper v-if="group.memberVisibility !== 'visible'" side="top">
                                                 <template #content>
@@ -911,7 +1010,7 @@
                                                         {{ group.memberVisibility }}</span
                                                     >
                                                 </template>
-                                                <Eye style="margin-right: 5px" />
+                                                <Eye style="margin-right: 6px" />
                                             </TooltipWrapper>
                                             <span>({{ group.memberCount }})</span>
                                         </div>
@@ -935,7 +1034,7 @@
                             <Spinner v-if="userDialog.isWorldsLoading" />
                             <RefreshCw v-else />
                         </Button>
-                        <span style="margin-left: 5px">{{
+                        <span style="margin-left: 6px">{{
                             t('dialog.user.worlds.total_count', { count: userDialog.worlds.length })
                         }}</span>
                     </div>
@@ -976,19 +1075,24 @@
                         </Select>
                     </div>
                 </div>
-                <div class="x-friend-list" style="margin-top: 10px; min-height: 60px">
+                <div class="flex flex-wrap items-start" style="margin-top: 8px; min-height: 60px">
                     <template v-if="userDialog.worlds.length">
                         <div
                             v-for="world in userDialog.worlds"
                             :key="world.id"
-                            class="x-friend-item x-friend-item-border"
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                             @click="showWorldDialog(world.id)">
-                            <div class="avatar">
-                                <img :src="world.thumbnailImageUrl" loading="lazy" />
+                            <div class="relative inline-block flex-none size-9 mr-2.5">
+                                <img
+                                    class="size-full rounded-full object-cover"
+                                    :src="world.thumbnailImageUrl"
+                                    loading="lazy" />
                             </div>
-                            <div class="detail">
-                                <span class="name" v-text="world.name"></span>
-                                <span v-if="world.occupants" class="extra">({{ world.occupants }})</span>
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]" v-text="world.name"></span>
+                                <span v-if="world.occupants" class="block truncate text-xs"
+                                    >({{ world.occupants }})</span
+                                >
                             </div>
                         </div>
                     </template>
@@ -1027,7 +1131,7 @@
                         :items="favoriteWorldTabs"
                         :unmount-on-hide="false"
                         class="zero-margin-tabs"
-                        style="margin-top: 10px; height: 50vh">
+                        style="margin-top: 8px; height: 50vh">
                         <template
                             v-for="(list, index) in userDialog.userFavoriteWorlds"
                             :key="`favorite-worlds-label-${index}`"
@@ -1035,11 +1139,11 @@
                             <span>
                                 <i
                                     class="x-status-icon"
-                                    style="margin-right: 6px"
+                                    style="margin-right: 8px"
                                     :class="userFavoriteWorldsStatus(list[1])">
                                 </i>
                                 <span style="font-weight: bold; font-size: 14px" v-text="list[0]"></span>
-                                <span style="font-size: 10px; margin-left: 5px"
+                                <span style="font-size: 10px; margin-left: 6px"
                                     >{{ list[2].length }}/{{ favoriteLimits.maxFavoritesPerGroup.world }}</span
                                 >
                             </span>
@@ -1049,19 +1153,26 @@
                             :key="`favorite-worlds-content-${index}`"
                             v-slot:[String(index)]>
                             <div
-                                class="x-friend-list"
-                                style="margin-top: 10px; margin-bottom: 15px; min-height: 60px; max-height: none">
+                                class="flex flex-wrap items-start"
+                                style="margin-top: 8px; margin-bottom: 16px; min-height: 60px; max-height: none">
                                 <div
                                     v-for="world in list[2]"
                                     :key="world.favoriteId"
-                                    class="x-friend-item x-friend-item-border"
+                                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                     @click="showWorldDialog(world.id)">
-                                    <div class="avatar">
-                                        <img :src="world.thumbnailImageUrl" loading="lazy" />
+                                    <div class="relative inline-block flex-none size-9 mr-2.5">
+                                        <img
+                                            class="size-full rounded-full object-cover"
+                                            :src="world.thumbnailImageUrl"
+                                            loading="lazy" />
                                     </div>
-                                    <div class="detail">
-                                        <span class="name" v-text="world.name"></span>
-                                        <span v-if="world.occupants" class="extra">({{ world.occupants }})</span>
+                                    <div class="flex-1 overflow-hidden">
+                                        <span
+                                            class="block truncate font-medium leading-[18px]"
+                                            v-text="world.name"></span>
+                                        <span v-if="world.occupants" class="block truncate text-xs"
+                                            >({{ world.occupants }})</span
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -1101,7 +1212,7 @@
                             <Spinner v-if="userDialog.isAvatarsLoading" />
                             <RefreshCw v-else />
                         </Button>
-                        <span style="margin-left: 5px">{{
+                        <span style="margin-left: 6px">{{
                             t('dialog.user.avatars.total_count', { count: userDialogAvatars.length })
                         }}</span>
                     </div>
@@ -1149,29 +1260,35 @@
                         </template>
                     </div>
                 </div>
-                <div class="x-friend-list" style="margin-top: 10px; min-height: 60px; max-height: 50vh">
+                <div
+                    class="flex flex-wrap items-start"
+                    style="margin-top: 8px; min-height: 60px; max-height: 50vh; overflow: auto">
                     <template v-if="filteredUserDialogAvatars.length">
                         <div
                             v-for="avatar in filteredUserDialogAvatars"
                             :key="avatar.id"
-                            class="x-friend-item x-friend-item-border"
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                             @click="showAvatarDialog(avatar.id)">
-                            <div class="avatar">
-                                <img v-if="avatar.thumbnailImageUrl" :src="avatar.thumbnailImageUrl" loading="lazy" />
+                            <div class="relative inline-block flex-none size-9 mr-2.5">
+                                <img
+                                    v-if="avatar.thumbnailImageUrl"
+                                    class="size-full rounded-full object-cover"
+                                    :src="avatar.thumbnailImageUrl"
+                                    loading="lazy" />
                             </div>
-                            <div class="detail">
-                                <span class="name" v-text="avatar.name"></span>
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]" v-text="avatar.name"></span>
                                 <span
                                     v-if="avatar.releaseStatus === 'public'"
-                                    class="extra"
+                                    class="block truncate text-xs"
                                     v-text="avatar.releaseStatus">
                                 </span>
                                 <span
                                     v-else-if="avatar.releaseStatus === 'private'"
-                                    class="extra"
+                                    class="block truncate text-xs"
                                     v-text="avatar.releaseStatus">
                                 </span>
-                                <span v-else class="extra" v-text="avatar.releaseStatus"></span>
+                                <span v-else class="block truncate text-xs" v-text="avatar.releaseStatus"></span>
                             </div>
                         </div>
                     </template>
@@ -1303,6 +1420,7 @@
         useLocationStore,
         useModalStore,
         useModerationStore,
+        useNotificationStore,
         useUiStore,
         useUserStore,
         useWorldStore
@@ -1317,11 +1435,11 @@
         userRequest,
         worldRequest
     } from '../../../api';
-    import { processBulk, request } from '../../../service/request';
     import { userDialogGroupSortingOptions, userDialogMutualFriendSortingOptions } from '../../../shared/constants';
     import { userDialogWorldOrderOptions, userDialogWorldSortingOptions } from '../../../shared/constants/';
     import { database } from '../../../service/database';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { processBulk } from '../../../service/request';
 
     import InstanceActionBar from '../../InstanceActionBar.vue';
     import SendInviteDialog from '../InviteDialog/SendInviteDialog.vue';
@@ -1428,6 +1546,8 @@
     const userDialogLastFavoriteWorld = ref('');
 
     const favoriteWorldsTab = ref('0');
+    const userDialogWorldsRequestId = ref(0);
+    const userDialogFavoriteWorldsRequestId = ref(0);
 
     const sendInviteDialogVisible = ref(false);
     const sendInviteDialog = ref({
@@ -1500,6 +1620,10 @@
         }
     );
 
+    /**
+     *
+     * @param visibility
+     */
     function userFavoriteWorldsStatus(visibility) {
         const style = {};
         if (visibility === 'public') {
@@ -1512,6 +1636,10 @@
         return style;
     }
 
+    /**
+     *
+     * @param user
+     */
     function getUserStateText(user) {
         let state = '';
         if (user.state === 'active') {
@@ -1527,6 +1655,10 @@
         return state;
     }
 
+    /**
+     *
+     * @param status
+     */
     function getUserStatusText(status) {
         if (status === 'active') {
             return t('dialog.user.status.online');
@@ -1543,6 +1675,9 @@
         return t('dialog.user.status.offline');
     }
 
+    /**
+     *
+     */
     function refreshUserDialogTreeData() {
         const D = userDialog.value;
         if (D.id === currentUser.value.id) {
@@ -1555,6 +1690,10 @@
         treeData.value = formatJsonVars(D.ref);
     }
 
+    /**
+     *
+     * @param tabName
+     */
     function handleUserDialogTab(tabName) {
         userDialog.value.lastActiveTab = tabName;
         const userId = userDialog.value.id;
@@ -1603,10 +1742,17 @@
         }
     }
 
+    /**
+     *
+     */
     function loadLastActiveTab() {
         handleUserDialogTab(userDialog.value.lastActiveTab);
     }
 
+    /**
+     *
+     * @param tabName
+     */
     function userDialogTabClick(tabName) {
         if (tabName === userDialog.value.lastActiveTab) {
             if (tabName === 'JSON') {
@@ -1617,17 +1763,26 @@
         handleUserDialogTab(tabName);
     }
 
+    /**
+     *
+     */
     function showPronounsDialog() {
         const D = pronounsDialog.value;
         D.pronouns = currentUser.value.pronouns;
         D.visible = true;
     }
 
+    /**
+     *
+     */
     function showLanguageDialog() {
         const D = languageDialog.value;
         D.visible = true;
     }
 
+    /**
+     *
+     */
     function showSocialStatusDialog() {
         const D = socialStatusDialog.value;
         const { statusHistory } = currentUser.value;
@@ -1646,6 +1801,10 @@
         D.visible = true;
     }
 
+    /**
+     *
+     * @param userId
+     */
     async function setUserDialogAvatarsRemote(userId) {
         if (avatarRemoteDatabase.value && userId !== currentUser.value.id) {
             userDialog.value.isAvatarsLoading = true;
@@ -1672,6 +1831,10 @@
         sortUserDialogAvatars(userDialog.value.avatars);
     }
 
+    /**
+     *
+     * @param badge
+     */
     async function toggleBadgeVisibility(badge) {
         if (badge.hidden) {
             badge.showcased = false;
@@ -1684,6 +1847,10 @@
         handleBadgeUpdate(args);
     }
 
+    /**
+     *
+     * @param badge
+     */
     async function toggleBadgeShowcased(badge) {
         if (badge.showcased) {
             badge.hidden = false;
@@ -1696,12 +1863,21 @@
         handleBadgeUpdate(args);
     }
 
+    /**
+     *
+     * @param args
+     */
     function handleBadgeUpdate(args) {
         if (args.json) {
             toast.success(t('message.badge.updated'));
         }
     }
 
+    /**
+     *
+     * @param userId
+     * @param type
+     */
     function setPlayerModeration(userId, type) {
         const D = userDialog.value;
         AppApi.SetVRChatUserModeration(currentUser.value.id, userId, type).then((result) => {
@@ -1722,6 +1898,11 @@
         });
     }
 
+    /**
+     *
+     * @param params
+     * @param userId
+     */
     function showSendInviteDialog(params, userId) {
         sendInviteDialog.value = {
             params,
@@ -1733,6 +1914,11 @@
         sendInviteDialogVisible.value = true;
     }
 
+    /**
+     *
+     * @param params
+     * @param userId
+     */
     function showSendInviteRequestDialog(params, userId) {
         sendInviteDialog.value = {
             params,
@@ -1744,12 +1930,21 @@
         sendInviteRequestDialogVisible.value = true;
     }
 
+    /**
+     *
+     * @param groupId
+     * @param userId
+     */
     function showInviteGroupDialog(groupId, userId) {
         inviteGroupDialog.value.groupId = groupId;
         inviteGroupDialog.value.userId = userId;
         inviteGroupDialog.value.visible = true;
     }
 
+    /**
+     *
+     * @param command
+     */
     function userDialogCommand(command) {
         let L;
         const D = userDialog.value;
@@ -1892,6 +2087,10 @@
         }
     }
 
+    /**
+     *
+     * @param args
+     */
     function handleSendFriendRequest(args) {
         const ref = cachedUsers.get(args.params.userId);
         if (typeof ref === 'undefined') {
@@ -1917,6 +2116,10 @@
         }
     }
 
+    /**
+     *
+     * @param args
+     */
     function handleCancelFriendRequest(args) {
         const ref = cachedUsers.get(args.params.userId);
         if (typeof ref === 'undefined') {
@@ -1937,6 +2140,10 @@
         D.outgoingRequest = false;
     }
 
+    /**
+     *
+     * @param args
+     */
     function handleSendPlayerModeration(args) {
         const ref = applyPlayerModeration(args.json);
         const D = userDialog.value;
@@ -1955,6 +2162,11 @@
         toast.success(t('message.user.moderated'));
     }
 
+    /**
+     *
+     * @param command
+     * @param userId
+     */
     async function performUserDialogCommand(command, userId) {
         let args;
         let key;
@@ -1972,9 +2184,18 @@
                     });
                     handleSendFriendRequest(args);
                 } else {
-                    notificationRequest.acceptFriendRequestNotification({
-                        notificationId: key
-                    });
+                    notificationRequest
+                        .acceptFriendRequestNotification({
+                            notificationId: key
+                        })
+                        .then((args) => {
+                            useNotificationStore().handleNotificationAccept(args);
+                        })
+                        .catch((err) => {
+                            if (err && err.message && err.message.includes('404')) {
+                                useNotificationStore().handleNotificationHide(key);
+                            }
+                        });
                 }
                 break;
             case 'Decline Friend Request':
@@ -1985,9 +2206,13 @@
                     });
                     handleCancelFriendRequest(args);
                 } else {
-                    notificationRequest.hideNotification({
-                        notificationId: key
-                    });
+                    notificationRequest
+                        .hideNotification({
+                            notificationId: key
+                        })
+                        .then(() => {
+                            useNotificationStore().handleNotificationHide(key);
+                        });
                 }
                 break;
             case 'Cancel Friend Request': {
@@ -2079,6 +2304,10 @@
         }
     }
 
+    /**
+     *
+     * @param userId
+     */
     function reportUserForHacking(userId) {
         miscRequest.reportUser({
             userId,
@@ -2088,6 +2317,10 @@
         });
     }
 
+    /**
+     *
+     * @param userId
+     */
     async function getUserGroups(userId) {
         exitEditModeCurrentUserGroups();
         userDialog.value.isGroupsLoading = true;
@@ -2148,6 +2381,10 @@
         userDialog.value.isGroupsLoading = false;
     }
 
+    /**
+     *
+     * @param userId
+     */
     async function getUserMutualFriends(userId) {
         userDialog.value.mutualFriends = [];
         if (currentUser.value.hasSharedConnectionsOptOut) {
@@ -2187,6 +2424,11 @@
         });
     }
 
+    /**
+     *
+     * @param a
+     * @param b
+     */
     function sortGroupsByInGame(a, b) {
         const aIndex = inGameGroupOrder.value.indexOf(a?.id);
         const bIndex = inGameGroupOrder.value.indexOf(b?.id);
@@ -2202,6 +2444,9 @@
         return aIndex - bIndex;
     }
 
+    /**
+     *
+     */
     async function sortCurrentUserGroups() {
         const D = userDialog.value;
         let sortMethod = () => 0;
@@ -2224,6 +2469,10 @@
         userDialog.value.userGroups.remainingGroups.sort(sortMethod);
     }
 
+    /**
+     *
+     * @param userId
+     */
     function setUserDialogAvatars(userId) {
         const avatars = new Set();
         userDialogAvatars.value.forEach((avatar) => {
@@ -2237,6 +2486,10 @@
         sortUserDialogAvatars(userDialog.value.avatars);
     }
 
+    /**
+     *
+     * @param userId
+     */
     function setUserDialogWorlds(userId) {
         const worlds = [];
         for (const ref of cachedWorlds.values()) {
@@ -2247,11 +2500,15 @@
         userDialog.value.worlds = worlds;
     }
 
+    /**
+     *
+     */
     function refreshUserDialogWorlds() {
         const D = userDialog.value;
         if (D.isWorldsLoading) {
             return;
         }
+        const requestId = ++userDialogWorldsRequestId.value;
         D.isWorldsLoading = true;
         const params = {
             n: 50,
@@ -2266,53 +2523,70 @@
             params.user = 'me';
             params.releaseStatus = 'all';
         }
-        const map = new Map();
-        for (const ref of cachedWorlds.values()) {
-            if (ref.authorId === D.id && (ref.authorId === currentUser.value.id || ref.releaseStatus === 'public')) {
-                cachedWorlds.delete(ref.id);
-            }
-        }
-        processBulk({
-            fn: worldRequest.getWorlds,
-            N: -1,
-            params,
-            handle: (args) => {
-                for (const json of args.json) {
-                    const $ref = cachedWorlds.get(json.id);
-                    if (typeof $ref !== 'undefined') {
-                        map.set($ref.id, $ref);
+        const worlds = [];
+        const worldIds = new Set();
+        (async () => {
+            try {
+                let offset = 0;
+                while (true) {
+                    const args = await worldRequest.getCachedWorlds({
+                        ...params,
+                        offset
+                    });
+                    if (requestId !== userDialogWorldsRequestId.value || D.id !== params.userId) {
+                        return;
                     }
+                    for (const world of args.json) {
+                        if (!worldIds.has(world.id)) {
+                            worldIds.add(world.id);
+                            worlds.push(world);
+                        }
+                    }
+                    if (args.json.length < params.n) {
+                        break;
+                    }
+                    offset += params.n;
                 }
-            },
-            done: () => {
-                if (D.id === params.userId) {
-                    setUserDialogWorlds(D.id);
+                if (requestId === userDialogWorldsRequestId.value && D.id === params.userId) {
+                    userDialog.value.worlds = worlds;
                 }
-                D.isWorldsLoading = false;
+            } finally {
+                if (requestId === userDialogWorldsRequestId.value) {
+                    D.isWorldsLoading = false;
+                }
             }
+        })().catch((err) => {
+            console.error('refreshUserDialogWorlds failed', err);
         });
     }
 
+    /**
+     *
+     * @param userId
+     */
     async function getUserFavoriteWorlds(userId) {
+        const requestId = ++userDialogFavoriteWorldsRequestId.value;
         userDialog.value.isFavoriteWorldsLoading = true;
         favoriteWorldsTab.value = '0';
         userDialog.value.userFavoriteWorlds = [];
         const worldLists = [];
-        let params = {
+        const groupArgs = await favoriteRequest.getCachedFavoriteGroups({
             ownerId: userId,
             n: 100,
             offset: 0
-        };
-        const json = await request('favorite/groups', {
-            method: 'GET',
-            params
         });
-        for (let i = 0; i < json.length; ++i) {
-            const list = json[i];
-            if (list.type !== 'world') {
-                continue;
+        if (requestId !== userDialogFavoriteWorldsRequestId.value || userDialog.value.id !== userId) {
+            if (requestId === userDialogFavoriteWorldsRequestId.value) {
+                userDialog.value.isFavoriteWorldsLoading = false;
             }
-            params = {
+            return;
+        }
+        const worldGroups = groupArgs.json.filter((list) => list.type === 'world');
+        const tasks = worldGroups.map(async (list) => {
+            if (list.type !== 'world') {
+                return null;
+            }
+            const params = {
                 ownerId: userId,
                 n: 100,
                 offset: 0,
@@ -2320,17 +2594,31 @@
                 tag: list.name
             };
             try {
-                const args = await favoriteRequest.getFavoriteWorlds(params);
+                const args = await favoriteRequest.getCachedFavoriteWorlds(params);
                 handleFavoriteWorldList(args);
-                worldLists.push([list.displayName, list.visibility, args.json]);
+                return [list.displayName, list.visibility, args.json];
             } catch (err) {
                 console.error('getUserFavoriteWorlds', err);
+                return null;
+            }
+        });
+        const results = await Promise.all(tasks);
+        for (const result of results) {
+            if (result) {
+                worldLists.push(result);
             }
         }
-        userDialog.value.userFavoriteWorlds = worldLists;
-        userDialog.value.isFavoriteWorldsLoading = false;
+        if (requestId === userDialogFavoriteWorldsRequestId.value) {
+            if (userDialog.value.id === userId) {
+                userDialog.value.userFavoriteWorlds = worldLists;
+            }
+            userDialog.value.isFavoriteWorldsLoading = false;
+        }
     }
 
+    /**
+     *
+     */
     function showBioDialog() {
         const D = bioDialog.value;
         D.bio = currentUser.value.bio;
@@ -2338,6 +2626,9 @@
         D.visible = true;
     }
 
+    /**
+     *
+     */
     async function translateBio() {
         if (translateLoading.value) {
             return;
@@ -2375,22 +2666,35 @@
         }
     }
 
+    /**
+     *
+     * @param userRef
+     */
     function showPreviousInstancesListDialog(userRef) {
         instanceStore.showPreviousInstancesListDialog('user', userRef);
     }
 
+    /**
+     *
+     */
     function toggleAvatarCopying() {
         userRequest.saveCurrentUser({
             allowAvatarCopying: !currentUser.value.allowAvatarCopying
         });
     }
 
+    /**
+     *
+     */
     function toggleAllowBooping() {
         userRequest.saveCurrentUser({
             isBoopingEnabled: !currentUser.value.isBoopingEnabled
         });
     }
 
+    /**
+     *
+     */
     function resetHome() {
         modalStore
             .confirm({
@@ -2413,14 +2717,26 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param userId
+     */
     function copyUserId(userId) {
         copyToClipboard(userId, 'User ID copied to clipboard');
     }
 
+    /**
+     *
+     * @param userId
+     */
     function copyUserURL(userId) {
         copyToClipboard(`https://vrchat.com/home/user/${userId}`, 'User URL copied to clipboard');
     }
 
+    /**
+     *
+     * @param displayName
+     */
     function copyUserDisplayName(displayName) {
         copyToClipboard(displayName, 'User DisplayName copied to clipboard');
     }
@@ -2436,6 +2752,10 @@
         return found ? String(found[0]) : '';
     });
 
+    /**
+     *
+     * @param key
+     */
     function setUserDialogGroupSortingByKey(key) {
         const option = userDialogGroupSortingOptions[key];
         if (!option) {
@@ -2444,6 +2764,10 @@
         setUserDialogGroupSorting(option);
     }
 
+    /**
+     *
+     * @param sortOrder
+     */
     async function setUserDialogGroupSorting(sortOrder) {
         const D = userDialog.value;
         if (D.groupSorting.value === sortOrder.value) {
@@ -2464,6 +2788,10 @@
         return found ? String(found[0]) : '';
     });
 
+    /**
+     *
+     * @param key
+     */
     function setUserDialogMutualFriendSortingByKey(key) {
         const option = userDialogMutualFriendSortingOptions[key];
         if (!option) {
@@ -2472,6 +2800,10 @@
         setUserDialogMutualFriendSorting(option);
     }
 
+    /**
+     *
+     * @param sortOrder
+     */
     async function setUserDialogMutualFriendSorting(sortOrder) {
         const D = userDialog.value;
         D.mutualFriendSorting = sortOrder;
@@ -2488,6 +2820,9 @@
         }
     }
 
+    /**
+     *
+     */
     async function exitEditModeCurrentUserGroups() {
         userDialogGroupEditMode.value = false;
         userDialogGroupEditGroups.value = [];
@@ -2496,6 +2831,9 @@
         await sortCurrentUserGroups();
     }
 
+    /**
+     *
+     */
     async function editModeCurrentUserGroups() {
         await updateInGameGroupOrder();
         userDialogGroupEditGroups.value = Array.from(currentUserGroups.value.values());
@@ -2503,6 +2841,9 @@
         userDialogGroupEditMode.value = true;
     }
 
+    /**
+     *
+     */
     async function saveInGameGroupOrder() {
         userDialogGroupEditGroups.value.sort(sortGroupsByInGame);
         try {
@@ -2518,6 +2859,9 @@
     }
 
     // Select all groups currently in the editable list by collecting their IDs
+    /**
+     *
+     */
     function selectAllGroups() {
         const allSelected = userDialogGroupEditSelectedGroupIds.value.length === userDialogGroupEditGroups.value.length;
 
@@ -2534,6 +2878,10 @@
 
     const bulkGroupActionValue = ref('');
 
+    /**
+     *
+     * @param value
+     */
     function handleBulkGroupAction(value) {
         bulkGroupActionValue.value = value;
 
@@ -2550,6 +2898,10 @@
     }
 
     // Apply the given visibility to all selected groups
+    /**
+     *
+     * @param newVisibility
+     */
     async function bulkSetVisibility(newVisibility) {
         for (const groupId of userDialogGroupEditSelectedGroupIds.value) {
             setGroupVisibility(groupId, newVisibility);
@@ -2557,6 +2909,9 @@
     }
 
     // Leave (remove user from) all selected groups
+    /**
+     *
+     */
     function bulkLeaveGroups() {
         for (const groupId of userDialogGroupEditSelectedGroupIds.value) {
             leaveGroup(groupId);
@@ -2564,6 +2919,10 @@
     }
 
     // Toggle individual group selection for bulk actions
+    /**
+     *
+     * @param groupId
+     */
     function toggleGroupSelection(groupId) {
         const index = userDialogGroupEditSelectedGroupIds.value.indexOf(groupId);
         if (index === -1) {
@@ -2573,6 +2932,10 @@
         }
     }
 
+    /**
+     *
+     * @param groupId
+     */
     function moveGroupUp(groupId) {
         const index = inGameGroupOrder.value.indexOf(groupId);
         if (index > 0) {
@@ -2582,6 +2945,10 @@
         }
     }
 
+    /**
+     *
+     * @param groupId
+     */
     function moveGroupDown(groupId) {
         const index = inGameGroupOrder.value.indexOf(groupId);
         if (index < inGameGroupOrder.value.length - 1) {
@@ -2591,6 +2958,10 @@
         }
     }
 
+    /**
+     *
+     * @param groupId
+     */
     function moveGroupTop(groupId) {
         const index = inGameGroupOrder.value.indexOf(groupId);
         if (index > 0) {
@@ -2600,6 +2971,10 @@
         }
     }
 
+    /**
+     *
+     * @param groupId
+     */
     function moveGroupBottom(groupId) {
         const index = inGameGroupOrder.value.indexOf(groupId);
         if (index < inGameGroupOrder.value.length - 1) {
@@ -2609,6 +2984,10 @@
         }
     }
 
+    /**
+     *
+     * @param sortOrder
+     */
     async function setUserDialogWorldSorting(sortOrder) {
         const D = userDialog.value;
         if (D.worldSorting.value === sortOrder.value) {
@@ -2629,6 +3008,10 @@
         return found ? String(found[0]) : '';
     });
 
+    /**
+     *
+     * @param key
+     */
     function setUserDialogWorldSortingByKey(key) {
         const option = userDialogWorldSortingOptions[key];
         if (!option) {
@@ -2637,6 +3020,10 @@
         setUserDialogWorldSorting(option);
     }
 
+    /**
+     *
+     * @param order
+     */
     async function setUserDialogWorldOrder(order) {
         const D = userDialog.value;
         if (D.worldOrder.value === order.value) {
@@ -2657,6 +3044,10 @@
         return found ? String(found[0]) : '';
     });
 
+    /**
+     *
+     * @param key
+     */
     function setUserDialogWorldOrderByKey(key) {
         const option = userDialogWorldOrderOptions[key];
         if (!option) {
@@ -2665,16 +3056,26 @@
         setUserDialogWorldOrder(option);
     }
 
+    /**
+     *
+     * @param sortOption
+     */
     function changeUserDialogAvatarSorting(sortOption) {
         const D = userDialog.value;
         D.avatarSorting = sortOption;
         sortUserDialogAvatars(D.avatars);
     }
 
+    /**
+     *
+     */
     function closeInviteDialog() {
         clearInviteImageUpload();
     }
 
+    /**
+     *
+     */
     function getVRChatCredits() {
         miscRequest.getVRChatCredits().then((args) => (vrchatCredit.value = args.json?.balance));
     }

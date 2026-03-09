@@ -1,7 +1,7 @@
 <template>
     <div class="relative h-full">
         <div ref="scrollViewportRef" class="h-full w-full overflow-auto">
-            <div class="x-friend-list px-1.5 py-2.5">
+            <div class="px-1.5 py-2.5">
                 <div v-if="virtualRows.length" class="relative w-full box-border" :style="virtualContainerStyle">
                     <template v-for="item in virtualItems" :key="String(item.virtualItem.key)">
                         <div
@@ -12,7 +12,7 @@
                             :style="rowStyle(item)">
                             <template v-if="item.row.type === 'toggle-header'">
                                 <div
-                                    class="x-friend-group flex cursor-pointer items-center pt-4 pb-1.5 text-xs"
+                                    class="flex cursor-pointer items-center pt-4 pb-1.5 text-xs"
                                     :style="item.row.headerPadding ? { padding: item.row.headerPadding } : undefined"
                                     @click="item.row.onClick && item.row.onClick()">
                                     <ChevronDown
@@ -28,38 +28,54 @@
                             </template>
 
                             <template v-else-if="item.row.type === 'me-item'">
-                                <div class="x-friend-item hover:bg-muted/50" @click="showUserDialog(currentUser.id)">
-                                    <div class="avatar" :class="userStatusClass(currentUser)">
-                                        <img :src="userImage(currentUser)" loading="lazy" />
-                                    </div>
-                                    <div class="detail h-auto flex flex-col justify-between">
-                                        <div class="flex items-center">
-                                            <span class="name" :style="{ color: currentUser.$userColour }">{{
-                                                currentUser.displayName
-                                            }}</span>
-                                            <span
-                                                v-if="currentUser.statusDescription"
-                                                class="block truncate text-[11px] text-muted-foreground"
-                                                >{{ '・' + currentUser.statusDescription }}</span
-                                            >
+                                <ContextMenu>
+                                    <ContextMenuTrigger as-child>
+                                        <div
+                                            class="friend-row box-border flex items-center p-1.5 text-[13px] cursor-pointer hover:bg-muted/50 hover:rounded-lg"
+                                            @click="showUserDialog(currentUser.id)">
+                                            <div
+                                                class="relative inline-block flex-none size-9 mr-2.5"
+                                                :class="userStatusClass(currentUser)">
+                                                <img
+                                                    class="size-full rounded-full object-cover"
+                                                    :src="userImage(currentUser)"
+                                                    loading="lazy" />
+                                            </div>
+                                            <div class="flex-1 overflow-hidden h-auto flex flex-col justify-between">
+                                                <div class="flex items-center">
+                                                    <span
+                                                        class="block truncate font-medium leading-[18px]"
+                                                        :style="{ color: currentUser.$userColour }"
+                                                        >{{ currentUser.displayName }}</span
+                                                    >
+                                                    <span
+                                                        v-if="currentUser.statusDescription"
+                                                        class="block truncate text-[11px] text-muted-foreground"
+                                                        >{{ '・' + currentUser.statusDescription }}</span
+                                                    >
+                                                </div>
+                                                <Location
+                                                    v-if="isGameRunning && !gameLogDisabled"
+                                                    class="extra block truncate text-xs"
+                                                    :location="lastLocation.location"
+                                                    :traveling="lastLocationDestination"
+                                                    :link="false" />
+                                                <Location
+                                                    v-else-if="
+                                                        isRealInstance(currentUser.$locationTag) ||
+                                                        isRealInstance(currentUser.$travelingToLocation)
+                                                    "
+                                                    class="extra block truncate text-xs"
+                                                    :location="currentUser.$locationTag"
+                                                    :traveling="currentUser.$travelingToLocation"
+                                                    :link="false" />
+                                                <span v-else class="extra block truncate text-xs">{{
+                                                    currentUser.statusDescription
+                                                }}</span>
+                                            </div>
                                         </div>
-                                        <Location
-                                            v-if="isGameRunning && !gameLogDisabled"
-                                            class="extra block truncate text-xs"
-                                            :location="lastLocation.location"
-                                            :traveling="lastLocationDestination"
-                                            :link="false" />
-                                        <Location
-                                            v-else-if="
-                                                isRealInstance(currentUser.$locationTag) ||
-                                                isRealInstance(currentUser.$travelingToLocation)
-                                            "
-                                            class="extra block truncate text-xs"
-                                            :location="currentUser.$locationTag"
-                                            :traveling="currentUser.$travelingToLocation"
-                                            :link="false" />
-                                    </div>
-                                </div>
+                                    </ContextMenuTrigger>
+                                </ContextMenu>
                             </template>
 
                             <template v-else-if="item.row.type === 'instance-header'">
@@ -70,10 +86,52 @@
                             </template>
 
                             <template v-else-if="item.row.type === 'friend-item'">
-                                <FriendItem
-                                    :friend="item.row.friend"
-                                    :style="item.row.itemStyle"
-                                    :is-group-by-instance="item.row.isGroupByInstance" />
+                                <ContextMenu>
+                                    <ContextMenuTrigger as-child>
+                                        <FriendItem
+                                            :friend="item.row.friend"
+                                            :style="item.row.itemStyle"
+                                            :is-group-by-instance="item.row.isGroupByInstance" />
+                                    </ContextMenuTrigger>
+                                    <ContextMenuContent>
+                                        <ContextMenuItem
+                                            v-if="item.row.friend.state === 'online'"
+                                            @click="friendRequestInvite(item.row.friend)">
+                                            {{ t('dialog.user.actions.request_invite') }}
+                                        </ContextMenuItem>
+                                        <ContextMenuItem
+                                            v-if="isGameRunning"
+                                            :disabled="!canInviteToMyLocation"
+                                            @click="friendInvite(item.row.friend)">
+                                            {{ t('dialog.user.actions.invite') }}
+                                        </ContextMenuItem>
+                                        <ContextMenuItem
+                                            :disabled="!currentUser.isBoopingEnabled"
+                                            @click="friendSendBoop(item.row.friend)">
+                                            {{ t('dialog.user.actions.send_boop') }}
+                                        </ContextMenuItem>
+                                        <ContextMenuSeparator
+                                            v-if="
+                                                item.row.friend.state === 'online' && hasFriendLocation(item.row.friend)
+                                            " />
+                                        <ContextMenuItem
+                                            v-if="
+                                                item.row.friend.state === 'online' && hasFriendLocation(item.row.friend)
+                                            "
+                                            :disabled="!canJoinFriend(item.row.friend)"
+                                            @click="friendJoin(item.row.friend)">
+                                            {{ t('dialog.user.info.launch_invite_tooltip') }}
+                                        </ContextMenuItem>
+                                        <ContextMenuItem
+                                            v-if="
+                                                item.row.friend.state === 'online' && hasFriendLocation(item.row.friend)
+                                            "
+                                            :disabled="!canJoinFriend(item.row.friend)"
+                                            @click="friendInviteSelf(item.row.friend)">
+                                            {{ t('dialog.user.info.self_invite_tooltip') }}
+                                        </ContextMenuItem>
+                                    </ContextMenuContent>
+                                </ContextMenu>
                             </template>
                         </div>
                     </template>
@@ -96,6 +154,7 @@
         ContextMenu,
         ContextMenuCheckboxItem,
         ContextMenuContent,
+        ContextMenuItem,
         ContextMenuSeparator,
         ContextMenuSub,
         ContextMenuSubContent,
@@ -108,17 +167,23 @@
         useFavoriteStore,
         useFriendStore,
         useGameStore,
+        useLaunchStore,
         useLocationStore,
         useUserStore
     } from '../../../stores';
+    import { buildFriendRow, buildInstanceHeaderRow, buildToggleRow, estimateRowSize } from '../friendsSidebarUtils';
     import { getFriendsSortFunction, isRealInstance, userImage, userStatusClass } from '../../../shared/utils';
+    import { instanceRequest, notificationRequest, userRequest, worldRequest } from '../../../api';
+    import { checkCanInvite, checkCanInviteSelf } from '../../../shared/utils/invite.js';
     import { getFriendsLocations } from '../../../shared/utils/location.js';
-    import { userRequest } from '../../../api';
+    import { parseLocation } from '../../../shared/utils';
 
     import BackToTop from '../../../components/BackToTop.vue';
     import FriendItem from './FriendItem.vue';
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../service/config';
+
+    import '@/styles/status-icon.css';
 
     const { t } = useI18n();
 
@@ -141,7 +206,8 @@
         sidebarSortMethods
     } = storeToRefs(appearanceSettingsStore);
     const { gameLogDisabled } = storeToRefs(useAdvancedSettingsStore());
-    const { showUserDialog } = useUserStore();
+    const { showUserDialog, showSendBoopDialog } = useUserStore();
+    const launchStore = useLaunchStore();
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } =
         storeToRefs(useFavoriteStore());
     const { lastLocation, lastLocationDestination } = storeToRefs(useLocationStore());
@@ -173,6 +239,10 @@
 
     const shouldHideSameInstance = computed(() => isSidebarGroupByInstance.value && isHideFriendsInSameInstance.value);
 
+    /**
+     *
+     * @param list
+     */
     function excludeSameInstance(list) {
         if (!shouldHideSameInstance.value) {
             return list;
@@ -282,41 +352,6 @@
         });
     });
 
-    const buildToggleRow = ({
-        key,
-        label,
-        count = null,
-        expanded = true,
-        headerPadding = null,
-        paddingBottom = null,
-        onClick = null
-    }) => ({
-        type: 'toggle-header',
-        key,
-        label,
-        count,
-        expanded,
-        headerPadding,
-        paddingBottom,
-        onClick
-    });
-    const buildFriendRow = (friend, key, options = {}) => ({
-        type: 'friend-item',
-        key,
-        friend,
-        isGroupByInstance: options.isGroupByInstance,
-        paddingBottom: options.paddingBottom,
-        itemStyle: options.itemStyle
-    });
-
-    const buildInstanceHeaderRow = (location, count, key) => ({
-        type: 'instance-header',
-        key,
-        location,
-        count,
-        paddingBottom: 4
-    });
-
     const virtualRows = computed(() => {
         const rows = [];
 
@@ -415,7 +450,7 @@
                             buildFriendRow(friend, `instance:${groupKey}:${friend?.id ?? idx}`, {
                                 isGroupByInstance: true,
                                 paddingBottom: idx === friendArr.length - 1 ? 5 : undefined,
-                                itemStyle: idx === friendArr.length - 1 ? { marginBottom: '5px' } : undefined
+                                itemStyle: idx === friendArr.length - 1 ? { marginBottom: '6px' } : undefined
                             })
                         );
                     });
@@ -480,22 +515,6 @@
         return rows;
     });
 
-    const estimateRowSize = (row) => {
-        if (!row) {
-            return 44;
-        }
-        if (row.type === 'toggle-header') {
-            return 28 + (row.paddingBottom || 0);
-        }
-        if (row.type === 'vip-subheader') {
-            return 24 + (row.paddingBottom || 0);
-        }
-        if (row.type === 'instance-header') {
-            return 26 + (row.paddingBottom || 0);
-        }
-        return 52 + (row.paddingBottom || 0);
-    };
-
     const virtualizer = useVirtualizer(
         computed(() => ({
             count: virtualRows.value.length,
@@ -527,6 +546,9 @@
         };
     };
 
+    /**
+     *
+     */
     function saveFriendsGroupStates() {
         configRepository.setBool('VRCX_isFriendsGroupMe', isFriendsGroupMe.value);
         configRepository.setBool('VRCX_isFriendsGroupFavorites', isVIPFriends.value);
@@ -535,6 +557,9 @@
         configRepository.setBool('VRCX_isFriendsGroupOffline', isOfflineFriends.value);
     }
 
+    /**
+     *
+     */
     async function loadFriendsGroupStates() {
         isFriendsGroupMe.value = await configRepository.getBool('VRCX_isFriendsGroupMe', true);
         isVIPFriends.value = await configRepository.getBool('VRCX_isFriendsGroupFavorites', true);
@@ -547,31 +572,49 @@
         );
     }
 
+    /**
+     *
+     */
     function toggleSwitchGroupByInstanceCollapsed() {
         isSidebarGroupByInstanceCollapsed.value = !isSidebarGroupByInstanceCollapsed.value;
         configRepository.setBool('VRCX_sidebarGroupByInstanceCollapsed', isSidebarGroupByInstanceCollapsed.value);
     }
 
+    /**
+     *
+     */
     function toggleFriendsGroupMe() {
         isFriendsGroupMe.value = !isFriendsGroupMe.value;
         saveFriendsGroupStates();
     }
 
+    /**
+     *
+     */
     function toggleVIPFriends() {
         isVIPFriends.value = !isVIPFriends.value;
         saveFriendsGroupStates();
     }
 
+    /**
+     *
+     */
     function toggleOnlineFriends() {
         isOnlineFriends.value = !isOnlineFriends.value;
         saveFriendsGroupStates();
     }
 
+    /**
+     *
+     */
     function toggleActiveFriends() {
         isActiveFriends.value = !isActiveFriends.value;
         saveFriendsGroupStates();
     }
 
+    /**
+     *
+     */
     function toggleOfflineFriends() {
         isOfflineFriends.value = !isOfflineFriends.value;
         saveFriendsGroupStates();
@@ -619,15 +662,112 @@
         return history.slice(0, 10);
     });
 
+    /**
+     *
+     * @param value
+     */
     function changeStatus(value) {
         userRequest.saveCurrentUser({ status: value }).then(() => {
             toast.success('Status updated');
         });
     }
 
+    /**
+     *
+     * @param status
+     */
     function setStatusFromHistory(status) {
         userRequest.saveCurrentUser({ statusDescription: status }).then(() => {
             toast.success('Status updated');
         });
+    }
+
+    const canInviteToMyLocation = computed(() => checkCanInvite(lastLocation.value.location));
+
+    /**
+     * @param {object} friend - friend item from friend list
+     * @returns {boolean} whether the friend has a valid joinable location
+     */
+    function hasFriendLocation(friend) {
+        const loc = friend.ref?.location;
+        return !!loc && isRealInstance(loc);
+    }
+
+    /**
+     * @param {object} friend - friend item from friend list
+     * @returns {boolean} whether the current user can join friend's instance
+     */
+    function canJoinFriend(friend) {
+        const loc = friend.ref?.location;
+        if (!loc || !isRealInstance(loc)) return false;
+        return checkCanInviteSelf(loc);
+    }
+
+    /**
+     * @param {object} friend - friend item from friend list
+     */
+    function friendRequestInvite(friend) {
+        notificationRequest.sendRequestInvite({ platform: 'standalonewindows' }, friend.id).then(() => {
+            toast.success('Request invite sent');
+        });
+    }
+
+    /**
+     * @param {object} friend - friend item from friend list
+     */
+    function friendInvite(friend) {
+        let currentLocation = lastLocation.value.location;
+        if (currentLocation === 'traveling') {
+            currentLocation = lastLocationDestination.value;
+        }
+        const L = parseLocation(currentLocation);
+        worldRequest.getCachedWorld({ worldId: L.worldId }).then((args) => {
+            notificationRequest
+                .sendInvite(
+                    {
+                        instanceId: L.tag,
+                        worldId: L.tag,
+                        worldName: args.ref.name
+                    },
+                    friend.id
+                )
+                .then(() => {
+                    toast.success(t('message.invite.sent'));
+                });
+        });
+    }
+
+    /**
+     * @param {object} friend - friend item from friend list
+     */
+    function friendSendBoop(friend) {
+        showSendBoopDialog(friend.id);
+    }
+
+    /**
+     * Join friend's instance (launch dialog)
+     * @param {object} friend - friend item from friend list
+     */
+    function friendJoin(friend) {
+        const loc = friend.ref?.location;
+        if (!loc) return;
+        launchStore.showLaunchDialog(loc);
+    }
+
+    /**
+     * @param {object} friend - friend item from friend list
+     */
+    function friendInviteSelf(friend) {
+        const loc = friend.ref?.location;
+        if (!loc) return;
+        const L = parseLocation(loc);
+        instanceRequest
+            .selfInvite({
+                instanceId: L.instanceId,
+                worldId: L.worldId
+            })
+            .then(() => {
+                toast.success(t('message.invite.self_sent'));
+            });
     }
 </script>

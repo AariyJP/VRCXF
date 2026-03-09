@@ -13,6 +13,7 @@ import {
     ArrowUpDown,
     Check,
     Ellipsis,
+    Eye,
     Image,
     Monitor,
     Pencil,
@@ -31,24 +32,27 @@ import { i18n } from '../../plugin';
 
 const { t } = i18n.global;
 
-const sortButton = ({ column, label, descFirst = false }) => (
-    <Button
-        variant="ghost"
-        size="sm"
-        class="-ml-2 h-8 px-2"
-        onClick={() => {
-            const sorted = column.getIsSorted();
-            if (!sorted && descFirst) {
-                column.toggleSorting(true);
-                return;
-            }
-            column.toggleSorting(sorted === 'asc');
-        }}
-    >
-        {label}
-        <ArrowUpDown class="ml-1 h-4 w-4" />
-    </Button>
-);
+const sortButton = ({ column, label, descFirst = false }) => {
+    const resolvedLabel = typeof label === 'function' ? label() : label;
+    return (
+        <Button
+            variant="ghost"
+            size="sm"
+            class="-ml-2 h-8 px-2"
+            onClick={() => {
+                const sorted = column.getIsSorted();
+                if (!sorted && descFirst) {
+                    column.toggleSorting(true);
+                    return;
+                }
+                column.toggleSorting(sorted === 'asc');
+            }}
+        >
+            {resolvedLabel}
+            <ArrowUpDown class="ml-1 h-4 w-4" />
+        </Button>
+    );
+};
 
 export function getColumns({
     onShowAvatarDialog,
@@ -72,26 +76,12 @@ export function getColumns({
                                 'h-4 w-4',
                                 isActive
                                     ? 'text-primary'
-                                    : 'text-muted-foreground/0 group-hover/row:text-muted-foreground/40'
+                                    : 'text-muted-foreground/0 group-hover/row:text-muted-foreground'
                             ]}
                         />
                     </div>
                 );
             }
-        },
-        {
-            id: 'index',
-            accessorFn: (_row, index) => index + 1,
-            header: ({ column }) =>
-                sortButton({ column, label: 'No.', descFirst: true }),
-            size: 60,
-            enableResizing: false,
-            meta: {
-                class: 'text-right'
-            },
-            cell: ({ row }) => (
-                <span class="text-muted-foreground">{row.index + 1}</span>
-            )
         },
         {
             id: 'thumbnail',
@@ -104,8 +94,8 @@ export function getColumns({
                 return (
                     <img
                         src={ref.thumbnailImageUrl}
-                        class="cursor-pointer rounded-sm object-cover"
-                        style="width: 36px; height: 24px;"
+                        class="avatar-table-thumbnail cursor-pointer rounded-sm object-cover"
+                        style="width: 34px; height: 22px;"
                         loading="lazy"
                         onClick={() => onShowAvatarDialog(ref.id)}
                     />
@@ -114,14 +104,19 @@ export function getColumns({
         },
         {
             id: 'name',
-            accessorKey: 'name',
-            header: ({ column }) => sortButton({ column, label: 'Name' }),
+            accessorKey: 'Name',
+            header: ({ column }) =>
+                sortButton({
+                    column,
+                    label: () => t('dialog.avatar.info.name')
+                }),
             size: 200,
+            meta: { label: () => t('dialog.avatar.info.name') },
             cell: ({ row }) => {
                 const ref = row.original;
                 return (
                     <span
-                        class="cursor-pointer font-medium"
+                        class="cursor-pointer"
                         onClick={(e) => {
                             e.stopPropagation();
                             onShowAvatarDialog(ref.id);
@@ -133,51 +128,17 @@ export function getColumns({
             }
         },
         {
-            id: 'platforms',
-            header: () => 'Platforms',
-            size: 120,
-            enableSorting: false,
-            cell: ({ row }) => {
-                const ref = row.original;
-                const platforms = getAvailablePlatforms(ref.unityPackages);
-                return (
-                    <div class="flex items-center gap-1">
-                        {platforms.isPC && (
-                            <Badge class="x-tag-platform-pc" variant="outline">
-                                <Monitor class="h-3.5 w-3.5" />
-                            </Badge>
-                        )}
-                        {platforms.isQuest && (
-                            <Badge
-                                class="x-tag-platform-quest"
-                                variant="outline"
-                            >
-                                <Smartphone class="h-3.5 w-3.5" />
-                            </Badge>
-                        )}
-                        {platforms.isIos && (
-                            <Badge
-                                class="text-[#8e8e93] border-[#8e8e93]"
-                                variant="outline"
-                            >
-                                <Apple class="h-3.5 w-3.5" />
-                            </Badge>
-                        )}
-                    </div>
-                );
-            }
-        },
-        {
             id: 'customTags',
             accessorFn: (row) => (row.$tags || []).map((t) => t.tag).join(', '),
             header: () => t('dialog.avatar.info.tags'),
             size: 150,
             enableSorting: false,
+            meta: { label: () => t('dialog.avatar.info.tags') },
             cell: ({ row }) => {
                 const tags = row.original.$tags || [];
                 if (!tags.length) return null;
                 return (
-                    <div class="flex flex-wrap gap-1">
+                    <div class="flex flex-nowrap gap-1 overflow-hidden">
                         {tags.map((entry) => {
                             const hashColor = getTagColor(entry.tag);
                             const storedColor =
@@ -207,10 +168,47 @@ export function getColumns({
             }
         },
         {
-            id: 'releaseStatus',
-            accessorKey: 'releaseStatus',
-            header: () => t('dialog.avatar.tags.public'),
+            id: 'platforms',
+            header: () => t('dialog.avatar.info.platform'),
             size: 120,
+            enableSorting: false,
+            meta: { label: () => t('dialog.avatar.info.platform') },
+            cell: ({ row }) => {
+                const ref = row.original;
+                const platforms = getAvailablePlatforms(ref.unityPackages);
+                return (
+                    <div class="flex items-center gap-1">
+                        {platforms.isPC && (
+                            <Badge class="x-tag-platform-pc" variant="outline">
+                                <Monitor class="h-3.5 w-3.5" />
+                            </Badge>
+                        )}
+                        {platforms.isQuest && (
+                            <Badge
+                                class="x-tag-platform-quest"
+                                variant="outline"
+                            >
+                                <Smartphone class="h-3.5 w-3.5" />
+                            </Badge>
+                        )}
+                        {platforms.isIos && (
+                            <Badge
+                                class="text-platform-ios border-platform-ios"
+                                variant="outline"
+                            >
+                                <Apple class="h-3.5 w-3.5" />
+                            </Badge>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            id: 'visibility',
+            accessorKey: 'releaseStatus',
+            header: () => t('dialog.avatar.info.visibility'),
+            size: 120,
+            meta: { label: () => t('dialog.avatar.info.visibility') },
             cell: ({ row }) => {
                 const ref = row.original;
                 return (
@@ -228,20 +226,17 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.time_spent'),
+                    label: () => t('dialog.avatar.info.time_spent'),
                     descFirst: true
                 }),
             size: 140,
             meta: {
-                class: 'text-right'
+                class: 'text-right',
+                label: () => t('dialog.avatar.info.time_spent')
             },
             cell: ({ row }) => {
                 const time = row.original?.$timeSpent;
-                return time ? (
-                    <span class=" text-sm">{timeToText(time)}</span>
-                ) : (
-                    <span class=" text-sm">-</span>
-                );
+                return time ? <span>{timeToText(time)}</span> : <span>-</span>;
             }
         },
         {
@@ -250,16 +245,15 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.version'),
+                    label: () => t('dialog.avatar.info.version'),
                     descFirst: true
                 }),
             size: 90,
             meta: {
-                class: 'text-right'
+                class: 'text-right',
+                label: () => t('dialog.avatar.info.version')
             },
-            cell: ({ row }) => (
-                <span class=" text-sm">{row.original.version ?? '-'}</span>
-            )
+            cell: ({ row }) => <span>{row.original.version ?? '-'}</span>
         },
         {
             id: 'pcPerf',
@@ -268,14 +262,15 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.pc_performance')
+                    label: () => t('dialog.avatar.info.pc_performance')
                 }),
             size: 140,
+            meta: { label: () => t('dialog.avatar.info.pc_performance') },
             cell: ({ row }) => {
                 const perf = getPlatformInfo(row.original.unityPackages)?.pc
                     ?.performanceRating;
                 return perf ? (
-                    <span class="text-sm">{perf}</span>
+                    <span>{perf}</span>
                 ) : (
                     <span class="text-muted-foreground">-</span>
                 );
@@ -289,14 +284,15 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.android_performance')
+                    label: () => t('dialog.avatar.info.android_performance')
                 }),
             size: 140,
+            meta: { label: () => t('dialog.avatar.info.android_performance') },
             cell: ({ row }) => {
                 const perf = getPlatformInfo(row.original.unityPackages)
                     ?.android?.performanceRating;
                 return perf ? (
-                    <span class="text-sm">{perf}</span>
+                    <span>{perf}</span>
                 ) : (
                     <span class="text-muted-foreground">-</span>
                 );
@@ -310,14 +306,15 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.ios_performance')
+                    label: () => t('dialog.avatar.info.ios_performance')
                 }),
             size: 140,
+            meta: { label: () => t('dialog.avatar.info.ios_performance') },
             cell: ({ row }) => {
                 const perf = getPlatformInfo(row.original.unityPackages)?.ios
                     ?.performanceRating;
                 return perf ? (
-                    <span class="text-sm">{perf}</span>
+                    <span>{perf}</span>
                 ) : (
                     <span class="text-muted-foreground">-</span>
                 );
@@ -329,17 +326,14 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.last_updated'),
+                    label: () => t('dialog.avatar.info.last_updated'),
                     descFirst: true
                 }),
             size: 160,
+            meta: { label: () => t('dialog.avatar.info.last_updated') },
             cell: ({ row }) => {
                 const ref = row.original;
-                return (
-                    <span class=" text-sm">
-                        {formatDateFilter(ref.updated_at, 'long')}
-                    </span>
-                );
+                return <span>{formatDateFilter(ref.updated_at, 'long')}</span>;
             }
         },
         {
@@ -348,17 +342,14 @@ export function getColumns({
             header: ({ column }) =>
                 sortButton({
                     column,
-                    label: t('dialog.avatar.info.created_at'),
+                    label: () => t('dialog.avatar.info.created_at'),
                     descFirst: true
                 }),
             size: 160,
+            meta: { label: () => t('dialog.avatar.info.created_at') },
             cell: ({ row }) => {
                 const ref = row.original;
-                return (
-                    <span class=" text-sm">
-                        {formatDateFilter(ref.created_at, 'long')}
-                    </span>
-                );
+                return <span>{formatDateFilter(ref.created_at, 'long')}</span>;
             }
         },
         {
@@ -377,14 +368,21 @@ export function getColumns({
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
-                                    class="rounded-full"
-                                    size="icon-sm"
+                                    class="rounded-full h-6 w-6"
+                                    size="icon"
                                     variant="ghost"
                                 >
                                     <Ellipsis class="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
+                                <DropdownMenuItem
+                                    onClick={() => onShowAvatarDialog(ref.id)}
+                                >
+                                    <Eye class="size-4" />
+                                    {t('dialog.avatar.actions.view_details')}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={() =>
                                         onContextMenuAction('manageTags', ref)

@@ -175,12 +175,20 @@
         }
     });
 
+    /**
+     *
+     * @param event
+     */
     async function openCalendarEvent(event) {
         const content = await getCalendarIcs(event);
         if (!content) return;
         await AppApi.OpenCalendarFile(content);
     }
 
+    /**
+     *
+     * @param event
+     */
     async function getCalendarIcs(event) {
         const url = `${AppDebug.endpointDomain}/calendar/${event.ownerId}/${event.id}.ics`;
         try {
@@ -198,6 +206,10 @@
         }
     }
 
+    /**
+     *
+     * @param event
+     */
     async function downloadEventIcs(event) {
         const content = await getCalendarIcs(event);
         if (!content) return;
@@ -211,6 +223,10 @@
         URL.revokeObjectURL(link.href);
     }
 
+    /**
+     *
+     * @param event
+     */
     async function toggleEventFollow(event) {
         const args = await groupRequest.followGroupEvent({
             groupId: event.ownerId,
@@ -220,6 +236,10 @@
         emit('update-following-calendar-data', args.json);
     }
 
+    /**
+     *
+     * @param event
+     */
     function copyEventLink(event) {
         const eventLink = `https://vrchat.com/home/group/${event.ownerId}/calendar/${event.id}`;
         navigator.clipboard.writeText(eventLink);
@@ -255,15 +275,16 @@
 
 <style scoped>
     .event-card {
-        transition: all 0.3s ease;
+        transition: background-color 0.15s ease;
         position: relative;
         overflow: visible;
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
         width: 100%;
     }
 
     .event-card:hover {
-        transform: translateY(-2px);
+        background-color: var(--accent);
+        box-shadow: var(--shadow-sm);
     }
 
     .event-card.grouped-card {
@@ -284,7 +305,7 @@
         cursor: pointer;
         width: 100%;
         object-fit: cover;
-        border-radius: 8px 8px 0 0;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 
     .timeline-view .event-card .banner {
@@ -312,7 +333,7 @@
         height: 24px;
         gap: 4px;
         cursor: pointer;
-        margin-left: 5px;
+        margin-left: 6px;
     }
 
     .event-card .event-content {

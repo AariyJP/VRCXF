@@ -112,7 +112,8 @@
                                         v-for="group in favoriteWorldGroups"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
+                                            `group-item--${group.visibility}`,
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]"
                                         @click="handleGroupClick('remote', group.key)">
@@ -123,9 +124,11 @@
                                             >
                                         </div>
                                         <div class="group-item__bottom">
-                                            <Badge variant="outline">
-                                                {{ t(`view.favorite.visibility.${group.visibility}`) }}
-                                            </Badge>
+                                            <span class="group-item__visibility">
+                                                <span class="group-item__visibility-text">{{
+                                                    t(`view.favorite.visibility.${group.visibility}`)
+                                                }}</span>
+                                            </span>
                                             <DropdownMenu
                                                 :open="activeGroupMenu === remoteGroupMenuKey(group.key)"
                                                 @update:open="
@@ -183,7 +186,7 @@
                                         v-for="group in worldGroupPlaceholders"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             'group-item--placeholder',
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]">
@@ -192,7 +195,7 @@
                                             <span class="group-item__count">--/--</span>
                                         </div>
                                         <div class="group-item__bottom">
-                                            <div class="group-item__placeholder-tag"></div>
+                                            <div class="group-item__placeholder-tag rounded-full"></div>
                                         </div>
                                     </div>
                                 </template>
@@ -220,7 +223,7 @@
                                         v-for="group in localWorldFavoriteGroups"
                                         :key="group"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             { 'is-active': !hasSearchInput && isGroupActive('local', group) }
                                         ]"
                                         @click="handleGroupClick('local', group)">
@@ -266,7 +269,7 @@
                                 </div>
                                 <div
                                     v-if="!isCreatingLocalGroup"
-                                    class="group-item group-item--new"
+                                    class="group-item hover:shadow-sm group-item--new"
                                     @click="startLocalGroupCreation">
                                     <Plus />
                                     <span>{{ t('view.favorite.worlds.new_group') }}</span>
@@ -351,7 +354,7 @@
                                         <div
                                             v-for="favorite in worldFavoriteSearchResults"
                                             :key="favorite.id"
-                                            class="favorites-search-card"
+                                            class="favorites-search-card hover:shadow-sm"
                                             @click="showWorldDialog(favorite.id)">
                                             <div class="favorites-search-card__content">
                                                 <div
@@ -487,7 +490,6 @@
     import { useAppearanceSettingsStore, useFavoriteStore, useModalStore, useWorldStore } from '../../stores';
     import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../components/ui/resizable';
     import { favoriteRequest, worldRequest } from '../../api';
-    import { Badge } from '../../components/ui/badge';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { debounce } from '../../shared/utils';
@@ -578,10 +580,10 @@
             }
         }
     });
-    const worldGroupVisibilityColors = {
-        public: 'text-green-500 border-green-500',
-        friends: 'text-cyan-500 border-cyan-500',
-        private: 'text-red-500 border-red-500'
+    const worldGroupVisibilityDotColors = {
+        public: 'bg-green-500',
+        friends: 'bg-sky-500',
+        private: 'bg-red-500'
     };
     const worldGroupVisibilityOptions = ref(['public', 'friends', 'private']);
     const worldSplitterSize = ref(260);
@@ -619,11 +621,17 @@
         worldToolbarMenuOpen.value = false;
     };
 
+    /**
+     *
+     */
     function handleWorldImportClick() {
         closeWorldToolbarMenu();
         showWorldImportDialog();
     }
 
+    /**
+     *
+     */
     function handleWorldExportClick() {
         closeWorldToolbarMenu();
         showExportDialog();
@@ -633,17 +641,9 @@
         loadWorldSplitterPreferences();
     });
 
-    function getBadgeVariant(visibility) {
-        switch (visibility) {
-            case 'public':
-                return 'default';
-            case 'friends':
-                return 'secondary';
-            case 'private':
-                return 'destructive';
-        }
-    }
-
+    /**
+     *
+     */
     async function loadWorldSplitterPreferences() {
         const storedSize = await configRepository.getString('VRCX_FavoritesWorldSplitter', '260');
         const parsedSize = Number(storedSize);
@@ -898,6 +898,10 @@
 
     const getLocalRowItems = (row) => (row && Array.isArray(row.items) ? row.items : []);
 
+    /**
+     *
+     * @param value
+     */
     function handleSortFavoritesChange(value) {
         const next = Boolean(value);
         if (next !== sortFavorites.value) {
@@ -955,6 +959,11 @@
 
     onMounted(() => {});
 
+    /**
+     *
+     * @param key
+     * @param visible
+     */
     function handleGroupMenuVisible(key, visible) {
         if (visible) {
             activeGroupMenu.value = key;
@@ -965,6 +974,9 @@
         }
     }
 
+    /**
+     *
+     */
     function ensureSelectedGroup() {
         if (selectedGroup.value && isGroupAvailable(selectedGroup.value)) {
             return;
@@ -972,6 +984,11 @@
         selectDefaultGroup();
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function handleGroupClick(type, key) {
         if (hasSearchInput.value) {
             worldFavoriteSearch.value = '';
@@ -980,6 +997,9 @@
         selectGroup(type, key, { userInitiated: true });
     }
 
+    /**
+     *
+     */
     function selectDefaultGroup() {
         if (!hasUserSelectedWorldGroup.value) {
             const remoteKey = favoriteWorldGroups.value[0]?.key || worldGroupPlaceholders[0]?.key || null;
@@ -1000,6 +1020,10 @@
         clearSelectedWorlds();
     }
 
+    /**
+     *
+     * @param group
+     */
     function isGroupAvailable(group) {
         if (!group) {
             return false;
@@ -1016,6 +1040,12 @@
         return false;
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     * @param options
+     */
     function selectGroup(type, key, options = {}) {
         if (selectedGroup.value?.type === type && selectedGroup.value?.key === key) {
             return;
@@ -1027,10 +1057,19 @@
         clearSelectedWorlds();
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function isGroupActive(type, key) {
         return selectedGroup.value?.type === type && selectedGroup.value?.key === key;
     }
 
+    /**
+     *
+     * @param value
+     */
     function formatVisibility(value) {
         if (!value) {
             return '';
@@ -1038,6 +1077,9 @@
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    /**
+     *
+     */
     function startLocalGroupCreation() {
         if (isCreatingLocalGroup.value) {
             return;
@@ -1049,11 +1091,17 @@
         });
     }
 
+    /**
+     *
+     */
     function cancelLocalGroupCreation() {
         isCreatingLocalGroup.value = false;
         newLocalGroupName.value = '';
     }
 
+    /**
+     *
+     */
     function handleLocalGroupCreationConfirm() {
         const name = newLocalGroupName.value.trim();
         if (!name) {
@@ -1067,6 +1115,11 @@
         });
     }
 
+    /**
+     *
+     * @param id
+     * @param value
+     */
     function toggleWorldSelection(id, value) {
         if (value) {
             if (!selectedFavoriteWorlds.value.includes(id)) {
@@ -1077,10 +1130,16 @@
         }
     }
 
+    /**
+     *
+     */
     function clearSelectedWorlds() {
         selectedFavoriteWorlds.value = [];
     }
 
+    /**
+     *
+     */
     function toggleSelectAllWorlds() {
         if (!activeRemoteGroup.value) {
             return;
@@ -1092,6 +1151,9 @@
         }
     }
 
+    /**
+     *
+     */
     function copySelectedWorlds() {
         if (!selectedFavoriteWorlds.value.length) {
             return;
@@ -1101,6 +1163,9 @@
         showWorldImportDialog();
     }
 
+    /**
+     *
+     */
     function showWorldBulkUnfavoriteSelectionConfirm() {
         if (!selectedFavoriteWorlds.value.length) {
             return;
@@ -1120,6 +1185,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param ids
+     */
     function bulkUnfavoriteSelectedWorlds(ids) {
         ids.forEach((id) => {
             favoriteRequest.deleteFavorite({
@@ -1130,15 +1199,27 @@
         worldEditMode.value = false;
     }
 
+    /**
+     *
+     */
     function showExportDialog() {
         worldExportDialogVisible.value = true;
     }
 
+    /**
+     *
+     */
     function handleRefreshFavorites() {
         refreshFavorites();
         getLocalWorldFavorites();
     }
 
+    /**
+     *
+     * @param group
+     * @param visibility
+     * @param menuKey
+     */
     function changeWorldGroupVisibility(group, visibility, menuKey = null) {
         const params = {
             type: group.type,
@@ -1161,6 +1242,10 @@
         });
     }
 
+    /**
+     *
+     * @param group
+     */
     function promptLocalWorldFavoriteGroupRename(group) {
         modalStore
             .prompt({
@@ -1186,6 +1271,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param group
+     */
     function promptLocalWorldFavoriteGroupDelete(group) {
         modalStore
             .confirm({
@@ -1200,6 +1289,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param ctx
+     */
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
@@ -1217,6 +1310,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param worldFavoriteSearch
+     */
     function doSearchWorldFavorites(worldFavoriteSearch) {
         const search = worldFavoriteSearch.trim().toLowerCase();
         if (search.length < 3) {
@@ -1234,31 +1331,56 @@
     }
     const searchWorldFavorites = debounce(doSearchWorldFavorites, 200);
 
+    /**
+     *
+     * @param group
+     * @param visibility
+     */
     function handleVisibilitySelection(group, visibility) {
         const menuKey = remoteGroupMenuKey(group.key);
         changeWorldGroupVisibility(group, visibility, menuKey);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteRename(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         changeFavoriteGroupName(group);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteClear(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         clearFavoriteGroup(group);
     }
 
+    /**
+     *
+     * @param groupName
+     */
     function handleLocalRename(groupName) {
         handleGroupMenuVisible(localGroupMenuKey(groupName), false);
         promptLocalWorldFavoriteGroupRename(groupName);
     }
 
+    /**
+     *
+     * @param groupName
+     */
     function handleLocalDelete(groupName) {
         handleGroupMenuVisible(localGroupMenuKey(groupName), false);
         promptLocalWorldFavoriteGroupDelete(groupName);
     }
 
+    /**
+     *
+     * @param group
+     */
     function changeFavoriteGroupName(group) {
         const currentName = group.displayName || group.name;
         modalStore
@@ -1297,6 +1419,9 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     */
     async function refreshLocalWorldFavorites() {
         if (refreshingLocalFavorites.value) {
             return;
@@ -1342,6 +1467,9 @@
         }
     }
 
+    /**
+     *
+     */
     function cancelLocalWorldRefresh() {
         if (!refreshingLocalFavorites.value) {
             return;
@@ -1417,7 +1545,7 @@
     }
 
     .favorites-dropdown {
-        padding: 10px;
+        padding: 8px;
     }
 
     .favorites-groups-panel {
@@ -1451,19 +1579,15 @@
     }
 
     .group-item {
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
         border: 1px solid var(--border);
         padding: 8px;
         cursor: pointer;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
-        transition:
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        transition: background-color 0.15s ease;
     }
 
     .group-item:hover {
-        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
-        transform: translateY(-2px);
+        background-color: var(--accent);
     }
 
     .group-item__top {
@@ -1495,6 +1619,33 @@
         gap: 8px;
     }
 
+    .group-item__visibility {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .group-item__visibility-text {
+        font-size: 11px;
+        color: var(--muted-foreground);
+    }
+
+    .group-item__visibility-dot {
+        display: none;
+    }
+
+    .group-item--public {
+        border-left: 3px solid var(--visibility-public);
+    }
+
+    .group-item--friends {
+        border-left: 3px solid var(--visibility-friends);
+    }
+
+    .group-item--private {
+        border-left: 3px solid var(--visibility-private);
+    }
+
     .group-item.is-active {
     }
 
@@ -1506,7 +1657,6 @@
     .group-item__placeholder-tag {
         width: 64px;
         height: 18px;
-        border-radius: 999px;
     }
 
     .group-item--new {
@@ -1514,7 +1664,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 14px;
     }
 
@@ -1607,7 +1757,7 @@
 
     .favorites-content__scroll--local::-webkit-scrollbar-thumb {
         background-color: var(--border);
-        border-radius: 999px;
+        border-radius: var(--rounded-full);
         border: 2px solid transparent;
         background-clip: content-box;
     }
@@ -1675,22 +1825,17 @@
         align-items: center;
         box-sizing: border-box;
         border: 1px solid var(--border);
-        border-radius: calc(8px * var(--favorites-card-scale, 1));
-        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 10px);
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
+        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 8px);
         cursor: pointer;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
+        transition: background-color 0.15s ease;
         width: 100%;
         min-width: var(--favorites-card-min-width, 240px);
         max-width: var(--favorites-card-target-width, 320px);
     }
 
     :deep(.favorites-search-card:hover) {
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
-        transform: translateY(calc(-2px * var(--favorites-card-scale, 1)));
+        background-color: var(--accent);
     }
 
     :deep(.favorites-search-card.is-selected) {
@@ -1699,7 +1844,7 @@
     :deep(.favorites-search-card__content) {
         display: flex;
         align-items: center;
-        gap: var(--favorites-card-content-gap, 10px);
+        gap: var(--favorites-card-content-gap, 8px);
         flex: 1;
         min-width: 0;
     }
@@ -1707,7 +1852,7 @@
     :deep(.favorites-search-card__avatar) {
         width: calc(48px * var(--favorites-card-scale, 1));
         height: calc(48px * var(--favorites-card-scale, 1));
-        border-radius: calc(6px * var(--favorites-card-scale, 1));
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -1753,7 +1898,7 @@
     :deep(.favorites-search-card__title) {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     :deep(.favorites-search-card__badges) {
@@ -1786,7 +1931,7 @@
 
     :deep(.favorites-search-card__action-group) {
         display: flex;
-        gap: var(--favorites-card-action-group-gap, 6px);
+        gap: var(--favorites-card-action-group-gap, 8px);
         width: 100%;
     }
 
@@ -1797,7 +1942,7 @@
     :deep(.favorites-search-card__action--checkbox) {
         align-items: center;
         justify-content: flex-end;
-        margin-right: var(--favorites-card-checkbox-margin, 10px);
+        margin-right: var(--favorites-card-checkbox-margin, 8px);
     }
 
     :deep(.favorites-search-card__action--checkbox [data-slot='checkbox']) {
@@ -1832,7 +1977,7 @@
         justify-content: space-between;
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .favorites-dropdown__control-value {

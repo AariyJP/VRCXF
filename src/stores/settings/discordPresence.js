@@ -10,6 +10,12 @@ import {
     parseLocation
 } from '../../shared/utils';
 import {
+    getPlatformLabel,
+    getRpcWorldConfig,
+    getStatusInfo,
+    isPopcornPalaceWorld
+} from '../../shared/utils/discordPresence';
+import {
     ActivityType,
     StatusDisplayType
 } from '../../shared/constants/discord';
@@ -60,14 +66,23 @@ export const useDiscordPresenceSettingsStore = defineStore(
         const discordWorldIntegration = ref(true);
         const discordWorldNameAsDiscordStatus = ref(false);
 
+        /**
+         *
+         */
         function setDiscordActive() {
             discordActive.value = !discordActive.value;
             configRepository.setBool('discordActive', discordActive.value);
         }
+        /**
+         *
+         */
         function setDiscordInstance() {
             discordInstance.value = !discordInstance.value;
             configRepository.setBool('discordInstance', discordInstance.value);
         }
+        /**
+         *
+         */
         function setDiscordHideInvite() {
             discordHideInvite.value = !discordHideInvite.value;
             configRepository.setBool(
@@ -75,6 +90,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordHideInvite.value
             );
         }
+        /**
+         *
+         */
         function setDiscordJoinButton() {
             discordJoinButton.value = !discordJoinButton.value;
             configRepository.setBool(
@@ -82,6 +100,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordJoinButton.value
             );
         }
+        /**
+         *
+         */
         function setDiscordHideImage() {
             discordHideImage.value = !discordHideImage.value;
             configRepository.setBool(
@@ -89,6 +110,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordHideImage.value
             );
         }
+        /**
+         *
+         */
         function setDiscordShowPlatform() {
             discordShowPlatform.value = !discordShowPlatform.value;
             configRepository.setBool(
@@ -96,6 +120,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordShowPlatform.value
             );
         }
+        /**
+         *
+         */
         function setDiscordWorldIntegration() {
             discordWorldIntegration.value = !discordWorldIntegration.value;
             configRepository.setBool(
@@ -103,6 +130,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 discordWorldIntegration.value
             );
         }
+        /**
+         *
+         */
         function setDiscordWorldNameAsDiscordStatus() {
             discordWorldNameAsDiscordStatus.value =
                 !discordWorldNameAsDiscordStatus.value;
@@ -112,6 +142,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
             );
         }
 
+        /**
+         *
+         */
         async function initDiscordPresenceSettings() {
             const [
                 discordActiveConfig,
@@ -149,6 +182,9 @@ export const useDiscordPresenceSettingsStore = defineStore(
 
         initDiscordPresenceSettings();
 
+        /**
+         *
+         */
         async function updateDiscord() {
             let currentLocation = locationStore.lastLocation.location;
             let startTime = locationStore.lastLocation.date;
@@ -205,27 +241,12 @@ export const useDiscordPresenceSettingsStore = defineStore(
 
                 let platform = '';
                 if (discordShowPlatform.value) {
-                    if (gameStore.isGameRunning) {
-                        platform = gameStore.isGameNoVR
-                            ? ` (${t('view.settings.discord_presence.rpc.desktop')})`
-                            : ` (${t('view.settings.discord_presence.rpc.vr')})`;
-                    } else {
-                        switch (userStore.currentUser.presence.platform) {
-                            case 'web':
-                                break;
-                            case 'standalonewindows':
-                                platform = ` (PC)`;
-                                break;
-                            case 'android':
-                                platform = ` (Android)`;
-                                break;
-                            case 'ios':
-                                platform = ` (iOS)`;
-                                break;
-                            default:
-                                platform = ` (${userStore.currentUser.presence.platform})`;
-                        }
-                    }
+                    platform = getPlatformLabel(
+                        userStore.currentUser.presence.platform,
+                        gameStore.isGameRunning,
+                        gameStore.isGameNoVR,
+                        t
+                    );
                 }
                 state.lastLocationDetails.groupAccessType = L.groupAccessType;
                 if (L.groupAccessType) {
@@ -283,34 +304,14 @@ export const useDiscordPresenceSettingsStore = defineStore(
             ) {
                 hidePrivate = true;
             }
-            let statusName = '';
-            let statusImage = '';
-            switch (userStore.currentUser.status) {
-                case 'active':
-                    statusName = 'オンライン';
-                    statusImage = 'online';
-                    break;
-                case 'join me':
-                    statusName = 'だれでもおいで';
-                    statusImage = 'join_me';
-                    break;
-                case 'ask me':
-                    statusName = 'きいてみてね';
-                    statusImage = 'ask_me';
-                    if (discordHideInvite.value) {
-                        hidePrivate = true;
-                    }
-                    break;
-                case 'busy':
-                    statusName = '取り込み中';
-                    statusImage = 'busy';
-                    hidePrivate = true;
-                    break;
-                default:
-                    statusName = t('dialog.user.status.offline');
-                    statusImage = 'offline';
-                    hidePrivate = true;
-                    break;
+            const statusInfo = getStatusInfo(
+                userStore.currentUser.status,
+                discordHideInvite.value,
+                t
+            );
+            const { statusName, statusImage } = statusInfo;
+            if (statusInfo.hidePrivate) {
+                hidePrivate = true;
             }
             let details = state.lastLocationDetails.worldName;
             let stateText = state.lastLocationDetails.accessName;
@@ -347,74 +348,23 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 buttonUrl = '';
             }
 
-            if (
+            const rpcConfig =
                 isRpcWorld(state.lastLocationDetails.tag) &&
                 discordWorldIntegration.value
-            ) {
-                // custom world rpc
+                    ? getRpcWorldConfig(state.lastLocationDetails.worldId)
+                    : null;
+
+            if (rpcConfig) {
+                activityType = rpcConfig.activityType;
+                statusDisplayType = rpcConfig.statusDisplayType;
+                appId = rpcConfig.appId;
+                bigIcon = rpcConfig.bigIcon;
                 if (
-                    state.lastLocationDetails.worldId ===
-                        'wrld_f20326da-f1ac-45fc-a062-609723b097b1' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_10e5e467-fc65-42ed-8957-f02cace1398c' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_04899f23-e182-4a8d-b2c7-2c74c7c15534'
+                    isPopcornPalaceWorld(state.lastLocationDetails.worldId) &&
+                    !discordHideImage.value &&
+                    gameLogStore.nowPlaying.thumbnailUrl
                 ) {
-                    activityType = ActivityType.Listening;
-                    statusDisplayType = StatusDisplayType.Details;
-                    appId = '784094509008551956';
-                    bigIcon = 'pypy';
-                } else if (
-                    state.lastLocationDetails.worldId ===
-                        'wrld_42377cf1-c54f-45ed-8996-5875b0573a83' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_dd6d2888-dbdc-47c2-bc98-3d631b2acd7c'
-                ) {
-                    activityType = ActivityType.Listening;
-                    statusDisplayType = StatusDisplayType.Details;
-                    appId = '846232616054030376';
-                    bigIcon = 'vr_dancing';
-                } else if (
-                    state.lastLocationDetails.worldId ===
-                        'wrld_52bdcdab-11cd-4325-9655-0fb120846945' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_2d40da63-8f1f-4011-8a9e-414eb8530acd'
-                ) {
-                    activityType = ActivityType.Listening;
-                    statusDisplayType = StatusDisplayType.Details;
-                    appId = '939473404808007731';
-                    bigIcon = 'zuwa_zuwa_dance';
-                } else if (
-                    state.lastLocationDetails.worldId ===
-                        'wrld_74970324-58e8-4239-a17b-2c59dfdf00db' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_db9d878f-6e76-4776-8bf2-15bcdd7fc445' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_435bbf25-f34f-4b8b-82c6-cd809057eb8e' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_f767d1c8-b249-4ecc-a56f-614e433682c8'
-                ) {
-                    activityType = ActivityType.Watching;
-                    statusDisplayType = StatusDisplayType.Details;
-                    appId = '968292722391785512';
-                    bigIcon = 'ls_media';
-                } else if (
-                    state.lastLocationDetails.worldId ===
-                        'wrld_266523e8-9161-40da-acd0-6bd82e075833' ||
-                    state.lastLocationDetails.worldId ===
-                        'wrld_27c7e6b2-d938-447e-a270-3d1a873e2cf3'
-                ) {
-                    activityType = ActivityType.Watching;
-                    statusDisplayType = StatusDisplayType.Details;
-                    appId = '1095440531821170820';
-                    if (
-                        !discordHideImage.value &&
-                        gameLogStore.nowPlaying.thumbnailUrl
-                    ) {
-                        bigIcon = gameLogStore.nowPlaying.thumbnailUrl;
-                    } else {
-                        bigIcon = 'popcorn_palace';
-                    }
+                    bigIcon = gameLogStore.nowPlaying.thumbnailUrl;
                 }
                 if (gameLogStore.nowPlaying.name) {
                     details = gameLogStore.nowPlaying.name;
@@ -477,15 +427,23 @@ export const useDiscordPresenceSettingsStore = defineStore(
             );
         }
 
+        /**
+         *
+         * @param active
+         */
         async function setIsDiscordActive(active) {
             if (active !== state.isDiscordActive) {
                 state.isDiscordActive = await Discord.SetActive(active);
             }
         }
 
+        /**
+         *
+         * @param configLabel
+         */
         async function saveDiscordOption(configLabel = '') {
             state.lastLocationDetails.tag = '';
-            updateLoopStore.nextDiscordUpdate = 3;
+            updateLoopStore.setNextDiscordUpdate(3);
             updateDiscord();
         }
 

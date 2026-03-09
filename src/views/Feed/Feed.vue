@@ -8,8 +8,37 @@
             :total-items="totalItems"
             :on-page-size-change="handlePageSizeChange">
             <template #toolbar>
-                <div style="margin: 0 0 10px; display: flex; align-items: center">
-                    <div style="flex: none; margin-right: 10px; display: flex; align-items: center">
+                <div class="mt-0 mx-0 mb-2" style="display: flex; align-items: center">
+                    <div style="flex: none; display: flex; align-items: center" class="mr-2">
+                        <Popover v-model:open="popoverOpen">
+                            <PopoverTrigger as-child>
+                                <Button variant="outline" size="sm" class="mx-2 h-8 gap-1.5">
+                                    <ListFilter class="size-4" />
+                                    {{ t('view.my_avatars.filter') }}
+                                    <Badge
+                                        v-if="activeFilterCount"
+                                        variant="secondary"
+                                        class="ml-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-xs">
+                                        {{ activeFilterCount }}
+                                    </Badge>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent class="w-auto" side="bottom" align="end">
+                                <RangeCalendar
+                                    v-model="dateRange"
+                                    :locale="locale"
+                                    :max-value="todayDate"
+                                    :number-of-months="2" />
+                                <div class="flex justify-end gap-2 mt-3">
+                                    <Button variant="outline" size="sm" @click="clearDateFilter">
+                                        {{ t('common.actions.clear') }}
+                                    </Button>
+                                    <Button size="sm" @click="applyDateFilter">
+                                        {{ t('common.actions.confirm') }}
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <TooltipWrapper side="bottom" :content="t('view.feed.favorites_only_tooltip')">
                             <div>
                                 <Toggle
@@ -43,41 +72,13 @@
                         </ToggleGroupItem>
                     </ToggleGroup>
                     <InputGroupField
+                        class="ml-2"
                         v-model="feedTable.search"
                         :placeholder="t('view.feed.search_placeholder')"
                         clearable
-                        style="flex: 0.4; margin-left: 10px"
+                        style="flex: 0.4"
                         @keyup.enter="feedTableLookup"
                         @change="feedTableLookup" />
-                    <Popover v-model:open="popoverOpen">
-                        <PopoverTrigger as-child>
-                            <Button variant="outline" size="sm" class="ml-2 h-8 gap-1.5">
-                                <ListFilter class="size-4" />
-                                {{ t('view.my_avatars.filter') }}
-                                <Badge
-                                    v-if="activeFilterCount"
-                                    variant="secondary"
-                                    class="ml-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-xs">
-                                    {{ activeFilterCount }}
-                                </Badge>
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent class="w-auto" side="bottom" align="end">
-                            <RangeCalendar
-                                v-model="dateRange"
-                                :locale="locale"
-                                :max-value="todayDate"
-                                :number-of-months="2" />
-                            <div class="flex justify-end gap-2 mt-3">
-                                <Button variant="outline" size="sm" @click="clearDateFilter">
-                                    {{ t('common.actions.clear') }}
-                                </Button>
-                                <Button size="sm" @click="applyDateFilter">
-                                    {{ t('common.actions.confirm') }}
-                                </Button>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
                 </div>
             </template>
         </DataTableLayout>
@@ -120,6 +121,9 @@
     const hasDateFilter = computed(() => !!(feedTable.value.dateFrom || feedTable.value.dateTo));
     const activeFilterCount = computed(() => (hasDateFilter.value ? 1 : 0));
 
+    /**
+     *
+     */
     function applyDateFilter() {
         if (dateRange.value?.start) {
             const s = dateRange.value.start;
@@ -137,6 +141,9 @@
         feedTableLookup();
     }
 
+    /**
+     *
+     */
     function clearDateFilter() {
         dateRange.value = undefined;
         feedTable.value.dateFrom = '';
@@ -155,10 +162,11 @@
     });
 
     const pageSizes = computed(() => appearanceSettingsStore.tablePageSizes);
-    const pageSize = computed(() =>
-        feedTable.value.pageSizeLinked ? appearanceSettingsStore.tablePageSize : feedTable.value.pageSize
-    );
 
+    /**
+     *
+     * @param row
+     */
     function getFeedRowId(row) {
         if (row?.id != null) return `id:${row.id}`;
         if (row?.rowId != null) return `row:${row.rowId}`;
@@ -185,7 +193,7 @@
         initialExpanded: {},
         initialPagination: {
             pageIndex: 0,
-            pageSize: pageSize.value
+            pageSize: appearanceSettingsStore.tablePageSize
         },
         tableOptions: {
             autoResetExpanded: false,
@@ -200,11 +208,11 @@
     });
 
     const handlePageSizeChange = (size) => {
-        if (feedTable.value.pageSizeLinked) {
-            appearanceSettingsStore.setTablePageSize(size);
-        } else {
-            feedTable.value.pageSize = size;
-        }
+        pagination.value = {
+            ...pagination.value,
+            pageIndex: 0,
+            pageSize: size
+        };
     };
 
     const activeFilterSelection = computed(() => {
@@ -215,6 +223,10 @@
         return filter;
     });
 
+    /**
+     *
+     * @param value
+     */
     function handleFeedFilterChange(value) {
         const selected = Array.isArray(value) ? value : [];
         const wasAll = activeFilterSelection.value.includes('All');
@@ -230,16 +242,4 @@
         }
         feedTableLookup();
     }
-
-    watch(pageSize, (size) => {
-        if (pagination.value.pageSize === size) {
-            return;
-        }
-        pagination.value = {
-            ...pagination.value,
-            pageIndex: 0,
-            pageSize: size
-        };
-        table.setPageSize(size);
-    });
 </script>

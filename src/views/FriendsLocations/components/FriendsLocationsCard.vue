@@ -1,41 +1,90 @@
 <template>
-    <Card class="friend-card p-0 gap-0" :style="cardStyle" @click="showUserDialog(friend.id)">
-        <div class="friend-card__header">
-            <div>
-                <Avatar class="friend-card__avatar" :style="{ width: `${avatarSize}px`, height: `${avatarSize}px` }">
-                    <AvatarImage :src="userImage(friend.ref, true)" />
-                    <AvatarFallback>{{ avatarFallback }}</AvatarFallback>
-                </Avatar>
-            </div>
-            <span class="friend-card__status-dot" :class="statusDotClass"></span>
-            <div class="friend-card__name ml-0.5" :title="friend.name">{{ friend.name }}</div>
-        </div>
-        <div class="friend-card__body">
-            <div class="friend-card__signature ml-1" :title="friend.ref?.statusDescription">
-                <Pencil v-if="friend.ref?.statusDescription" class="h-3.5 w-3.5 mr-1" style="opacity: 0.7" />
-                {{ friend.ref?.statusDescription || '&nbsp;' }}
-            </div>
-            <div v-if="displayInstanceInfo" @click.stop class="friend-card__world" :title="friend.worldName">
-                <Location
-                    class="friend-card__location"
-                    :location="friend.ref?.location"
-                    :traveling="friend.ref?.travelingToLocation"
-                    link />
-            </div>
-        </div>
-    </Card>
+    <ContextMenu>
+        <ContextMenuTrigger as-child>
+            <Card class="friend-card p-0 gap-0" :style="cardStyle" @click="showUserDialog(friend.id)">
+                <div class="friend-card__header">
+                    <div>
+                        <Avatar
+                            class="friend-card__avatar"
+                            :style="{ width: `${avatarSize}px`, height: `${avatarSize}px` }">
+                            <AvatarImage :src="userImage(friend.ref, true)" />
+                            <AvatarFallback>{{ avatarFallback }}</AvatarFallback>
+                        </Avatar>
+                    </div>
+                    <span class="friend-card__status-dot rounded-full" :class="statusDotClass"></span>
+                    <div class="friend-card__name ml-0.5" :title="friend.name">{{ friend.name }}</div>
+                </div>
+                <div class="friend-card__body">
+                    <div class="friend-card__signature ml-1" :title="friend.ref?.statusDescription">
+                        <Pencil v-if="friend.ref?.statusDescription" class="h-3.5 w-3.5 mr-1" style="opacity: 0.7" />
+                        {{ friend.ref?.statusDescription || '&nbsp;' }}
+                    </div>
+                    <div v-if="displayInstanceInfo" @click.stop class="friend-card__world" :title="friend.worldName">
+                        <Location
+                            class="friend-card__location"
+                            :location="friend.ref?.location"
+                            :traveling="friend.ref?.travelingToLocation"
+                            link />
+                    </div>
+                </div>
+            </Card>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+            <ContextMenuItem v-if="friend.state === 'online'" @click="friendRequestInvite">
+                {{ t('dialog.user.actions.request_invite') }}
+            </ContextMenuItem>
+            <ContextMenuItem v-if="isGameRunning" :disabled="!canInviteToMyLocation" @click="friendInvite">
+                {{ t('dialog.user.actions.invite') }}
+            </ContextMenuItem>
+            <ContextMenuItem :disabled="!currentUser?.isBoopingEnabled" @click="friendSendBoop">
+                {{ t('dialog.user.actions.send_boop') }}
+            </ContextMenuItem>
+            <ContextMenuSeparator v-if="friend.state === 'online' && hasFriendLocation" />
+            <ContextMenuItem
+                v-if="friend.state === 'online' && hasFriendLocation"
+                :disabled="!canJoinFriend"
+                @click="friendJoin">
+                {{ t('dialog.user.info.launch_invite_tooltip') }}
+            </ContextMenuItem>
+            <ContextMenuItem
+                v-if="friend.state === 'online' && hasFriendLocation"
+                :disabled="!canJoinFriend"
+                @click="friendInviteSelf">
+                {{ t('dialog.user.info.self_invite_tooltip') }}
+            </ContextMenuItem>
+        </ContextMenuContent>
+    </ContextMenu>
 </template>
 
 <script setup>
+    import {
+        ContextMenu,
+        ContextMenuContent,
+        ContextMenuItem,
+        ContextMenuSeparator,
+        ContextMenuTrigger
+    } from '@/components/ui/context-menu';
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
     import { Card } from '@/components/ui/card';
     import { Pencil } from 'lucide-vue-next';
     import { computed } from 'vue';
+    import { storeToRefs } from 'pinia';
+    import { toast } from 'vue-sonner';
+    import { useI18n } from 'vue-i18n';
 
-    import { userImage, userStatusClass } from '../../../shared/utils';
-    import { useUserStore } from '../../../stores';
+    import { isRealInstance, parseLocation, userImage, userStatusClass } from '../../../shared/utils';
+    import { useGameStore, useLaunchStore, useLocationStore, useUserStore } from '../../../stores';
+    import { instanceRequest, notificationRequest, worldRequest } from '../../../api';
+    import { checkCanInvite, checkCanInviteSelf } from '../../../shared/utils/invite.js';
 
-    const { showUserDialog } = useUserStore();
+    import Location from '../../../components/Location.vue';
+
+    const { t } = useI18n();
+    const { showUserDialog, showSendBoopDialog } = useUserStore();
+    const launchStore = useLaunchStore();
+    const { lastLocation, lastLocationDestination } = storeToRefs(useLocationStore());
+    const { isGameRunning } = storeToRefs(useGameStore());
+    const { currentUser } = storeToRefs(useUserStore());
 
     const props = defineProps({
         friend: {
@@ -102,6 +151,86 @@
 
         return 'friend-card__status-dot--hidden';
     });
+
+    const canInviteToMyLocation = computed(() => checkCanInvite(lastLocation.value.location));
+
+    const hasFriendLocation = computed(() => {
+        const loc = props.friend.ref?.location;
+        return !!loc && isRealInstance(loc);
+    });
+
+    const canJoinFriend = computed(() => {
+        const loc = props.friend.ref?.location;
+        if (!loc || !isRealInstance(loc)) return false;
+        return checkCanInviteSelf(loc);
+    });
+
+    /**
+     *
+     */
+    function friendRequestInvite() {
+        notificationRequest.sendRequestInvite({ platform: 'standalonewindows' }, props.friend.id).then(() => {
+            toast.success('Request invite sent');
+        });
+    }
+
+    /**
+     *
+     */
+    function friendInvite() {
+        let currentLocation = lastLocation.value.location;
+        if (currentLocation === 'traveling') {
+            currentLocation = lastLocationDestination.value;
+        }
+        const L = parseLocation(currentLocation);
+        worldRequest.getCachedWorld({ worldId: L.worldId }).then((args) => {
+            notificationRequest
+                .sendInvite(
+                    {
+                        instanceId: L.tag,
+                        worldId: L.tag,
+                        worldName: args.ref.name
+                    },
+                    props.friend.id
+                )
+                .then(() => {
+                    toast.success(t('message.invite.sent'));
+                });
+        });
+    }
+
+    /**
+     *
+     */
+    function friendSendBoop() {
+        showSendBoopDialog(props.friend.id);
+    }
+
+    /**
+     *
+     */
+    function friendJoin() {
+        const loc = props.friend.ref?.location;
+        if (!loc) return;
+        launchStore.showLaunchDialog(loc);
+    }
+
+    /**
+     *
+     */
+    function friendInviteSelf() {
+        const loc = props.friend.ref?.location;
+        if (!loc) return;
+        const L = parseLocation(loc);
+        instanceRequest
+            .selfInvite({
+                instanceId: L.instanceId,
+                worldId: L.worldId
+            })
+            .then(() => {
+                toast.success(t('message.invite.self_sent'));
+            });
+    }
 </script>
 
 <style scoped>
@@ -111,17 +240,16 @@
         position: relative;
         display: grid;
         gap: calc(14px * var(--card-scale) * var(--card-spacing));
-        border-radius: 8px;
-        transition:
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        border-radius: var(--radius-lg);
+        transition: background-color 0.15s ease;
         width: 100%;
         max-width: var(--friend-card-target-width, 220px);
         min-width: var(--friend-card-min-width, 220px);
         box-sizing: border-box;
 
         &:hover {
-            transform: translateY(calc(-2px * var(--card-scale)));
+            background-color: var(--accent);
+            box-shadow: var(--shadow-sm);
         }
     }
 
@@ -138,7 +266,6 @@
         right: calc(8px * var(--card-scale));
         inline-size: calc(12px * var(--card-scale));
         block-size: calc(12px * var(--card-scale));
-        border-radius: 999px;
         pointer-events: none;
     }
 
@@ -147,51 +274,51 @@
     }
 
     .friend-card__status-dot--online {
-        background: #67c23a;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #67c23a 40%, transparent);
+        background: var(--status-online);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-online) 40%, transparent);
     }
 
     .friend-card__status-dot--active {
         background: transparent;
-        border: calc(2px * var(--card-scale)) solid #67c23a;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #67c23a 40%, transparent);
+        border: calc(2px * var(--card-scale)) solid var(--status-online);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-online) 40%, transparent);
     }
 
     .friend-card__status-dot--active-join {
         background: transparent;
-        border: calc(2px * var(--card-scale)) solid #00b8ff;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #00b8ff 40%, transparent);
+        border: calc(2px * var(--card-scale)) solid var(--status-joinme);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-joinme) 40%, transparent);
     }
 
     .friend-card__status-dot--active-ask {
         background: transparent;
-        border: calc(2px * var(--card-scale)) solid #ff9500;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #ff9500 40%, transparent);
+        border: calc(2px * var(--card-scale)) solid var(--status-askme);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-askme) 40%, transparent);
     }
 
     .friend-card__status-dot--active-busy {
         background: transparent;
-        border: calc(2px * var(--card-scale)) solid #ff2c2c;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #ff2c2c 40%, transparent);
+        border: calc(2px * var(--card-scale)) solid var(--status-busy);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-busy) 40%, transparent);
     }
 
     .friend-card__status-dot--join {
-        background: #00b8ff;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #00b8ff 40%, transparent);
+        background: var(--status-joinme);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-joinme) 40%, transparent);
     }
 
     .friend-card__status-dot--busy {
-        background: #ff2c2c;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #ff2c2c 40%, transparent);
+        background: var(--status-busy);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-busy) 40%, transparent);
     }
 
     .friend-card__status-dot--ask {
-        background: #ff9500;
-        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, #ff9500 40%, transparent);
+        background: var(--status-askme);
+        box-shadow: 0 0 calc(8px * var(--card-scale)) color-mix(in oklch, var(--status-askme) 40%, transparent);
     }
 
     .friend-card__status-dot--offline {
-        background: #737f8d;
+        background: var(--status-offline-card);
     }
 
     .friend-card__body {
@@ -209,7 +336,7 @@
     }
 
     .friend-card__signature {
-        margin-top: calc(6px * var(--card-spacing));
+        margin-top: calc(8px * var(--card-spacing));
         font-size: calc(13px * var(--card-scale));
         line-height: 1.4;
         overflow: hidden;
@@ -224,8 +351,8 @@
         align-items: center;
         justify-content: center;
         min-height: calc(40px * var(--card-scale));
-        padding: calc(6px * var(--card-scale)) calc(10px * var(--card-scale));
-        border-radius: calc(10px * var(--card-scale));
+        padding: calc(8px * var(--card-scale)) calc(8px * var(--card-scale));
+        border-radius: calc(var(--radius-lg) * var(--card-scale));
         font-size: calc(12px * var(--card-scale));
         line-height: 1.3;
         box-sizing: border-box;

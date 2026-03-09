@@ -57,8 +57,7 @@
                         v-model="notificationTable.filters[1].value"
                         :placeholder="t('view.notification.search_placeholder')"
                         clearable
-                        class="flex-[0.4]"
-                        style="margin: 0 10px" />
+                        class="flex-[0.4] my-0 mx-2" />
                     <TooltipWrapper side="bottom" :content="t('view.notification.refresh_tooltip')">
                         <Button
                             class="rounded-full"
@@ -139,6 +138,10 @@
         paginationHeight: 52
     });
 
+    /**
+     *
+     * @param row
+     */
     function getNotificationCreatedAt(row) {
         if (typeof row?.created_at === 'string' && row.created_at.length > 0) {
             return row.created_at;
@@ -149,6 +152,10 @@
         return '';
     }
 
+    /**
+     *
+     * @param row
+     */
     function getNotificationCreatedAtTs(row) {
         const createdAtRaw = row?.created_at ?? row?.createdAt;
         if (typeof createdAtRaw === 'number') {
@@ -222,11 +229,6 @@
     });
 
     const pageSizes = computed(() => appearanceSettingsStore.tablePageSizes);
-    const pageSize = computed(() =>
-        notificationTable.value.pageSizeLinked
-            ? appearanceSettingsStore.tablePageSize
-            : notificationTable.value.pageSize
-    );
 
     const { table, pagination } = useVrcxVueTable({
         persistKey: 'notifications',
@@ -238,7 +240,7 @@
         initialSorting: [{ id: 'created_at', desc: true }],
         initialPagination: {
             pageIndex: 0,
-            pageSize: pageSize.value
+            pageSize: appearanceSettingsStore.tablePageSize
         },
         tableOptions: {
             autoResetPageIndex: false
@@ -252,24 +254,12 @@
     });
 
     const handlePageSizeChange = (size) => {
-        if (notificationTable.value.pageSizeLinked) {
-            appearanceSettingsStore.setTablePageSize(size);
-        } else {
-            notificationTable.value.pageSize = size;
-        }
-    };
-
-    watch(pageSize, (size) => {
-        if (pagination.value.pageSize === size) {
-            return;
-        }
         pagination.value = {
             ...pagination.value,
             pageIndex: 0,
             pageSize: size
         };
-        table.setPageSize(size);
-    });
+    };
 
     const sendInviteResponseDialog = ref({
         messageSlot: {},
@@ -280,6 +270,9 @@
 
     const sendInviteRequestResponseDialogVisible = ref(false);
 
+    /**
+     *
+     */
     function saveTableFilters() {
         configRepository.setString(
             'VRCX_notificationTableFilters',
@@ -287,15 +280,27 @@
         );
     }
 
+    /**
+     *
+     * @param value
+     */
     function handleNotificationFilterChange(value) {
         notificationTable.value.filters[0].value = Array.isArray(value) ? value : [];
         saveTableFilters();
     }
 
+    /**
+     *
+     * @param url
+     */
     function getSmallThumbnailUrl(url) {
         return convertFileUrlToImageUrl(url);
     }
 
+    /**
+     *
+     * @param invite
+     */
     function showSendInviteResponseDialog(invite) {
         sendInviteResponseDialog.value.invite = invite;
         sendInviteResponseDialog.value.messageSlot = {};
@@ -304,6 +309,10 @@
         sendInviteResponseDialogVisible.value = true;
     }
 
+    /**
+     *
+     * @param invite
+     */
     function showSendInviteRequestResponseDialog(invite) {
         sendInviteResponseDialog.value.invite = invite;
         sendInviteResponseDialog.value.messageSlot = {};
@@ -312,17 +321,3 @@
         sendInviteRequestResponseDialogVisible.value = true;
     }
 </script>
-
-<style scoped>
-    .button-pd-0 {
-        padding: 0;
-    }
-
-    .notification-image {
-        flex: none;
-        height: 30px;
-        width: 30px;
-        border-radius: 4px;
-        object-fit: cover;
-    }
-</style>

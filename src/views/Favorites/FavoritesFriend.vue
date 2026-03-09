@@ -112,7 +112,8 @@
                                         v-for="group in favoriteFriendGroups"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
+                                            `group-item--${group.visibility}`,
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]"
                                         @click="handleGroupClick('remote', group.key)">
@@ -123,9 +124,11 @@
                                             >
                                         </div>
                                         <div class="group-item__bottom">
-                                            <Badge variant="outline">
-                                                {{ t(`view.favorite.visibility.${group.visibility}`) }}
-                                            </Badge>
+                                            <span class="group-item__visibility">
+                                                <span class="group-item__visibility-text">{{
+                                                    t(`view.favorite.visibility.${group.visibility}`)
+                                                }}</span>
+                                            </span>
                                             <DropdownMenu
                                                 :open="activeGroupMenu === remoteGroupMenuKey(group.key)"
                                                 @update:open="
@@ -200,7 +203,7 @@
                                         v-for="group in localFriendFavoriteGroups"
                                         :key="group"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             { 'is-active': !hasSearchInput && isGroupActive('local', group) }
                                         ]"
                                         @click="handleGroupClick('local', group)">
@@ -246,7 +249,7 @@
                                 </div>
                                 <div
                                     v-if="!isCreatingLocalGroup"
-                                    class="group-item group-item--new"
+                                    class="group-item hover:shadow-sm group-item--new"
                                     @click="startLocalGroupCreation">
                                     <Plus />
                                     <span>{{ t('view.favorite.worlds.new_group') }}</span>
@@ -380,7 +383,7 @@
                                         <div
                                             v-for="favorite in friendFavoriteSearchResults"
                                             :key="favorite.id"
-                                            class="favorites-search-card"
+                                            class="favorites-search-card hover:shadow-sm"
                                             @click="showUserDialog(favorite.id)">
                                             <div class="favorites-search-card__content">
                                                 <div class="favorites-search-card__avatar">
@@ -451,7 +454,6 @@
     import { useAppearanceSettingsStore, useFavoriteStore, useModalStore, useUserStore } from '../../stores';
     import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../components/ui/resizable';
     import { debounce, userImage } from '../../shared/utils';
-    import { Badge } from '../../components/ui/badge';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { favoriteRequest } from '../../api';
@@ -462,10 +464,10 @@
     import configRepository from '../../service/config.js';
 
     const friendGroupVisibilityOptions = ref(['public', 'friends', 'private']);
-    const friendGroupVisibilitColors = {
-        public: 'text-green-500 border-green-500',
-        friends: 'text-cyan-500 border-cyan-500',
-        private: 'text-red-500 border-red-500'
+    const friendGroupVisibilityDotColors = {
+        public: 'bg-green-500',
+        friends: 'bg-sky-500',
+        private: 'bg-red-500'
     };
 
     const friendSplitterSize = ref(260);
@@ -564,6 +566,10 @@
     const newLocalGroupName = ref('');
     const newLocalGroupInput = ref(null);
 
+    /**
+     *
+     * @param value
+     */
     function handleSortFavoritesChange(value) {
         const next = Boolean(value);
         if (next !== sortFavorites.value) {
@@ -582,11 +588,17 @@
         friendToolbarMenuOpen.value = false;
     };
 
+    /**
+     *
+     */
     function handleFriendImportClick() {
         closeFriendToolbarMenu();
         showFriendImportDialog();
     }
 
+    /**
+     *
+     */
     function handleFriendExportClick() {
         closeFriendToolbarMenu();
         showFriendExportDialog();
@@ -596,6 +608,9 @@
         loadFriendSplitterPreferences();
     });
 
+    /**
+     *
+     */
     async function loadFriendSplitterPreferences() {
         const storedSize = await configRepository.getString('VRCX_FavoritesFriendSplitter', '260');
         const parsedSize = Number(storedSize);
@@ -799,6 +814,10 @@
         }
     );
 
+    /**
+     *
+     * @param visibility
+     */
     function getBadgeVariant(visibility) {
         switch (visibility) {
             case 'public':
@@ -810,16 +829,27 @@
         }
     }
 
+    /**
+     *
+     */
     function showFriendExportDialog() {
         friendExportDialogVisible.value = true;
     }
 
+    /**
+     *
+     */
     function handleRefreshFavorites() {
         refreshFavorites();
         getLocalWorldFavorites();
         getLocalFriendFavorites();
     }
 
+    /**
+     *
+     * @param key
+     * @param visible
+     */
     function handleGroupMenuVisible(key, visible) {
         if (visible) {
             activeGroupMenu.value = key;
@@ -830,6 +860,9 @@
         }
     }
 
+    /**
+     *
+     */
     function ensureSelectedGroup() {
         if (selectedGroup.value && isGroupAvailable(selectedGroup.value)) {
             return;
@@ -837,6 +870,9 @@
         selectDefaultGroup();
     }
 
+    /**
+     *
+     */
     function selectDefaultGroup() {
         if (favoriteFriendGroups.value.length) {
             const nextGroup =
@@ -854,6 +890,10 @@
         clearSelectedFriends();
     }
 
+    /**
+     *
+     * @param group
+     */
     function isGroupAvailable(group) {
         if (!group) {
             return false;
@@ -867,6 +907,11 @@
         return false;
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function selectGroup(type, key) {
         if (selectedGroup.value?.type === type && selectedGroup.value?.key === key) {
             return;
@@ -875,10 +920,20 @@
         clearSelectedFriends();
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function isGroupActive(type, key) {
         return selectedGroup.value?.type === type && selectedGroup.value?.key === key;
     }
 
+    /**
+     *
+     * @param type
+     * @param key
+     */
     function handleGroupClick(type, key) {
         if (hasSearchInput.value) {
             friendFavoriteSearch.value = '';
@@ -887,6 +942,10 @@
         selectGroup(type, key);
     }
 
+    /**
+     *
+     * @param searchTerm
+     */
     function doSearchFriendFavorites(searchTerm) {
         const search = searchTerm.trim().toLowerCase();
         if (search.length < 3) {
@@ -904,6 +963,11 @@
     }
     const searchFriendFavorites = debounce(doSearchFriendFavorites, 200);
 
+    /**
+     *
+     * @param id
+     * @param value
+     */
     function toggleFriendSelection(id, value) {
         if (value) {
             if (!selectedFavoriteFriends.value.includes(id)) {
@@ -914,10 +978,16 @@
         }
     }
 
+    /**
+     *
+     */
     function clearSelectedFriends() {
         selectedFavoriteFriends.value = [];
     }
 
+    /**
+     *
+     */
     function toggleSelectAllFriends() {
         if (!activeRemoteGroup.value) {
             return;
@@ -929,6 +999,9 @@
         }
     }
 
+    /**
+     *
+     */
     function copySelectedFriends() {
         if (!selectedFavoriteFriends.value.length) {
             return;
@@ -938,6 +1011,9 @@
         showFriendImportDialog();
     }
 
+    /**
+     *
+     */
     function showFriendBulkUnfavoriteSelectionConfirm() {
         if (!selectedFavoriteFriends.value.length) {
             return;
@@ -952,6 +1028,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param ids
+     */
     function bulkUnfavoriteSelectedFriends(ids) {
         if (isLocalGroupSelected.value && activeLocalGroupName.value) {
             ids.forEach((id) => {
@@ -968,6 +1048,10 @@
         friendEditMode.value = false;
     }
 
+    /**
+     *
+     * @param ctx
+     */
     function clearFavoriteGroup(ctx) {
         modalStore
             .confirm({
@@ -985,21 +1069,38 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param group
+     * @param visibility
+     */
     function handleVisibilitySelection(group, visibility) {
         const menuKey = remoteGroupMenuKey(group.key);
         changeFriendGroupVisibility(group.name, visibility, menuKey);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteRename(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         changeFavoriteGroupName(group);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleRemoteClear(group) {
         handleGroupMenuVisible(remoteGroupMenuKey(group.key), false);
         clearFavoriteGroup(group);
     }
 
+    /**
+     *
+     * @param group
+     */
     function changeFavoriteGroupName(group) {
         const currentName = group.displayName || group.name;
         modalStore
@@ -1038,6 +1139,12 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param name
+     * @param visibility
+     * @param menuKey
+     */
     function changeFriendGroupVisibility(name, visibility, menuKey = null) {
         const params = {
             type: 'friend',
@@ -1060,6 +1167,10 @@
         });
     }
 
+    /**
+     *
+     * @param value
+     */
     function formatVisibility(value) {
         if (!value) {
             return '';
@@ -1067,6 +1178,9 @@
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    /**
+     *
+     */
     function startLocalGroupCreation() {
         isCreatingLocalGroup.value = true;
         newLocalGroupName.value = '';
@@ -1075,11 +1189,17 @@
         });
     }
 
+    /**
+     *
+     */
     function cancelLocalGroupCreation() {
         isCreatingLocalGroup.value = false;
         newLocalGroupName.value = '';
     }
 
+    /**
+     *
+     */
     function handleLocalGroupCreationConfirm() {
         const name = newLocalGroupName.value.trim();
         if (!name) {
@@ -1092,6 +1212,10 @@
         selectGroup('local', name);
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleLocalRename(group) {
         handleGroupMenuVisible(localGroupMenuKey(group), false);
         modalStore
@@ -1119,6 +1243,10 @@
             .catch(() => {});
     }
 
+    /**
+     *
+     * @param group
+     */
     function handleLocalDelete(group) {
         handleGroupMenuVisible(localGroupMenuKey(group), false);
         modalStore
@@ -1195,7 +1323,7 @@
     }
 
     .favorites-dropdown {
-        padding: 10px;
+        padding: 8px;
     }
 
     .group-section {
@@ -1220,19 +1348,15 @@
     }
 
     .group-item {
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
         border: 1px solid var(--border);
         padding: 8px;
         cursor: pointer;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
-        transition:
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        transition: background-color 0.15s ease;
     }
 
     .group-item:hover {
-        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
-        transform: translateY(-2px);
+        background-color: var(--accent);
     }
 
     .group-item__top {
@@ -1264,6 +1388,33 @@
         gap: 8px;
     }
 
+    .group-item__visibility {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .group-item__visibility-text {
+        font-size: 11px;
+        color: var(--muted-foreground);
+    }
+
+    .group-item__visibility-dot {
+        display: none;
+    }
+
+    .group-item--public {
+        border-left: 3px solid var(--visibility-public);
+    }
+
+    .group-item--friends {
+        border-left: 3px solid var(--visibility-friends);
+    }
+
+    .group-item--private {
+        border-left: 3px solid var(--visibility-private);
+    }
+
     .group-item.is-active {
     }
 
@@ -1278,7 +1429,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 14px;
     }
 
@@ -1386,22 +1537,17 @@
         align-items: center;
         box-sizing: border-box;
         border: 1px solid var(--border);
-        border-radius: calc(8px * var(--favorites-card-scale, 1));
-        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 10px);
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
+        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 8px);
         cursor: pointer;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
-        box-shadow: 0 0 6px rgba(15, 23, 42, 0.04);
+        transition: background-color 0.15s ease;
         width: 100%;
         min-width: var(--favorites-card-min-width, 240px);
         max-width: var(--favorites-card-target-width, 320px);
     }
 
     :deep(.favorites-search-card:hover) {
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
-        transform: translateY(calc(-2px * var(--favorites-card-scale, 1)));
+        background-color: var(--accent);
     }
 
     :deep(.favorites-search-card.is-selected) {
@@ -1410,7 +1556,7 @@
     :deep(.favorites-search-card__content) {
         display: flex;
         align-items: center;
-        gap: var(--favorites-card-content-gap, 10px);
+        gap: var(--favorites-card-content-gap, 8px);
         flex: 1;
         min-width: 0;
     }
@@ -1418,7 +1564,7 @@
     :deep(.favorites-search-card__avatar) {
         width: calc(48px * var(--favorites-card-scale, 1));
         height: calc(48px * var(--favorites-card-scale, 1));
-        border-radius: calc(6px * var(--favorites-card-scale, 1));
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -1464,7 +1610,7 @@
     :deep(.favorites-search-card__title) {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     :deep(.favorites-search-card__badges) {
@@ -1497,7 +1643,7 @@
 
     :deep(.favorites-search-card__action-group) {
         display: flex;
-        gap: var(--favorites-card-action-group-gap, 6px);
+        gap: var(--favorites-card-action-group-gap, 8px);
         width: 100%;
     }
 
@@ -1508,7 +1654,7 @@
     :deep(.favorites-search-card__action--checkbox) {
         align-items: center;
         justify-content: flex-end;
-        margin-right: var(--favorites-card-checkbox-margin, 10px);
+        margin-right: var(--favorites-card-checkbox-margin, 8px);
     }
 
     :deep(.favorites-search-card__action--checkbox [data-slot='checkbox']) {
@@ -1550,7 +1696,7 @@
         justify-content: space-between;
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .favorites-dropdown__control-value {

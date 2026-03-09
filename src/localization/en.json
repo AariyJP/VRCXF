@@ -56,6 +56,7 @@
         "whats_new": "What's New?",
         "update_available": "Update available",
         "update": "Update",
+        "mark_all_read": "Mark All as Read",
         "custom_nav": {
             "header": "Customize Navigation",
             "dialog_title": "Customize Navigation Menu",
@@ -76,7 +77,23 @@
         }
     },
     "side_panel": {
-        "search_placeholder": "Search Friend",
+        "search_placeholder": "Quick Search...",
+        "search_no_results": "No results found",
+        "search_min_chars": "Type at least 2 characters",
+        "search_categories": "Search for...",
+        "search_scope_all": "Name, memo & note",
+        "search_scope_own": "Own & favorites",
+        "search_scope_joined": "Own & joined",
+        "search_friends": "Friends",
+        "search_avatars": "Avatars",
+        "search_own_avatars": "Own Avatars",
+        "search_fav_avatars": "Favorite Avatars",
+        "search_worlds": "Worlds",
+        "search_own_worlds": "Own Worlds",
+        "search_fav_worlds": "Favorite Worlds",
+        "search_groups": "Groups",
+        "search_own_groups": "Own Groups",
+        "search_joined_groups": "Joined Groups",
         "search_result_active": "Offline",
         "search_result_offline": "Active",
         "search_result_more": "Search More:",
@@ -182,7 +199,9 @@
         },
         "my_avatars": {
             "filter": "Filter",
-            "clear_filters": "Clear All"
+            "clear_filters": "Clear All",
+            "table_view": "Table View",
+            "grid_view": "Grid View"
         },
         "search": {
             "search_placeholder": "Search",
@@ -644,6 +663,7 @@
                     "zoom": "Zoom",
                     "vrcplus_profile_icons": "VRCPlus Profile Icons",
                     "show_instance_id": "Show Instance Name",
+                    "show_status_bar": "Show Status Bar",
                     "age_gated_instances": "Age Gated Instances",
                     "nicknames": "Memo Nicknames",
                     "sort_favorite_by": "Sort Favorites by",
@@ -923,7 +943,7 @@
                     "app_launcher": {
                         "header": "App Launcher",
                         "folder": "Auto-Launch Folder",
-                        "folder_tooltip": "To auto-launch apps with VRChat, place shortcuts inside this folder, alteratively use the platform-specific subfolders",
+                        "folder_tooltip": "To auto-launch apps with VRChat, place shortcuts inside this folder, alteratively use the platform-specific subfolders, Steam app shortcuts are also supported",
                         "auto_close": "Auto close apps",
                         "run_process_once": "Open single instance of app"
                     },
@@ -1306,10 +1326,12 @@
                 "create_impostor": "Create Impostor",
                 "manage_tags": "Manage Tags",
                 "manage_tags_placeholder": "Add a tag...",
-                "manage_tags_hint": "Click a tag to change its color"
+                "manage_tags_hint": "Click a tag to change its color",
+                "view_details": "View Details"
             },
             "info": {
                 "header": "Info",
+                "name": "Name",
                 "id": "Avatar ID",
                 "id_tooltip": "Copy to clipboard",
                 "copy_id": "Copy ID",
@@ -1322,6 +1344,7 @@
                 "android_performance": "Android Performance",
                 "ios_performance": "iOS Performance",
                 "time_spent": "Time Spent",
+                "visibility": "Visibility",
                 "tags": "Tags",
                 "memo": "Memo",
                 "memo_placeholder": "Click to add a memo",
@@ -1713,6 +1736,17 @@
             "create_animated_emoji": "Animated Emoji Generator",
             "crop_image": "Confirm Upload"
         },
+        "image_crop": {
+            "rotate_left": "Rotate Left",
+            "rotate_right": "Rotate Right",
+            "flip_h": "Flip Horizontal",
+            "flip_v": "Flip Vertical",
+            "zoom_in": "Zoom In",
+            "zoom_out": "Zoom Out",
+            "mode_fit": "Switch to Fit Mode",
+            "mode_free": "Switch to Free Mode",
+            "reset": "Reset"
+        },
         "gallery_select": {
             "header": "Select Image",
             "gallery": "Photos",
@@ -1914,7 +1948,14 @@
             "selected_roles": "Selected Roles",
             "remove_roles": "Remove Roles",
             "add_roles": "Add Roles",
-            "export_logs": "Export Logs"
+            "export_logs": "Export Logs",
+            "export_bans": "Export Bans",
+            "import_bans": "Import Bans",
+            "import_bans_description": "Paste CSV or user IDs below. The userId column will be auto-detected from CSV headers, or all usr_ IDs will be extracted.",
+            "import_bans_warning": "Do not import too many at once. This is a sensitive operation actively monitored and enforced by the official, use at your own risk!",
+            "import_bans_placeholder": "Paste CSV or user IDs here (one per line)\nusr_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "import_bans_start": "Import & Ban",
+            "import_bans_clear_errors": "Clear Errors"
         },
         "group_post_edit": {
             "header": "Create/Edit Post",
@@ -2392,6 +2433,10 @@
         "traveling": "Traveling"
     },
     "table": {
+        "header_menu": {
+            "reset_all": "Reset All",
+            "lock_column_order": "Lock Column Order"
+        },
         "pagination": {
             "rows_per_page": "Rows per page",
             "first": "First",
@@ -2598,5 +2643,26 @@
         "back_to_top": "Back to top",
         "toggle_password": "Toggle password visibility",
         "clear_input": "Clear input"
+    },
+    "status_bar": {
+        "vrchat": "VRChat",
+        "vrchat_running": "VRChat is running",
+        "vrchat_stopped": "VRChat is not running",
+        "steamvr": "SteamVR",
+        "steamvr_running": "SteamVR is running",
+        "steamvr_stopped": "SteamVR is not running",
+        "proxy": "Proxy",
+        "ws_connected": "Connected",
+        "ws_disconnected": "Disconnected",
+        "ws_avg_per_minute": "{count} avg/min",
+        "zoom": "Zoom",
+        "zoom_tooltip": "Click to adjust zoom level",
+        "app_uptime": "Application uptime",
+        "app_uptime_short": "Uptime",
+        "clocks": "Clocks",
+        "clock": "Clock",
+        "clocks_label": "Clocks",
+        "clocks_none": "None",
+        "timezone": "Timezone"
     }
 }

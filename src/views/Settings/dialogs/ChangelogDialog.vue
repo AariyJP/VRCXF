@@ -11,6 +11,7 @@
                     <br />
                     Map1en:
                     <a class="cursor-pointer" @click="openExternalLink('https://ko-fi.com/map1en_')">Ko-fi</a>.
+                    <a class="cursor-pointer" @click="openExternalLink('https://ifdian.net/a/map1en_')">爱发电</a>
                     <br />
                     Natsumi:
                     <a class="cursor-pointer" @click="openExternalLink('https://ko-fi.com/natsumi_sama')">Ko-fi</a>,
@@ -19,12 +20,12 @@
                     >.
                 </span>
                 <VueShowdown
-                    class="changelog-markdown"
+                    class="changelog-markdown mt-2"
                     :markdown="changeLogDialog.changeLog"
                     flavor="github"
                     :options="showdownOptions"
                     @click="handleLinkClick"
-                    style="height: 62vh; overflow-y: auto; margin-top: 10px" />
+                    style="height: 62vh; overflow-y: auto" />
             </div>
             <DialogFooter>
                 <Button
@@ -76,10 +77,17 @@
         tasklists: true
     };
 
+    /**
+     *
+     */
     function closeDialog() {
         changeLogDialog.value.visible = false;
     }
 
+    /**
+     *
+     * @param event
+     */
     function handleLinkClick(event) {
         const target = event.target.closest('a');
         if (target && target.href) {
