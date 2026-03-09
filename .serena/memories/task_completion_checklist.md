@@ -1,225 +1,67 @@
 # Task Completion Checklist
 
-## Required Steps After Code Changes
+## After Code Changes
 
-### 1. Code Quality Check
+### Validate scope
 
-#### Linting
+- Confirm whether the change touched frontend only, .NET only, or both
+- If native/frontend boundaries changed, review both platform paths
+- If architecture changed materially, update `AGENTS.md`
+
+### Quality checks
+
+Run what is appropriate for the touched area:
+
 ```bash
-# Run ESLint
 npx eslint .
-
-# Fix auto-fixable issues
-npx eslint . --fix
-```
-
-#### Formatting
-```bash
-# Run Prettier (Check only)
-npx prettier --check .
-
-# Auto-format
-npx prettier --write .
-```
-
-### 2. Run Tests
-
-```bash
-# Run all tests (Vitest)
 npm test
-
-# Check coverage (if necessary)
-npm run test:coverage
-```
-
-### 3. Verify Build
-
-#### Frontend
-
-```bash
-# Windows build
 npm run prod
-
-# Linux build (for cross-platform compatibility)
 npm run prod-linux
 ```
 
-#### .NET (if necessary)
+Use targeted verification when the task is narrow, but do not claim checks you did not run.
+
+### Native verification
+
+When .NET or interop code changed, use the relevant builds:
 
 ```bash
-# Windows CEF version (MUST be --self-contained)
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
-
-# Electron version (macOS/Linux only)
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
+dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
 
-### 4. Verification in App
+### Cross-platform verification
 
-```bash
-# Verify behavior on development server
-npm run dev
+When adding/changing native APIs or shared UI behavior:
 
-# Or verify with Electron version
-npm run start-electron
-```
+- Check `WINDOWS` and `LINUX` branches
+- Confirm CEF and Electron paths still make sense
+- Verify `window.electron` usage is guarded where needed
+- Keep `src/plugin/interopApi.js`, `src/ipc-electron/interopApi.js`, and native surfaces aligned
 
-### 5. Git Operations
+### Data / schema verification
 
-```bash
-# Check status
-git status
-git diff
+When changing database behavior:
 
-# Staging
-git add .
+- Update schema/migration modules under `src/service/database/` as needed
+- Consider both existing DB migration and fresh DB creation paths
 
-# Commit (using meaningful messages)
-git commit -m "feat: description of new feature" 
-# OR
-git commit -m "fix: description of bug fix"
-# OR
-git commit -m "refactor: description of refactoring"
+### Query / cache verification
 
-# Push (if necessary)
-git push
-```
+When changing entity fetch/cache logic:
 
-## Cross-Platform Verification
+- Check whether the change belongs in `src/query/` rather than a store or component
+- Verify query invalidation / cache update paths if applicable
 
-When adding a new native API call:
+### Docs / conventions
 
-### 1. Add Shared API
-- Add the shared method in `Dotnet/AppApi/Common/`.
+- Do not add new explanatory code comments unless explicitly required
+- Do not modify localization JSON files unless the task is about translations
+- Update `AGENTS.md` or Serena memories when project structure/patterns changed
 
-### 2. Platform-specific Implementation
-- Windows: Implement in `Dotnet/AppApi/Cef/`.
-- macOS/Linux: Implement in `Dotnet/AppApi/Electron/`.
+### Git / delivery
 
-### 3. Frontend Branching
-- Branch using global constants `WINDOWS`/`LINUX`.
-- Refer to existing patterns:
-  - `src/plugin/interopApi.js`
-  - `src/service/webapi.js`
-
-### 4. Use of Electron-only APIs
-- If using `window.electron.*`, consider a fallback implementation for Windows (CEF).
-
-### 5. Build Verification
-- Confirm build success in both .csproj files:
-  ```bash
-  dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
-  dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
-  ```
-
-## i18n Verification
-
-When adding/changing text:
-
-### 1. Add Translation Keys
-- Add translations to each language file in `src/localization/` (14 languages).
-- At minimum, `en.json` and `ja.json` are required.
-
-### 2. Use i18n Helper
-```bash
-npm run localization
-```
-
-### 3. Verify Translations
-- Switch languages on the development server to check the display.
-
-## Database Schema Change Verification
-
-When modifying the schema:
-
-### 1. Add Migration
-- Add a migration in `src/service/database/tableAlter.js`.
-
-### 2. Update Table Definitions
-- Update the relevant files in `src/service/database/`.
-
-### 3. Verify Behavior
-- Test migrations on an existing database.
-- Test creation on a new database.
-
-## VRChat API Change Verification
-
-When adding/changing VRChat API endpoints:
-
-### 1. Update API Wrapper
-- Update the corresponding file in `src/api/`.
-
-### 2. Update Type Definitions
-- Update the corresponding file in `src/types/api/`.
-
-### 3. Verify Rate Limits
-- Confirm that VRChat API rate limits are not violated.
-
-## UI Component Addition Verification
-
-When adding new components:
-
-### 1. Use of shadcn-vue
-- Utilize existing components in `src/components/ui/` as much as possible.
-
-### 2. Styling
-- Use TailwindCSS 4.
-- Add custom CSS to `src/styles/globals.css` or `src/styles/themes/`.
-
-### 3. Responsive Compatibility
-- Check display on mobile, tablet, and desktop.
-
-## Performance Verification
-
-### 1. Bundle Size
-- Check the bundle size after build.
-- Use dynamic imports where necessary.
-
-### 2. Memory Leaks
-- Check memory usage during long-running sessions.
-- Confirm removal of unnecessary listeners or timers.
-
-### 3. WebSocket Connection
-- Verify stability of the WebSocket connection.
-- Confirm auto-reconnect works as expected.
-
-## Security Verification
-
-### 1. XSS Prevention
-- Properly escape user input.
-- Minimize the use of `v-html`.
-
-### 2. Authentication/Authorization
-- Check access control for authenticated pages.
-- Confirm proper token management.
-
-### 3. Dependency Vulnerabilities
-```bash
-npm audit
-npm audit fix
-```
-
-## Documentation Update
-
-### 1. No Code Comments
-- **DO NOT WRITE COMMENTS IN GENERATED CODE.**
-- Ensure no new comments were added during the task.
-
-### 2. AGENTS.md
-- Update `AGENTS.md` (Source of Truth) for significant changes.
-
-### 3. Type Definitions
-- Keep TypeScript type definitions (`src/types/`) up to date.
-
-## Final Checklist
-
-- [ ] No ESLint errors
-- [ ] Prettier formatted
-- [ ] All tests passed
-- [ ] Build successful (Both Windows and Linux)
-- [ ] Verification in app completed
-- [ ] Cross-platform compatibility confirmed (if applicable)
-- [ ] i18n compatibility confirmed (if applicable)
-- [ ] **Git Operations (🚨 Commit and Push must NOT be performed by the agent)**
-- [ ] No comments added to the code
-- [ ] Documentation updated (if necessary)
+- Inspect with `git status` / `git diff` when useful
+- Do not commit or push unless the user explicitly asks
+- Report clearly which checks were run and which were not run

@@ -1,191 +1,126 @@
 # Tech Stack and Architecture
 
-## Directory Structure
+## Frontend
 
-```
-VRCX/
-├── src/                    # Frontend (Vue 3)
-│   ├── app.js              # Entry point
-│   ├── App.vue             # Root component
-│   ├── index.html          # Main HTML
-│   ├── vr.html             # VR overlay HTML
-│   ├── vite.config.js      # Vite config
-│   ├── api/                # VRChat API Wrappers
-│   ├── components/         # UI Components
-│   │   ├── ui/             # shadcn-vue UI primitives 
-│   │   └── dialogs/        # Dialogs 
-│   ├── composables/        # Vue Composables
-│   ├── lib/                # Utilities
-│   ├── localization/       # i18n JSON 
-│   ├── plugin/             # Vue plugin initialization
-│   │   ├── router.js       # Route definitions
-│   │   ├── i18n.js         # vue-i18n config
-│   │   ├── interopApi.js   # .NET binding initialization
-│   │   ├── sentry.js       # Sentry initialization
-│   │   └── components.js   # Global component registration
-│   ├── service/            # Service layer
-│   │   ├── websocket.js    # VRChat WebSocket
-│   │   ├── request.js      # HTTP
-│   │   ├── webapi.js       # WebApiService
-│   │   ├── database.js     # DB operation centralization
-│   │   ├── database/       # DB schemas
-│   │   ├── config.js       # ConfigRepository
-│   │   ├── sqlite.js       # SQLite service
-│   │   └── appConfig.js    # AppDebug
-│   ├── shared/
-│   │   ├── constants/      # Constants
-│   │   └── utils/          # Utilities
-│   ├── stores/             # Pinia stores
-│   │   ├── index.js        # createGlobalStores()
-│   │   ├── auth.js         # Authentication
-│   │   ├── user.js         # User
-│   │   ├── friend.js       # Friend management
-│   │   ├── notification.js # Notifications
-│   │   └── settings/       # Settings stores
-│   ├── styles/             # Styles
-│   │   ├── globals.css     # TailwindCSS + CSS variables
-│   │   └── themes/         # Theme CSS 
-│   ├── types/              # TypeScript type definitions
-│   │   ├── globals.d.ts    # Global types
-│   │   └── api/            # API type definitions
-│   ├── views/              # Pages
-│   └── vr/                 # VR overlay UI
-├── src-electron/           # Electron Main (macOS/Linux only)
-│   ├── main.js             # Main process 
-│   ├── preload.js          # Preload
-│   ├── InteropApi.js       # .NET Interop
-│   └── offscreen.html      # VR overlay offscreen window
-├── Dotnet/                 # .NET Backend
-│   ├── Program.cs          # Entry point
-│   ├── AppApi/
-│   │   ├── Common/         # Cross-platform shared API 
-│   │   ├── Cef/            # CEF-specific API 
-│   │   └── Electron/       # Electron-specific API 
-│   ├── LogWatcher.cs       # VRChat log monitoring 
-│   ├── WebApi.cs           # Web API client
-│   ├── SQLite.cs           # Database
-│   ├── Discord.cs          # Discord Rich Presence
-│   ├── ProcessMonitor.cs   # VRChat process monitoring
-│   ├── ImageCache.cs       # Image cache
-│   ├── VRCXStorage.cs      # KV settings storage
-│   ├── Update.cs           # Auto-update
-│   ├── AssetBundleManager.cs # VRChat cache management
-│   ├── AutoAppLaunchManager.cs # Auto startup
-│   ├── StartupArgs.cs      # Startup argument parser
-│   ├── Overlay/            # VR overlay
-│   ├── ScreenshotMetadata/ # Screenshot metadata
-│   ├── IPC/                # IPC 
-│   ├── Cef/                # CEF browser 
-│   ├── DBMerger/           # DB merge tool
-│   ├── VRCX-Cef.csproj     # Windows CEF build (.NET 10, MUST be --self-contained)
-│   ├── VRCX-Electron.csproj # Electron x64 build (.NET 9)
-│   └── VRCX-Electron-arm64.csproj
-├── Installer/              # NSIS (installer.nsi)
-├── build-scripts/          # Build scripts
-└── .github/workflows/      # CI/CD
-```
+- Vue 3
+- Pinia
+- Vue Router (hash history)
+- Vite 7
+- TailwindCSS 4
+- shadcn-vue / reka-ui
+- vue-i18n
+- Vitest
+- @tanstack/vue-query
+- ECharts
+- Graphology + Sigma
+- vue-sonner
 
-## Routing (`src/plugin/router.js`)
+## Backend / Desktop
 
-- `/login` → Login (public)
-- `/` → MainLayout (requiresAuth)
-  - `/feed` (default)
-  - `/friends-locations`
-  - `/game-log`
-  - `/player-list`
-  - `/search`
-  - `/favorites/friends|worlds|avatars`
-  - `/social/friend-log|moderation|friend-list`
-  - `/notification`
-  - `/charts/instance|mutual` (lazy import)
-  - `/tools`
-  - `/tools/gallery|screenshot-metadata`
-  - `/settings`
+- C# / .NET 10 for `Dotnet/VRCX-Cef.csproj`
+- C# / .NET 9 for `Dotnet/VRCX-Electron.csproj` and `Dotnet/VRCX-Electron-arm64.csproj`
+- Electron 39 on macOS/Linux
+- CEF/CefSharp 144 on Windows
+- SQLite
+- node-api-dotnet
 
-Authentication Guard: Checks `watchState.isLoggedIn`, redirects to `/login` if unauthenticated.
+## Key Directories
 
-## Global Objects (window)
+- `src/api/`: VRChat API wrappers
+- `src/components/`: shared components and dialogs
+- `src/composables/`: Vue composables
+- `src/ipc-electron/`: Electron IPC helpers for renderer
+- `src/plugin/`: bootstrap plugins (`dayjs`, `i18n`, `interopApi`, `noty`, `router`, `sentry`, `ui`)
+- `src/public/`: static assets copied by Vite
+- `src/query/`: Vue Query client, keys, cache, query helpers
+- `src/service/`: request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState
+- `src/shared/`: constants and shared utilities
+- `src/stores/coordinators/`: flow orchestration layer
+- `src/stores/gameLog/`, `src/stores/notification/`: store submodules
+- `src/views/MyAvatars/`: My Avatars route
+- `src/styles/globals.css` + `src/app.css`: styling split
+- `src-electron/`: Electron main/preload/build helpers
+- `Dotnet/AppApi/Common|Cef|Electron/`: native API layers
 
-Bound via `CefSharp.BindObjectAsync` on Windows (CEF) and via `InteropApi` Proxy on Linux (Electron).
+## App Bootstrap
 
-Exposed Objects:
-- `AppApi`: App operations (DevTools, VR, zoom, notifications, clipboard, game launch/exit, registry, images, screenshots, updates, folder operations)
-- `VRCXStorage`: KV storage (Get/Set/Remove/GetAll/Flush/Save/Load/GetArray/SetArray/GetObject/SetObject)
-- `SQLite`: DB operations (Execute/ExecuteJson/ExecuteNonQuery)
-- `LogWatcher`: VRChat log (Get/SetDateTill/GetLogLines/Reset)
-- `Discord`: Rich Presence (SetAssets/SetActive)
-- `WebApi`: HTTP (ClearCookies/GetCookies/SetCookies/Execute/ExecuteJson)
-- `webApiService`: JS wrapper for WebApi (LINUX → ExecuteJson, WINDOWS → Execute)
+`src/app.js` currently initializes in this order:
 
-Type definitions: `src/types/globals.d.ts`
+1. `initPlugins()`
+2. `initPiniaPlugins()`
+3. `createApp(App)`
+4. install `pinia`, `i18n`, `VueQueryPlugin`
+5. `initComponents(app)`
+6. `initRouter(app)`
+7. `initSentry(app)`
+8. `app.mount('#root')`
 
-## Persistence of Settings
+## Root App Shell
 
-### ConfigRepository (`src/service/config.js`)
-- KV storage in SQLite `configs` table.
-- Keys use the `config:` prefix.
-- Examples: `VRCX_appLanguage`, `VRCX_ThemeMode`, `VRCX_lastDarkTheme`, `VRCX_fontFamily`, `VRCX_tablePageSize`, `VRCX_navPanelWidth`, etc.
+`src/App.vue` includes:
 
-### VRCXStorage
-- .NET-side KV (file-based).
+- `TooltipProvider`
+- `MacOSTitleBar`
+- `RouterView`
+- `Toaster`
+- `AlertDialogModal`
+- `PromptDialogModal`
+- `OtpDialogModal`
+- `VRCXUpdateDialog`
+- `#x-dialog-portal`
 
-## Database Schema (`src/service/database/`)
+## Routes
 
-Tables:
-- feed
-- gameLog
-- notifications
-- moderation
-- friendLogHistory
-- friendLogCurrent
-- memos
-- avatarFavorites
-- avatarTags
-- friendFavorites
-- worldFavorites
-- tableAlter (Migration)
-- tableFixes
-- tableSize
-- mutualGraph
+Main authenticated routes currently include:
 
-## Themes
+- `/feed`
+- `/friends-locations`
+- `/game-log`
+- `/player-list`
+- `/search`
+- `/favorites/friends`
+- `/favorites/worlds`
+- `/favorites/avatars`
+- `/social/friend-log`
+- `/social/moderation`
+- `/social/friend-list`
+- `/my-avatars`
+- `/notification`
+- `/charts/instance`
+- `/charts/mutual`
+- `/tools`
+- `/tools/gallery`
+- `/tools/screenshot-metadata`
+- `/settings`
 
-Themes: blue, green, midnight, orange, red, rednight, rose, violet, yellow.
-Theme modes: light / dark / system + color themes.
-CSS: `src/styles/themes/`.
+Router uses return-based guards and blocks `/social` itself.
 
-## Vue App Initialization Order
+## Globals
 
-1. `initPlugins` → `initPiniaPlugins`
-2. `createApp`
-3. `pinia`, `i18n`
-4. `initComponents`
-5. `initRouter`
-6. `initSentry`
-7. `mount('#root')`
+Typed in `src/types/globals.d.ts`:
 
-## Store Initialization
+- `AppApi`
+- `AppApiVr`
+- `WebApi`
+- `VRCXStorage`
+- `SQLite`
+- `LogWatcher`
+- `Discord`
+- `AssetBundleManager`
+- `webApiService`
+- `window.interopApi`
+- `window.electron`
+- `window.$pinia`
 
-1. All stores created in `createGlobalStores()`.
-2. Saved in `window.$pinia`.
-3. `updateLoop` starts in `onBeforeMount`.
-4. `gameLog/auth/vrcx/game` initialized in `onMounted`.
+## Persistence / Data
 
-## .NET Interop Pattern
+- Configs: `src/service/config.js`
+- Native KV storage: `VRCXStorage`
+- DB schema modules: `feed`, `gameLog`, `notifications`, `moderation`, `friendLogHistory`, `friendLogCurrent`, `memos`, `avatarFavorites`, `avatarTags`, `friendFavorites`, `worldFavorites`, `mutualGraph`, `tableAlter`, `tableFixes`, `tableSize`
 
-The Electron version uses the Proxy pattern via `window.interopApi.callDotNetMethod(className, methodName, args)`.
+## Styling / Assets
 
-## Preconnect Targets
-
-- api.vrchat.cloud
-- files.vrchat.cloud
-- d348imysud55la.cloudfront.net
-
-## i18n
-
-- Dynamic loading (Vite chunk splitting by language code).
-- Fonts are also chunk-split by language.
-
-## components.json
-
-shadcn-vue CLI configuration file.
+- TailwindCSS 4 + CSS variables
+- Themes in `src/styles/themes/`
+- Static assets in `src/public/`
+- Vite build target currently `chrome144`
