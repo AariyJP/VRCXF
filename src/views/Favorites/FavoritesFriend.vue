@@ -112,7 +112,7 @@
                                         v-for="group in favoriteFriendGroups"
                                         :key="group.key"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             `group-item--${group.visibility}`,
                                             { 'is-active': !hasSearchInput && isGroupActive('remote', group.key) }
                                         ]"
@@ -203,7 +203,7 @@
                                         v-for="group in localFriendFavoriteGroups"
                                         :key="group"
                                         :class="[
-                                            'group-item',
+                                            'group-item hover:shadow-sm',
                                             { 'is-active': !hasSearchInput && isGroupActive('local', group) }
                                         ]"
                                         @click="handleGroupClick('local', group)">
@@ -249,7 +249,7 @@
                                 </div>
                                 <div
                                     v-if="!isCreatingLocalGroup"
-                                    class="group-item group-item--new"
+                                    class="group-item hover:shadow-sm group-item--new"
                                     @click="startLocalGroupCreation">
                                     <Plus />
                                     <span>{{ t('view.favorite.worlds.new_group') }}</span>
@@ -383,7 +383,7 @@
                                         <div
                                             v-for="favorite in friendFavoriteSearchResults"
                                             :key="favorite.id"
-                                            class="favorites-search-card"
+                                            class="favorites-search-card hover:shadow-sm"
                                             @click="showUserDialog(favorite.id)">
                                             <div class="favorites-search-card__content">
                                                 <div class="favorites-search-card__avatar">
@@ -1323,7 +1323,7 @@
     }
 
     .favorites-dropdown {
-        padding: 10px;
+        padding: 8px;
     }
 
     .group-section {
@@ -1348,7 +1348,7 @@
     }
 
     .group-item {
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
         border: 1px solid var(--border);
         padding: 8px;
         cursor: pointer;
@@ -1357,9 +1357,6 @@
 
     .group-item:hover {
         background-color: var(--accent);
-        box-shadow:
-            0 4px 6px -1px rgb(0 0 0 / 0.1),
-            0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 
     .group-item__top {
@@ -1394,7 +1391,7 @@
     .group-item__visibility {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
     }
 
     .group-item__visibility-text {
@@ -1407,15 +1404,15 @@
     }
 
     .group-item--public {
-        border-left: 3px solid #22c55e;
+        border-left: 3px solid var(--visibility-public);
     }
 
     .group-item--friends {
-        border-left: 3px solid #0ea5e9;
+        border-left: 3px solid var(--visibility-friends);
     }
 
     .group-item--private {
-        border-left: 3px solid #ef4444;
+        border-left: 3px solid var(--visibility-private);
     }
 
     .group-item.is-active {
@@ -1432,7 +1429,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         font-size: 14px;
     }
 
@@ -1540,8 +1537,8 @@
         align-items: center;
         box-sizing: border-box;
         border: 1px solid var(--border);
-        border-radius: calc(8px * var(--favorites-card-scale, 1));
-        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 10px);
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
+        padding: var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 8px);
         cursor: pointer;
         transition: background-color 0.15s ease;
         width: 100%;
@@ -1551,9 +1548,6 @@
 
     :deep(.favorites-search-card:hover) {
         background-color: var(--accent);
-        box-shadow:
-            0 4px 6px -1px rgb(0 0 0 / 0.1),
-            0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 
     :deep(.favorites-search-card.is-selected) {
@@ -1562,7 +1556,7 @@
     :deep(.favorites-search-card__content) {
         display: flex;
         align-items: center;
-        gap: var(--favorites-card-content-gap, 10px);
+        gap: var(--favorites-card-content-gap, 8px);
         flex: 1;
         min-width: 0;
     }
@@ -1570,7 +1564,7 @@
     :deep(.favorites-search-card__avatar) {
         width: calc(48px * var(--favorites-card-scale, 1));
         height: calc(48px * var(--favorites-card-scale, 1));
-        border-radius: calc(6px * var(--favorites-card-scale, 1));
+        border-radius: calc(var(--radius-lg) * var(--favorites-card-scale, 1));
         overflow: hidden;
         flex-shrink: 0;
     }
@@ -1616,7 +1610,7 @@
     :deep(.favorites-search-card__title) {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     :deep(.favorites-search-card__badges) {
@@ -1649,7 +1643,7 @@
 
     :deep(.favorites-search-card__action-group) {
         display: flex;
-        gap: var(--favorites-card-action-group-gap, 6px);
+        gap: var(--favorites-card-action-group-gap, 8px);
         width: 100%;
     }
 
@@ -1660,7 +1654,7 @@
     :deep(.favorites-search-card__action--checkbox) {
         align-items: center;
         justify-content: flex-end;
-        margin-right: var(--favorites-card-checkbox-margin, 10px);
+        margin-right: var(--favorites-card-checkbox-margin, 8px);
     }
 
     :deep(.favorites-search-card__action--checkbox [data-slot='checkbox']) {
@@ -1702,7 +1696,7 @@
         justify-content: space-between;
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .favorites-dropdown__control-value {

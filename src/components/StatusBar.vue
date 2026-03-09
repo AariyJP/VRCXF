@@ -539,7 +539,7 @@
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 0 6px;
+        padding: 0 8px;
     }
 
     .status-bar-left {
@@ -561,7 +561,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 0 6px;
+        padding: 0 8px;
         height: 22px;
         white-space: nowrap;
         border-right: 1px solid var(--border);
@@ -593,11 +593,11 @@
     }
 
     .dot-green {
-        background: #67c23a;
+        background: var(--status-online);
     }
 
     .dot-gray {
-        background: #808080;
+        background: var(--status-offline-alt);
     }
 
     .status-label {
@@ -616,7 +616,7 @@
 
     .ws-sparkline {
         flex-shrink: 0;
-        border-radius: 2px;
+        border-radius: var(--radius-sm);
     }
 
     .status-bar-zoom-field {

@@ -13,14 +13,14 @@
                         v-if="!worldDialog.loading"
                         :src="worldDialog.ref.thumbnailImageUrl"
                         class="cursor-pointer"
-                        style="width: 160px; height: 120px; border-radius: 12px"
+                        style="width: 160px; height: 120px; border-radius: var(--radius-xl)"
                         @click="showFullscreenImageDialog(worldDialog.ref.imageUrl)"
                         loading="lazy" />
                 </div>
-                <div style="flex: 1; display: flex; align-items: flex-start; margin-left: 15px">
+                <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
                     <div style="flex: 1">
                         <div>
-                            <span class="font-bold" style="margin-right: 5px; cursor: pointer" @click="copyWorldName">
+                            <span class="font-bold mr-1.5" style="cursor: pointer" @click="copyWorldName">
                                 <Home
                                     v-if="
                                         currentUser.$homeLocation &&
@@ -30,7 +30,7 @@
                                 {{ worldDialog.ref.name }}
                             </span>
                         </div>
-                        <div style="margin-top: 5px">
+                        <div class="mt-1.5">
                             <span
                                 class="cursor-pointer x-grey"
                                 style="font-family: monospace"
@@ -38,30 +38,24 @@
                                 v-text="worldDialog.ref.authorName" />
                         </div>
                         <div>
-                            <Badge
-                                v-if="worldDialog.ref.$isLabs"
-                                variant="outline"
-                                style="margin-right: 5px; margin-top: 5px">
+                            <Badge class="mr-1.5 mt-1.5" v-if="worldDialog.ref.$isLabs" variant="outline">
                                 {{ t('dialog.world.tags.labs') }}
                             </Badge>
                             <Badge
+                                class="mr-1.5 mt-1.5"
                                 v-else-if="worldDialog.ref.releaseStatus === 'public'"
-                                variant="outline"
-                                style="margin-right: 5px; margin-top: 5px">
+                                variant="outline">
                                 {{ t('dialog.world.tags.public') }}
                             </Badge>
-                            <Badge v-else variant="outline" style="margin-right: 5px; margin-top: 5px">
+                            <Badge class="mr-1.5 mt-1.5" v-else variant="outline">
                                 {{ t('dialog.world.tags.private') }}
                             </Badge>
                             <TooltipWrapper v-if="worldDialog.isPC" side="top" content="PC">
-                                <Badge
-                                    class="x-tag-platform-pc"
-                                    variant="outline"
-                                    style="margin-right: 5px; margin-top: 5px">
-                                    <Monitor class="h-4 w-4 x-tag-platform-pc" />
+                                <Badge class="text-platform-pc border-platform-pc! mr-1.5 mt-1.5" variant="outline">
+                                    <Monitor class="h-4 w-4 text-platform-pc" />
                                     <span
                                         v-if="worldDialog.fileAnalysis.standalonewindows?._fileSize"
-                                        :class="['x-grey', 'x-tag-platform-pc', 'x-tag-border-left']">
+                                        class="x-grey text-platform-pc border-l-[0.8px] border-solid ml-1.5 pl-1.5 pb-px">
                                         {{ worldDialog.fileAnalysis.standalonewindows._fileSize }}
                                     </span>
                                 </Badge>
@@ -69,55 +63,41 @@
 
                             <TooltipWrapper v-if="worldDialog.isQuest" side="top" content="Quest">
                                 <Badge
-                                    class="x-tag-platform-quest"
-                                    variant="outline"
-                                    style="margin-right: 5px; margin-top: 5px">
-                                    <Smartphone class="h-4 w-4 x-tag-platform-quest" />
+                                    class="text-platform-quest border-platform-quest! mr-1.5 mt-1.5"
+                                    variant="outline">
+                                    <Smartphone class="h-4 w-4 text-platform-quest" />
                                     <span
                                         v-if="worldDialog.fileAnalysis.android?._fileSize"
-                                        :class="['x-grey', 'x-tag-platform-quest', 'x-tag-border-left']">
+                                        class="x-grey text-platform-quest border-l-[0.8px] border-solid ml-1.5 pl-1.5 pb-px">
                                         {{ worldDialog.fileAnalysis.android._fileSize }}
                                     </span>
                                 </Badge>
                             </TooltipWrapper>
 
                             <TooltipWrapper v-if="worldDialog.isIos" side="top" content="iOS">
-                                <Badge
-                                    class="text-[#8e8e93] border-[#8e8e93]"
-                                    variant="outline"
-                                    style="margin-right: 5px; margin-top: 5px">
-                                    <Apple class="h-4 w-4 text-[#8e8e93]" />
+                                <Badge class="text-platform-ios border-platform-ios mr-1.5 mt-1.5" variant="outline">
+                                    <Apple class="h-4 w-4 text-platform-ios" />
                                     <span
                                         v-if="worldDialog.fileAnalysis.ios?._fileSize"
-                                        :class="['x-grey', 'x-tag-border-left', 'text-[#8e8e93]', 'border-[#8e8e93]']">
+                                        class="x-grey text-platform-ios border-platform-ios border-l-[0.8px] border-solid ml-1.5 pl-1.5 pb-px">
                                         {{ worldDialog.fileAnalysis.ios._fileSize }}
                                     </span>
                                 </Badge>
                             </TooltipWrapper>
 
-                            <Badge
-                                v-if="worldDialog.avatarScalingDisabled"
-                                variant="outline"
-                                style="margin-right: 5px; margin-top: 5px">
+                            <Badge class="mr-1.5 mt-1.5" v-if="worldDialog.avatarScalingDisabled" variant="outline">
                                 {{ t('dialog.world.tags.avatar_scaling_disabled') }}
                             </Badge>
-                            <Badge
-                                v-if="worldDialog.focusViewDisabled"
-                                variant="outline"
-                                style="margin-right: 5px; margin-top: 5px">
+                            <Badge class="mr-1.5 mt-1.5" v-if="worldDialog.focusViewDisabled" variant="outline">
                                 {{ t('dialog.world.tags.focus_view_disabled') }}
                             </Badge>
-                            <Badge
-                                v-if="worldDialog.ref.unityPackageUrl"
-                                variant="outline"
-                                style="margin-right: 5px; margin-top: 5px">
+                            <Badge class="mr-1.5 mt-1.5" v-if="worldDialog.ref.unityPackageUrl" variant="outline">
                                 {{ t('dialog.world.tags.future_proofing') }}
                             </Badge>
                             <Badge
                                 v-if="worldDialog.inCache"
                                 variant="outline"
-                                class="cursor-pointer"
-                                style="margin-right: 5px; margin-top: 5px"
+                                class="cursor-pointer mr-1.5 mt-1.5"
                                 @click="openFolderGeneric(worldDialog.cachePath)">
                                 <span v-text="worldDialog.cacheSize" />
                                 | {{ t('dialog.world.tags.cache') }}
@@ -125,10 +105,7 @@
                         </div>
                         <div>
                             <template v-for="tag in worldDialog.ref.tags" :key="tag">
-                                <Badge
-                                    v-if="tag.startsWith('content_')"
-                                    variant="outline"
-                                    style="margin-right: 5px; margin-top: 5px">
+                                <Badge class="mr-1.5 mt-1.5" v-if="tag.startsWith('content_')" variant="outline">
                                     <span v-if="tag === 'content_horror'">
                                         {{ t('dialog.world.tags.content_horror') }}
                                     </span>
@@ -150,7 +127,7 @@
                                 </Badge>
                             </template>
                         </div>
-                        <div style="margin-top: 5px; display: flex; align-items: center">
+                        <div style="margin-top: 6px; display: flex; align-items: center">
                             <span
                                 v-show="worldDialog.ref.name !== worldDialog.ref.description"
                                 style="font-size: 12px; flex: 1; margin-right: 0.5em"
@@ -334,13 +311,13 @@
                     <div class="flex items-center text-sm">
                         <User />
                         {{ t('dialog.world.instances.public_count', { count: worldDialog.ref.publicOccupants }) }}
-                        <User style="margin-left: 10px" />
+                        <User style="margin-left: 8px" />
                         {{
                             t('dialog.world.instances.private_count', {
                                 count: worldDialog.ref.privateOccupants
                             })
                         }}
-                        <Check style="margin-left: 10px" />
+                        <Check style="margin-left: 8px" />
                         {{
                             t('dialog.world.instances.capacity_count', {
                                 count: worldDialog.ref.recommendedCapacity,
@@ -351,7 +328,7 @@
                     <div v-for="room in worldDialog.rooms" :key="room.id">
                         <template
                             v-if="isAgeGatedInstancesVisible || !(room.ageGate || room.location?.includes('~ageGate'))">
-                            <div style="margin: 5px 0">
+                            <div style="margin: 6px 0">
                                 <div class="flex items-center">
                                     <LocationWorld
                                         class="text-sm"
@@ -375,22 +352,27 @@
                                 </div>
                                 <div
                                     v-if="room.$location.userId || room.users.length"
-                                    class="x-friend-list"
-                                    style="margin: 10px 0; max-height: unset">
+                                    class="flex flex-wrap items-start"
+                                    style="margin: 8px 0; max-height: unset">
                                     <div
                                         v-if="room.$location.userId"
-                                        class="x-friend-item x-friend-item-border"
+                                        class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                         @click="showUserDialog(room.$location.userId)">
                                         <template v-if="room.$location.user">
-                                            <div class="avatar" :class="userStatusClass(room.$location.user)">
-                                                <img :src="userImage(room.$location.user, true)" loading="lazy" />
+                                            <div
+                                                class="relative inline-block flex-none size-9 mr-2.5"
+                                                :class="userStatusClass(room.$location.user)">
+                                                <img
+                                                    class="size-full rounded-full object-cover"
+                                                    :src="userImage(room.$location.user, true)"
+                                                    loading="lazy" />
                                             </div>
-                                            <div class="detail">
+                                            <div class="flex-1 overflow-hidden">
                                                 <span
-                                                    class="name"
+                                                    class="block truncate font-medium leading-[18px]"
                                                     :style="{ color: room.$location.user.$userColour }"
                                                     v-text="room.$location.user.displayName" />
-                                                <span class="extra">
+                                                <span class="block truncate text-xs">
                                                     {{ t('dialog.world.instances.instance_creator') }}
                                                 </span>
                                             </div>
@@ -400,21 +382,26 @@
                                     <div
                                         v-for="user in room.users"
                                         :key="user.id"
-                                        class="x-friend-item x-friend-item-border"
+                                        class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
                                         @click="showUserDialog(user.id)">
-                                        <div class="avatar" :class="userStatusClass(user)">
-                                            <img :src="userImage(user, true)" loading="lazy" />
+                                        <div
+                                            class="relative inline-block flex-none size-9 mr-2.5"
+                                            :class="userStatusClass(user)">
+                                            <img
+                                                class="size-full rounded-full object-cover"
+                                                :src="userImage(user, true)"
+                                                loading="lazy" />
                                         </div>
-                                        <div class="detail">
+                                        <div class="flex-1 overflow-hidden">
                                             <span
-                                                class="name"
+                                                class="block truncate font-medium leading-[18px]"
                                                 :style="{ color: user.$userColour }"
                                                 v-text="user.displayName" />
-                                            <span v-if="user.location === 'traveling'" class="extra">
+                                            <span v-if="user.location === 'traveling'" class="block truncate text-xs">
                                                 <Spinner class="inline-block mr-1" />
                                                 <Timer :epoch="user.$travelingToTime" />
                                             </span>
-                                            <span v-else class="extra">
+                                            <span v-else class="block truncate text-xs">
                                                 <Timer :epoch="user.$location_at" />
                                             </span>
                                         </div>
@@ -425,15 +412,15 @@
                     </div>
                 </template>
                 <template #Info>
-                    <div class="x-friend-list" style="max-height: none">
-                        <div class="x-friend-item" style="width: 100%; cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                    <div class="flex flex-wrap items-start px-2.5" style="max-height: none">
+                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.memo') }}
                                 </span>
                                 <InputGroupTextareaField
                                     v-model="memo"
-                                    class="extra"
+                                    class="text-xs"
                                     :rows="2"
                                     :placeholder="t('dialog.world.info.memo_placeholder')"
                                     input-class="resize-none min-h-0"
@@ -441,12 +428,12 @@
                             </div>
                         </div>
                         <div style="width: 100%; display: flex">
-                            <div class="x-friend-item" style="width: 100%; cursor: default">
-                                <div class="detail">
-                                    <span class="name">
+                            <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                                <div class="flex-1 overflow-hidden">
+                                    <span class="block truncate font-medium leading-[18px]">
                                         {{ t('dialog.world.info.id') }}
                                     </span>
-                                    <span class="extra" style="display: inline">
+                                    <span class="block truncate text-xs" style="display: inline">
                                         {{ worldDialog.id }}
                                     </span>
                                     <TooltipWrapper side="top" :content="t('dialog.world.info.id_tooltip')">
@@ -478,101 +465,101 @@
                         </div>
                         <div
                             v-if="worldDialog.ref.previewYoutubeId"
-                            class="x-friend-item"
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer"
                             style="width: 350px"
                             @click="
                                 openExternalLink(`https://www.youtube.com/watch?v=${worldDialog.ref.previewYoutubeId}`)
                             ">
-                            <div class="detail">
-                                <span class="name">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.youtube_preview') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     https://www.youtube.com/watch?v={{ worldDialog.ref.previewYoutubeId }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="width: 100%; cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.author_tags') }}
                                 </span>
                                 <span
                                     v-if="
                                         worldDialog.ref.tags?.filter((tag) => tag.startsWith('author_tag')).length > 0
                                     "
-                                    class="extra">
+                                    class="block truncate text-xs">
                                     {{ worldTags }}
                                 </span>
-                                <span v-else class="extra"> - </span>
+                                <span v-else class="block truncate text-xs"> - </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.players') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.occupants) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.favorites') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.favorites)
                                     }}<span
                                         v-if="worldDialog.ref?.favorites > 0 && worldDialog.ref?.visits > 0"
-                                        class="extra">
+                                        class="text-xs">
                                         ({{ favoriteRate }}%)
                                     </span>
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.visits') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.visits) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.capacity') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.recommendedCapacity) }} ({{
                                         commaNumber(worldDialog.ref.capacity)
                                     }})
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.created_at') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ formatDateFilter(worldDialog.ref.created_at, 'long') }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name" style="display: inline">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]" style="display: inline">
                                     {{ t('dialog.world.info.last_updated') }}
                                 </span>
                                 <TooltipWrapper
                                     v-if="Object.keys(worldDialog.fileAnalysis).length"
                                     side="top"
-                                    style="margin-left: 5px">
+                                    style="margin-left: 6px">
                                     <template #content>
                                         <template
                                             v-for="(created_at, platform) in worldDialogPlatformCreatedAt"
@@ -585,33 +572,31 @@
                                     </template>
                                     <ChevronDown class="inline-block" />
                                 </TooltipWrapper>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ formatDateFilter(worldDialog.ref.updated_at, 'long') }}
                                 </span>
                             </div>
                         </div>
                         <div
                             v-if="worldDialog.ref.labsPublicationDate !== 'none'"
-                            class="x-friend-item"
-                            style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.labs_publication_date') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ formatDateFilter(worldDialog.ref.labsPublicationDate, 'long') }}
                                 </span>
                             </div>
                         </div>
                         <div
                             v-if="worldDialog.ref.publicationDate !== 'none'"
-                            class="x-friend-item"
-                            style="cursor: default">
-                            <div class="detail">
-                                <span class="name" style="display: inline">
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]" style="display: inline">
                                     {{ t('dialog.world.info.publication_date') }}
                                 </span>
-                                <TooltipWrapper v-if="isTimeInLabVisible" side="top" style="margin-left: 5px">
+                                <TooltipWrapper v-if="isTimeInLabVisible" side="top" style="margin-left: 6px">
                                     <template #content>
                                         <span>
                                             {{ t('dialog.world.info.time_in_labs') }}
@@ -620,62 +605,68 @@
                                     </template>
                                     <ChevronDown class="inline-block" />
                                 </TooltipWrapper>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ formatDateFilter(worldDialog.ref.publicationDate, 'long') }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.version') }}
                                 </span>
-                                <span class="extra" v-text="worldDialog.ref.version" />
+                                <span class="block truncate text-xs" v-text="worldDialog.ref.version" />
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.heat') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.heat) }} {{ '🔥'.repeat(worldDialog.ref.heat) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.popularity') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ commaNumber(worldDialog.ref.popularity) }}
                                     {{ '💖'.repeat(worldDialog.ref.popularity) }}
                                 </span>
                             </div>
                         </div>
-                        <div class="x-friend-item" style="width: 100%; cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.platform') }}
                                 </span>
-                                <span class="extra" style="white-space: normal">{{ worldDialogPlatform }}</span>
+                                <span class="block truncate text-xs" style="white-space: normal">{{
+                                    worldDialogPlatform
+                                }}</span>
                             </div>
                         </div>
 
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.last_visited') }}
                                 </span>
-                                <span class="extra">{{ formatDateFilter(worldDialog.lastVisit, 'long') }}</span>
+                                <span class="block truncate text-xs">{{
+                                    formatDateFilter(worldDialog.lastVisit, 'long')
+                                }}</span>
                             </div>
                         </div>
 
-                        <div class="x-friend-item" @click="showPreviousInstancesListDialog(worldDialog.ref)">
-                            <div class="detail">
+                        <div
+                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+                            @click="showPreviousInstancesListDialog(worldDialog.ref)">
+                            <div class="flex-1 overflow-hidden">
                                 <div
-                                    class="name"
+                                    class="block truncate font-medium leading-[18px]"
                                     style="display: flex; justify-content: space-between; align-items: center">
                                     <div>
                                         {{ t('dialog.world.info.visit_count') }}
@@ -685,17 +676,17 @@
                                         <MoreHorizontal style="margin-right: 16px" />
                                     </TooltipWrapper>
                                 </div>
-                                <span v-if="worldDialog.visitCount === 0" class="extra">-</span>
-                                <span v-else class="extra" v-text="worldDialog.visitCount"></span>
+                                <span v-if="worldDialog.visitCount === 0" class="block truncate text-xs">-</span>
+                                <span v-else class="block truncate text-xs" v-text="worldDialog.visitCount"></span>
                             </div>
                         </div>
 
-                        <div class="x-friend-item" style="cursor: default">
-                            <div class="detail">
-                                <span class="name">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block truncate font-medium leading-[18px]">
                                     {{ t('dialog.world.info.time_spent') }}
                                 </span>
-                                <span class="extra">
+                                <span class="block truncate text-xs">
                                     {{ worldDialog.timeSpent === 0 ? ' - ' : timeSpent }}
                                 </span>
                             </div>

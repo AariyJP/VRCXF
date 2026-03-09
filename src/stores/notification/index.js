@@ -393,6 +393,24 @@ export const useNotificationStore = defineStore('Notification', () => {
     }
 
     /**
+     * @param {object} entry
+     */
+    function appendNotificationTableEntry(entry) {
+        notificationTable.value.data.push(entry);
+    }
+
+    /**
+     * @param {boolean} value
+     */
+    function setNotificationInitStatus(value) {
+        notificationInitStatus.value = value;
+    }
+
+    function clearUnseenNotifications() {
+        unseenNotifications.value = [];
+    }
+
+    /**
      *
      * @param notificationId
      */
@@ -1474,6 +1492,9 @@ export const useNotificationStore = defineStore('Notification', () => {
         isNotificationExpired,
         openNotificationLink,
         queueMarkAsSeen,
-        markAllAsSeen
+        markAllAsSeen,
+        appendNotificationTableEntry,
+        setNotificationInitStatus,
+        clearUnseenNotifications
     };
 });
