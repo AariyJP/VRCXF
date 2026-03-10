@@ -3,15 +3,13 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import Noty from 'noty';
-
 import {
     DEFAULT_MAX_TABLE_SIZE,
     DEFAULT_SEARCH_LIMIT,
     SEARCH_LIMIT_MAX,
     SEARCH_LIMIT_MIN
 } from '../shared/constants';
-import { avatarRequest, worldRequest } from '../api';
+import { avatarRequest, queryRequest } from '../api';
 import {
     clearPiniaActionTrail,
     getPiniaActionTrail
@@ -686,7 +684,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                     toast.error('Invalid local favorite world command');
                     break;
                 }
-                worldRequest.getCachedWorld({ worldId: id }).then(() => {
+                queryRequest.fetch('world', { worldId: id }).then(() => {
                     searchStore.directAccessWorld(id);
                     favoriteStore.addLocalWorldFavorite(id, group);
                 });
@@ -727,10 +725,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                     avatarStore
                         .selectAvatarWithoutConfirmation(avatarId)
                         .then(() => {
-                            new Noty({
-                                type: 'success',
-                                text: 'Avatar changed via launch command'
-                            }).show();
+                            toast.success('Avatar changed via launch command');
                         });
                     shouldFocusWindow = false;
                 }

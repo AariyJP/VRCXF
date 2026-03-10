@@ -1,7 +1,10 @@
 <template>
     <ContextMenu>
         <ContextMenuTrigger as-child>
-            <Card class="friend-card p-0 gap-0" :style="cardStyle" @click="showUserDialog(friend.id)">
+            <Card
+                class="friend-card x-hover-card p-0 gap-0 hover:bg-accent hover:shadow-sm"
+                :style="cardStyle"
+                @click="showUserDialog(friend.id)">
                 <div class="friend-card__header">
                     <div>
                         <Avatar
@@ -74,7 +77,7 @@
 
     import { isRealInstance, parseLocation, userImage, userStatusClass } from '../../../shared/utils';
     import { useGameStore, useLaunchStore, useLocationStore, useUserStore } from '../../../stores';
-    import { instanceRequest, notificationRequest, worldRequest } from '../../../api';
+    import { instanceRequest, notificationRequest, queryRequest } from '../../../api';
     import { checkCanInvite, checkCanInviteSelf } from '../../../shared/utils/invite.js';
 
     import Location from '../../../components/Location.vue';
@@ -183,7 +186,7 @@
             currentLocation = lastLocationDestination.value;
         }
         const L = parseLocation(currentLocation);
-        worldRequest.getCachedWorld({ worldId: L.worldId }).then((args) => {
+        queryRequest.fetch('world', { worldId: L.worldId }).then((args) => {
             notificationRequest
                 .sendInvite(
                     {
@@ -241,16 +244,10 @@
         display: grid;
         gap: calc(14px * var(--card-scale) * var(--card-spacing));
         border-radius: var(--radius-lg);
-        transition: background-color 0.15s ease;
         width: 100%;
         max-width: var(--friend-card-target-width, 220px);
         min-width: var(--friend-card-min-width, 220px);
         box-sizing: border-box;
-
-        &:hover {
-            background-color: var(--accent);
-            box-shadow: var(--shadow-sm);
-        }
     }
 
     .friend-card__header {

@@ -3,7 +3,6 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import Noty from 'noty';
 import dayjs from 'dayjs';
 
 import {
@@ -24,8 +23,7 @@ import {
     friendRequest,
     instanceRequest,
     notificationRequest,
-    userRequest,
-    worldRequest
+    queryRequest
 } from '../../api';
 import {
     getNotificationMessage,
@@ -217,7 +215,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                     // get instance name for invite
                     const L = parseLocation(ref.details.worldId);
                     if (L.isRealInstance) {
-                        instanceRequest.getCachedInstance({
+                        instanceRequest.getInstance({
                             worldId: L.worldId,
                             instanceId: L.instanceId
                         });
@@ -351,8 +349,8 @@ export const useNotificationStore = defineStore('Notification', () => {
         }
 
         const L = parseLocation(currentLocation);
-        worldRequest
-            .getCachedWorld({
+        queryRequest
+            .fetch('world', {
                 worldId: L.worldId
             })
             .then((args1) => {
@@ -369,13 +367,9 @@ export const useNotificationStore = defineStore('Notification', () => {
                     .then((_args) => {
                         const text = `Auto invite sent to ${ref.senderUsername}`;
                         if (AppDebug.errorNoty) {
-                            AppDebug.errorNoty.close();
+                            toast.dismiss(AppDebug.errorNoty);
                         }
-                        AppDebug.errorNoty = new Noty({
-                            type: 'info',
-                            text
-                        });
-                        AppDebug.errorNoty.show();
+                        AppDebug.errorNoty = toast.info(text);
                         console.log(text);
                         notificationRequest
                             .hideNotification({
@@ -406,6 +400,9 @@ export const useNotificationStore = defineStore('Notification', () => {
         notificationInitStatus.value = value;
     }
 
+    /**
+     *
+     */
     function clearUnseenNotifications() {
         unseenNotifications.value = [];
     }
@@ -1001,7 +998,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         displayOvrtNotification
     } = createOverlayDispatch({
         getUserIdFromNoty,
-        userRequest,
+        queryRequest,
         notificationsSettingsStore,
         advancedSettingsStore,
         appearanceSettingsStore
@@ -1290,8 +1287,8 @@ export const useNotificationStore = defineStore('Notification', () => {
                     currentLocation = userStore.currentUser?.$locationTag;
                 }
                 const L = parseLocation(currentLocation);
-                worldRequest
-                    .getCachedWorld({ worldId: L.worldId })
+                queryRequest
+                    .fetch('world', { worldId: L.worldId })
                     .then((args) => {
                         notificationRequest
                             .sendInvite(
@@ -1341,10 +1338,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                 console.log('Notification response', args);
                 if (!args.json) return;
                 handleNotificationV2Hide(notificationId);
-                new Noty({
-                    type: 'success',
-                    text: escapeTag(args.json)
-                }).show();
+                toast.success(escapeTag(args.json));
             })
             .catch(() => {
                 handleNotificationV2Hide(notificationId);

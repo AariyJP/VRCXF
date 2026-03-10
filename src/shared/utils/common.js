@@ -1,8 +1,6 @@
 import { storeToRefs } from 'pinia';
 import { toast } from 'vue-sonner';
 
-import Noty from 'noty';
-
 import {
     useAvatarStore,
     useInstanceStore,
@@ -21,7 +19,7 @@ import { AppDebug } from '../../service/appConfig.js';
 import { compareUnityVersion } from './avatar';
 import { getAvailablePlatforms } from './platformUtils';
 import { i18n } from '../../plugin/i18n';
-import { miscRequest } from '../../api';
+import { queryRequest } from '../../api';
 
 /**
  * @param {string} fileName
@@ -44,10 +42,7 @@ function downloadAndSaveJson(fileName, data) {
         link.click();
         document.body.removeChild(link);
     } catch {
-        new Noty({
-            type: 'error',
-            text: escapeTag('Failed to download JSON.')
-        }).show();
+        toast.error(escapeTag('Failed to download JSON.'));
     }
 }
 
@@ -268,7 +263,7 @@ async function getBundleDateSize(ref) {
         if (!fileId || !version) {
             continue;
         }
-        const args = await miscRequest.getFileAnalysis({
+        const args = await queryRequest.fetch('fileAnalysis', {
             fileId,
             version,
             variant

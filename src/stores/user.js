@@ -3,8 +3,6 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import Noty from 'noty';
-
 import {
     arraysMatch,
     compareByCreatedAt,
@@ -31,6 +29,7 @@ import {
     avatarRequest,
     groupRequest,
     instanceRequest,
+    queryRequest,
     userRequest
 } from '../api';
 import { processBulk, request } from '../service/request';
@@ -38,7 +37,7 @@ import { AppDebug } from '../service/appConfig';
 import { createUserEventCoordinator } from './coordinators/userEventCoordinator';
 import { createUserSessionCoordinator } from './coordinators/userSessionCoordinator';
 import { database } from '../service/database';
-import { patchUserFromEvent } from '../query';
+import { patchUserFromEvent } from '../queries';
 import { useAppearanceSettingsStore } from './settings/appearance';
 import { useAuthStore } from './auth';
 import { useAvatarStore } from './avatar';
@@ -717,8 +716,8 @@ export const useUserStore = defineStore('User', () => {
             });
         }
         AppApi.SendIpc('ShowUserDialog', userId);
-        userRequest
-            .getCachedUser({
+        queryRequest
+            .fetch('user', {
                 userId
             })
             .catch((err) => {
@@ -842,8 +841,8 @@ export const useUserStore = defineStore('User', () => {
                         });
                         if (!currentUser.value.hasSharedConnectionsOptOut) {
                             try {
-                                userRequest
-                                    .getMutualCounts({ userId })
+                                queryRequest
+                                    .fetch('mutualCounts', { userId })
                                     .then((args) => {
                                         if (args.params.userId === D.id) {
                                             D.mutualFriendCount =
@@ -869,8 +868,8 @@ export const useUserStore = defineStore('User', () => {
                                 }
                             });
                     }
-                    groupRequest
-                        .getRepresentedGroup({ userId })
+                    queryRequest
+                        .fetch('representedGroup', { userId })
                         .then((args1) => {
                             groupStore.handleGroupRepresented(args1);
                         });
@@ -1247,13 +1246,9 @@ export const useUserStore = defineStore('User', () => {
         userRequest.saveCurrentUser(params).then(() => {
             const text = `Status automatically changed to ${newStatus}`;
             if (AppDebug.errorNoty) {
-                AppDebug.errorNoty.close();
+                toast.dismiss(AppDebug.errorNoty);
             }
-            AppDebug.errorNoty = new Noty({
-                type: 'info',
-                text
-            });
-            AppDebug.errorNoty.show();
+            AppDebug.errorNoty = toast.info(text);
             console.log(text);
         });
     }

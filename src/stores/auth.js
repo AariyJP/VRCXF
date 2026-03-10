@@ -12,7 +12,7 @@ import { createAuthAutoLoginCoordinator } from './coordinators/authAutoLoginCoor
 import { createAuthCoordinator } from './coordinators/authCoordinator';
 import { database } from '../service/database';
 import { escapeTag } from '../shared/utils';
-import { queryClient } from '../query';
+import { queryClient } from '../queries';
 import { request } from '../service/request';
 import { useAdvancedSettingsStore } from './settings/advanced';
 import { useGeneralSettingsStore } from './settings/general';
@@ -240,18 +240,12 @@ export const useAuthStore = defineStore('Auth', () => {
                 await webApiService.clearCookies();
                 delete user.cookies;
                 relogin(user).then(() => {
-                    new Noty({
-                        type: 'success',
-                        text: t('message.auth.email_2fa_resent')
-                    }).show();
+                    toast.success(t('message.auth.email_2fa_resent'));
                 });
                 return;
             }
         }
-        new Noty({
-            type: 'error',
-            text: t('message.auth.email_2fa_no_credentials')
-        }).show();
+        toast.error(t('message.auth.email_2fa_no_credentials'));
     }
 
     /**
@@ -542,10 +536,7 @@ export const useAuthStore = defineStore('Auth', () => {
             'savedCredentials',
             JSON.stringify(savedCredentials)
         );
-        new Noty({
-            type: 'success',
-            text: t('message.auth.account_removed')
-        }).show();
+        toast.success(t('message.auth.account_removed'));
     }
 
     /**
@@ -909,27 +900,22 @@ export const useAuthStore = defineStore('Auth', () => {
         relogin,
         notifyAutoLoginSuccess: () => {
             if (AppDebug.errorNoty) {
-                AppDebug.errorNoty.close();
+                toast.dismiss(AppDebug.errorNoty);
             }
-            AppDebug.errorNoty = new Noty({
-                type: 'success',
-                text: t('message.auth.auto_login_success')
-            }).show();
+            AppDebug.errorNoty = toast.success(
+                t('message.auth.auto_login_success')
+            );
         },
         notifyAutoLoginFailed: () => {
             if (AppDebug.errorNoty) {
-                AppDebug.errorNoty.close();
+                toast.dismiss(AppDebug.errorNoty);
             }
-            AppDebug.errorNoty = new Noty({
-                type: 'error',
-                text: t('message.auth.auto_login_failed')
-            }).show();
+            AppDebug.errorNoty = toast.error(
+                t('message.auth.auto_login_failed')
+            );
         },
         notifyOffline: () => {
-            AppDebug.errorNoty = new Noty({
-                type: 'error',
-                text: t('message.auth.offline')
-            }).show();
+            AppDebug.errorNoty = toast.error(t('message.auth.offline'));
         },
         flashWindow: () => AppApi.FlashWindow(),
         isOnline: () => navigator.onLine,
