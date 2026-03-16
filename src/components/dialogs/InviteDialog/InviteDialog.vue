@@ -106,12 +106,14 @@
     import { useI18n } from 'vue-i18n';
 
     import { useFriendStore, useGalleryStore, useInviteStore, useModalStore, useUserStore } from '../../../stores';
-    import { parseLocation, userImage, userStatusClass } from '../../../shared/utils';
+    import { parseLocation } from '../../../shared/utils';
+    import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { instanceRequest, notificationRequest } from '../../../api';
     import { VirtualCombobox } from '../../ui/virtual-combobox';
 
     import SendInviteDialog from './SendInviteDialog.vue';
 
+    const { userImage, userStatusClass } = useUserDisplay();
     const { vipFriends, onlineFriends, activeFriends } = storeToRefs(useFriendStore());
     const { refreshInviteMessageTableData } = useInviteStore();
     const { currentUser } = storeToRefs(useUserStore());
@@ -136,6 +138,29 @@
         params: {}
     });
 
+    const friendSections = computed(() => [
+        {
+            key: 'friendsInInstance',
+            label: t('dialog.invite.friends_in_instance'),
+            friends: props.inviteDialog?.friendsInInstance ?? []
+        },
+        {
+            key: 'vip',
+            label: t('side_panel.favorite'),
+            friends: vipFriends.value
+        },
+        {
+            key: 'online',
+            label: t('side_panel.online'),
+            friends: onlineFriends.value
+        },
+        {
+            key: 'active',
+            label: t('side_panel.active'),
+            friends: activeFriends.value
+        }
+    ]);
+
     const userPickerGroups = computed(() => {
         const groups = [];
 
@@ -154,7 +179,7 @@
             });
         }
 
-        const addFriendGroup = (key, label, friends) => {
+        const addFriendGroup = ({ key, label, friends }) => {
             if (!friends?.length) return;
             groups.push({
                 key,
@@ -172,14 +197,7 @@
             });
         };
 
-        addFriendGroup(
-            'friendsInInstance',
-            t('dialog.invite.friends_in_instance'),
-            props.inviteDialog?.friendsInInstance
-        );
-        addFriendGroup('vip', t('side_panel.favorite'), vipFriends.value);
-        addFriendGroup('online', t('side_panel.online'), onlineFriends.value);
-        addFriendGroup('active', t('side_panel.active'), activeFriends.value);
+        friendSections.value.forEach(addFriendGroup);
 
         return groups;
     });
@@ -196,10 +214,11 @@
 
     const friendById = computed(() => {
         const map = new Map();
-        for (const friend of props.inviteDialog?.friendsInInstance ?? []) map.set(friend.id, friend);
-        for (const friend of vipFriends.value) map.set(friend.id, friend);
-        for (const friend of onlineFriends.value) map.set(friend.id, friend);
-        for (const friend of activeFriends.value) map.set(friend.id, friend);
+        for (const section of friendSections.value) {
+            for (const friend of section.friends ?? []) {
+                map.set(friend.id, friend);
+            }
+        }
         return map;
     });
 

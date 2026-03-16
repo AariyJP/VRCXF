@@ -42,6 +42,10 @@
                 <UserDialogAvatarsTab ref="avatarsTabRef" />
             </template>
 
+            <template v-if="userDialog.id !== currentUser.id" #Activity>
+                <UserDialogActivityTab ref="activityTabRef" />
+            </template>
+
             <template #JSON>
                 <DialogJsonTab
                     :tree-data="treeData"
@@ -70,7 +74,7 @@
 </template>
 
 <script setup>
-    import { computed, defineAsyncComponent, ref, watch } from 'vue';
+    import { computed, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
@@ -78,7 +82,6 @@
     import { useI18n } from 'vue-i18n';
 
     import {
-        useAvatarStore,
         useFavoriteStore,
         useFriendStore,
         useGalleryStore,
@@ -98,6 +101,7 @@
 
     import DialogJsonTab from '../DialogJsonTab.vue';
     import SendInviteDialog from '../InviteDialog/SendInviteDialog.vue';
+    import UserDialogActivityTab from './UserDialogActivityTab.vue';
     import UserDialogAvatarsTab from './UserDialogAvatarsTab.vue';
     import UserDialogFavoriteWorldsTab from './UserDialogFavoriteWorldsTab.vue';
     import UserDialogGroupsTab from './UserDialogGroupsTab.vue';
@@ -106,12 +110,12 @@
     import UserDialogWorldsTab from './UserDialogWorldsTab.vue';
     import UserSummaryHeader from './UserSummaryHeader.vue';
 
-    const BioDialog = defineAsyncComponent(() => import('./BioDialog.vue'));
-    const LanguageDialog = defineAsyncComponent(() => import('./LanguageDialog.vue'));
-    const PronounsDialog = defineAsyncComponent(() => import('./PronounsDialog.vue'));
-    const SendInviteRequestDialog = defineAsyncComponent(() => import('./SendInviteRequestDialog.vue'));
-    const SocialStatusDialog = defineAsyncComponent(() => import('./SocialStatusDialog.vue'));
-    const ModerateGroupDialog = defineAsyncComponent(() => import('../ModerateGroupDialog.vue'));
+    import BioDialog from './BioDialog.vue';
+    import LanguageDialog from './LanguageDialog.vue';
+    import ModerateGroupDialog from '../ModerateGroupDialog.vue';
+    import PronounsDialog from './PronounsDialog.vue';
+    import SendInviteRequestDialog from './SendInviteRequestDialog.vue';
+    import SocialStatusDialog from './SocialStatusDialog.vue';
 
     const { t } = useI18n();
     const userDialogTabs = computed(() => {
@@ -126,9 +130,15 @@
         if (userDialog.value.id !== currentUser.value.id && !currentUser.value.hasSharedConnectionsOptOut) {
             tabs.splice(1, 0, { value: 'mutual', label: t('dialog.user.mutual_friends.header') });
         }
+        if (userDialog.value.id !== currentUser.value.id) {
+            // Insert Activity before JSON
+            const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
+            tabs.splice(jsonIdx, 0, { value: 'Activity', label: t('dialog.user.activity.header') });
+        }
         return tabs;
     });
     const infoTabRef = ref(null);
+    const activityTabRef = ref(null);
     const favoriteWorldsTabRef = ref(null);
     const mutualFriendsTabRef = ref(null);
     const worldsTabRef = ref(null);
@@ -138,17 +148,18 @@
     const modalStore = useModalStore();
     const instanceStore = useInstanceStore();
 
-    const { userDialog, languageDialog, currentUser, isLocalUserVrcPlusSupporter } = storeToRefs(useUserStore());
-    const { cachedUsers, showUserDialog, refreshUserDialogAvatars, showSendBoopDialog } = useUserStore();
+    const { userDialog, languageDialog, currentUser } = storeToRefs(useUserStore());
+    const { cachedUsers, showSendBoopDialog } = useUserStore();
     const { showFavoriteDialog } = useFavoriteStore();
-    const { showAvatarDialog, showAvatarAuthorDialog } = useAvatarStore();
+    import { showAvatarDialog, showAvatarAuthorDialog } from '../../../coordinators/avatarCoordinator';
+    import { showUserDialog, refreshUserDialogAvatars } from '../../../coordinators/userCoordinator';
+    import { getFriendRequest, handleFriendDelete } from '../../../coordinators/friendRelationshipCoordinator';
 
-    const { showGroupDialog, showModerateGroupDialog } = useGroupStore();
+    const { showModerateGroupDialog } = useGroupStore();
     const { inviteGroupDialog } = storeToRefs(useGroupStore());
     const { lastLocation, lastLocationDestination } = storeToRefs(useLocationStore());
     const { refreshInviteMessageTableData } = useInviteStore();
     const { friendLogTable } = storeToRefs(useFriendStore());
-    const { getFriendRequest, handleFriendDelete } = useFriendStore();
     const { clearInviteImageUpload, showGalleryPage } = useGalleryStore();
 
     const { applyPlayerModeration, handlePlayerModerationDelete } = useModerationStore();
@@ -326,6 +337,8 @@
                 userDialogLastFavoriteWorld.value = userId;
                 favoriteWorldsTabRef.value?.getUserFavoriteWorlds(userId);
             }
+        } else if (tabName === 'Activity') {
+            activityTabRef.value?.loadOnlineFrequency(userId);
         } else if (tabName === 'JSON') {
             refreshUserDialogTreeData();
         }
@@ -335,7 +348,14 @@
      *
      */
     function loadLastActiveTab() {
-        handleUserDialogTab(userDialog.value.lastActiveTab);
+        let tab = userDialog.value.lastActiveTab;
+        // Activity tab is not available for own profile; fall back to Info
+        if (tab === 'Activity' && userDialog.value.id === currentUser.value.id) {
+            tab = 'Info';
+            userDialog.value.lastActiveTab = 'Info';
+            userDialog.value.activeTab = 'Info';
+        }
+        handleUserDialogTab(tab);
     }
 
     /**

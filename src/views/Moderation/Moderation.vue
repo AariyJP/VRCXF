@@ -58,6 +58,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { useAppearanceSettingsStore, useModalStore, useModerationStore, useVrcxStore } from '../../stores';
+    import { runRefreshPlayerModerationsFlow as refreshPlayerModerations } from '../../coordinators/moderationCoordinator';
     import { DataTableLayout } from '../../components/ui/data-table';
     import { createColumns } from './columns.jsx';
     import { moderationTypes } from '../../shared/constants';
@@ -65,11 +66,11 @@
     import { useDataTableScrollHeight } from '../../composables/useDataTableScrollHeight';
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
 
-    import configRepository from '../../service/config.js';
+    import configRepository from '../../services/config.js';
 
     const { t } = useI18n();
     const { playerModerationTable } = storeToRefs(useModerationStore());
-    const { refreshPlayerModerations, handlePlayerModerationDelete } = useModerationStore();
+    const { handlePlayerModerationDelete } = useModerationStore();
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const vrcxStore = useVrcxStore();
     const modalStore = useModalStore();
@@ -123,9 +124,7 @@
         const data = playerModerationTable.value.data;
         const typeFilter = playerModerationTable.value.filters?.[0]?.value ?? [];
         const searchFilter = playerModerationTable.value.filters?.[1]?.value ?? '';
-        const typeSet = Array.isArray(typeFilter)
-            ? new Set(typeFilter.map((value) => String(value).toLowerCase()))
-            : null;
+        const typeSet = Array.isArray(typeFilter) ? new Set(typeFilter.map((value) => String(value).toLowerCase())) : null;
         const searchValue = String(searchFilter).trim().toLowerCase();
 
         return data.filter((row) => {

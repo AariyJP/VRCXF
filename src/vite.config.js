@@ -45,21 +45,28 @@ function getManualChunk(moduleId) {
     const language = getAssetLanguage(moduleId);
     if (!language) return;
 
-    return `languages/${language}`;
+    return `i18n/${language}`;
 }
 
 const defaultAssetName = '[hash][extname]';
 
 /**
+ * @param {string} name
+ */
+function isFont(name) {
+    return /\.(woff2?|ttf|otf|eot)$/.test(name);
+}
+
+/**
  *
- * @param root0
- * @param root0.name
+ * @param {import('rolldown').PreRenderedAsset} assetInfo
  */
 function getAssetFilename({ name }) {
     const language = getAssetLanguage(name);
     if (!language) return `assets/${defaultAssetName}`;
 
-    return 'assets/languages/[name][extname]';
+    if (isFont(name)) return 'assets/fonts/[name][extname]';
+    return 'assets/i18n/[name][extname]';
 }
 
 export default defineConfig(({ mode }) => {
@@ -110,7 +117,6 @@ export default defineConfig(({ mode }) => {
             transformer: 'lightningcss',
             lightningcss: {
                 drafts: {
-                    nesting: true,
                     customMedia: true
                 },
                 errorRecovery: true,
@@ -151,8 +157,8 @@ export default defineConfig(({ mode }) => {
             reportCompressedSize: false,
             chunkSizeWarningLimit: 5000,
             sourcemap: buildAndUploadSourceMaps,
-            assetsInlineLimit: 0,
-            rollupOptions: {
+            assetsInlineLimit: 40960,
+            rolldownOptions: {
                 preserveEntrySignatures: false,
                 input: {
                     index: resolve(import.meta.dirname, './index.html'),

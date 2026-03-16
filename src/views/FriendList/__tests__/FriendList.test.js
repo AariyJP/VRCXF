@@ -40,9 +40,13 @@ mocks.pagination = mocks.makeRef({
 });
 mocks.sorting = mocks.makeRef([]);
 
-vi.mock('pinia', () => ({
-    storeToRefs: (store) => store
-}));
+vi.mock('pinia', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        storeToRefs: (store) => store
+    };
+});
 
 vi.mock('vue-i18n', () => ({
     useI18n: () => ({
@@ -66,9 +70,7 @@ vi.mock('../../../stores', () => ({
         friends: mocks.friends,
         allFavoriteFriendIds: mocks.allFavoriteFriendIds,
         getAllUserStats: mocks.getAllUserStats,
-        getAllUserMutualCount: mocks.getAllUserMutualCount,
-        confirmDeleteFriend: mocks.confirmDeleteFriend,
-        handleFriendDelete: mocks.handleFriendDelete
+        getAllUserMutualCount: mocks.getAllUserMutualCount
     }),
     useModalStore: () => ({
         confirm: (...args) => mocks.modalConfirm(...args),
@@ -78,9 +80,7 @@ vi.mock('../../../stores', () => ({
         stringComparer: mocks.stringComparer,
         friendsListSearch: mocks.friendsListSearch
     }),
-    useUserStore: () => ({
-        showUserDialog: (...args) => mocks.showUserDialog(...args)
-    }),
+    useUserStore: () => ({}),
     useAppearanceSettingsStore: () => ({
         tablePageSizes: [10, 25, 50],
         tablePageSize: 25,
@@ -91,7 +91,16 @@ vi.mock('../../../stores', () => ({
     })
 }));
 
-vi.mock('../../../plugin/router', () => ({
+vi.mock('../../../coordinators/userCoordinator', () => ({
+    showUserDialog: (...args) => mocks.showUserDialog(...args)
+}));
+
+vi.mock('../../../coordinators/friendRelationshipCoordinator', () => ({
+    confirmDeleteFriend: (...args) => mocks.confirmDeleteFriend(...args),
+    handleFriendDelete: (...args) => mocks.handleFriendDelete(...args)
+}));
+
+vi.mock('../../../plugins/router', () => ({
     router: {
         push: (...args) => mocks.routerPush(...args)
     }
@@ -106,14 +115,16 @@ vi.mock('../../../api', () => ({
     }
 }));
 
-vi.mock('../../../service/confusables', () => ({
+vi.mock('../../../services/confusables', () => ({
     default: (value) => value,
     removeWhitespace: (value) => String(value ?? '').replace(/\s+/g, '')
 }));
 
 vi.mock('../../../shared/utils', () => ({
     localeIncludes: (source, query) =>
-        String(source ?? '').toLowerCase().includes(String(query ?? '').toLowerCase())
+        String(source ?? '')
+            .toLowerCase()
+            .includes(String(query ?? '').toLowerCase())
 }));
 
 vi.mock('../../../composables/useDataTableScrollHeight', () => ({
@@ -132,7 +143,8 @@ vi.mock('../../../lib/table/useVrcxVueTable', () => ({
             getColumn: (id) =>
                 id === 'bulkSelect'
                     ? {
-                          toggleVisibility: (...args) => mocks.toggleBulkColumnVisibility(...args)
+                          toggleVisibility: (...args) =>
+                              mocks.toggleBulkColumnVisibility(...args)
                       }
                     : null
         },
@@ -251,7 +263,9 @@ function makeFriendCtx({ id, displayName, memo = '', dateJoined = null }) {
 }
 
 function clickButtonByText(wrapper, text) {
-    const button = wrapper.findAll('button').find((node) => node.text().trim() === text);
+    const button = wrapper
+        .findAll('button')
+        .find((node) => node.text().trim() === text);
     if (!button) {
         throw new Error(`Cannot find button with text: ${text}`);
     }
@@ -298,28 +312,49 @@ describe('FriendList.vue', () => {
 
         const wrapper = mount(FriendList);
         await flushAsync();
+        expect(mocks.getAllUserStats).toHaveBeenCalledTimes(1);
+        expect(mocks.getAllUserMutualCount).toHaveBeenCalledTimes(1);
 
         wrapper.vm.friendsListSearchFilterVIP = true;
         wrapper.vm.friendsListSearchChange();
         await nextTick();
 
-        expect(wrapper.vm.friendsListDisplayData.map((item) => item.id)).toEqual(['usr_1']);
-        expect(mocks.getAllUserStats).toHaveBeenCalled();
-        expect(mocks.getAllUserMutualCount).toHaveBeenCalled();
+        expect(
+            wrapper.vm.friendsListDisplayData.map((item) => item.id)
+        ).toEqual(['usr_1']);
+        expect(mocks.getAllUserStats).toHaveBeenCalledTimes(1);
+        expect(mocks.getAllUserMutualCount).toHaveBeenCalledTimes(1);
     });
 
     test('opens charts tab from toolbar button', async () => {
         const wrapper = mount(FriendList);
 
-        await clickButtonByText(wrapper, 'view.friend_list.load_mutual_friends');
+        await clickButtonByText(
+            wrapper,
+            'view.friend_list.load_mutual_friends'
+        );
 
         expect(mocks.routerPush).toHaveBeenCalledWith({ name: 'charts' });
     });
 
     test('loads missing user profiles and shows completion toast', async () => {
         mocks.friends.value = new Map([
-            ['usr_1', makeFriendCtx({ id: 'usr_1', displayName: 'Alice', dateJoined: null })],
-            ['usr_2', makeFriendCtx({ id: 'usr_2', displayName: 'Bob', dateJoined: '2020-01-01' })]
+            [
+                'usr_1',
+                makeFriendCtx({
+                    id: 'usr_1',
+                    displayName: 'Alice',
+                    dateJoined: null
+                })
+            ],
+            [
+                'usr_2',
+                makeFriendCtx({
+                    id: 'usr_2',
+                    displayName: 'Bob',
+                    dateJoined: '2020-01-01'
+                })
+            ]
         ]);
         const wrapper = mount(FriendList);
         await flushAsync();
@@ -329,7 +364,9 @@ describe('FriendList.vue', () => {
 
         expect(mocks.userGetUser).toHaveBeenCalledTimes(1);
         expect(mocks.userGetUser).toHaveBeenCalledWith({ userId: 'usr_1' });
-        expect(mocks.toastSuccess).toHaveBeenCalledWith('view.friend_list.load_complete');
+        expect(mocks.toastSuccess).toHaveBeenCalledWith(
+            'view.friend_list.load_complete'
+        );
     });
 
     test('select row emits lookup-user for id-less value and opens user dialog for id', () => {
@@ -338,7 +375,9 @@ describe('FriendList.vue', () => {
         wrapper.vm.selectFriendsListRow({ displayName: 'Unknown' });
         wrapper.vm.selectFriendsListRow({ id: 'usr_99', displayName: 'Known' });
 
-        expect(wrapper.emitted('lookup-user')?.[0]?.[0]).toEqual({ displayName: 'Unknown' });
+        expect(wrapper.emitted('lookup-user')?.[0]?.[0]).toEqual({
+            displayName: 'Unknown'
+        });
         expect(mocks.showUserDialog).toHaveBeenCalledWith('usr_99');
     });
 

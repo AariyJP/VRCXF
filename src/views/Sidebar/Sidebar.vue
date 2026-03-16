@@ -5,7 +5,7 @@
                 <button
                     type="button"
                     class="border-input dark:bg-input/30 flex h-9 w-full items-center gap-2 rounded-md border bg-transparent px-3 shadow-xs transition-[color,box-shadow] hover:border-ring cursor-pointer overflow-hidden"
-                    @click="openGlobalSearch">
+                    @click="openQuickSearch">
                     <Search class="size-4 shrink-0 opacity-50" />
                     <span class="search-text flex-1 min-w-0 text-left text-sm text-muted-foreground truncate">{{
                         t('side_panel.search_placeholder')
@@ -26,12 +26,12 @@
                         variant="ghost"
                         size="icon-sm"
                         :disabled="isRefreshFriendsLoading"
-                        @click="refreshFriendsList">
+                        @click="runRefreshFriendsListFlow">
                         <Spinner v-if="isRefreshFriendsLoading" />
                         <RefreshCw v-else />
                     </Button>
                 </TooltipWrapper>
-                <ContextMenu>
+                <ContextMenu v-if="hasUnseenNotifications">
                     <ContextMenuTrigger as-child>
                         <TooltipWrapper side="bottom" :content="t('side_panel.notification_center.title')">
                             <Button
@@ -41,17 +41,26 @@
                                 @click="isNotificationCenterOpen = !isNotificationCenterOpen">
                                 <Bell />
                                 <span
-                                    v-if="hasUnseenNotifications"
                                     class="absolute top-1 right-1.25 size-1.5 rounded-full bg-red-500" />
                             </Button>
                         </TooltipWrapper>
                     </ContextMenuTrigger>
                     <ContextMenuContent>
-                        <ContextMenuItem :disabled="!hasUnseenNotifications" @click="markNotificationsRead">
+                        <ContextMenuItem @click="markNotificationsRead">
                             {{ t('nav_menu.mark_all_read') }}
                         </ContextMenuItem>
                     </ContextMenuContent>
                 </ContextMenu>
+                <TooltipWrapper v-else side="bottom" :content="t('side_panel.notification_center.title')">
+                    <Button
+                        class="rounded-full relative"
+                        variant="ghost"
+                        size="icon-sm"
+                        @click="isNotificationCenterOpen = !isNotificationCenterOpen"
+                        @contextmenu.prevent="toast.info(t('side_panel.notification_center.no_unseen_notifications'))">
+                        <Bell />
+                    </Button>
+                </TooltipWrapper>
                 <Popover v-model:open="isSettingsPopoverOpen">
                     <PopoverTrigger as-child>
                         <Button class="rounded-full" variant="ghost" size="icon-sm">
@@ -71,6 +80,12 @@
                                 <Switch
                                     :model-value="isHideFriendsInSameInstance"
                                     @update:modelValue="setIsHideFriendsInSameInstance" />
+                            </Field>
+                            <Field v-if="isSidebarGroupByInstance" orientation="horizontal">
+                                <FieldLabel>{{ t('side_panel.settings.same_instance_above_favorites') }}</FieldLabel>
+                                <Switch
+                                    :model-value="isSameInstanceAboveFavorites"
+                                    @update:modelValue="setIsSameInstanceAboveFavorites" />
                             </Field>
                             <Field orientation="horizontal">
                                 <FieldLabel>{{ t('side_panel.settings.split_favorite_friends') }}</FieldLabel>
@@ -236,7 +251,7 @@
         </TabsUnderline>
         <NotificationCenterSheet />
         <GroupOrderSheet v-model:open="isGroupOrderSheetOpen" />
-        <GlobalSearchDialog />
+        <QuickSearchDialog />
     </div>
     <SocialStatusDialog
         :social-status-dialog="socialStatusDialog"
@@ -255,6 +270,7 @@
     } from '@/components/ui/select';
     import { computed, defineAsyncComponent, ref } from 'vue';
     import { Bell, RefreshCw, Search, Settings } from 'lucide-vue-next';
+    import { toast } from 'vue-sonner';
     import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
     import { Field, FieldContent, FieldLabel } from '@/components/ui/field';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -276,12 +292,13 @@
         useNotificationStore,
         useUserStore
     } from '../../stores';
+    import { runRefreshFriendsListFlow } from '../../coordinators/friendSyncCoordinator';
     import { normalizeFavoriteGroupsChange, resolveFavoriteGroups } from './sidebarSettingsUtils';
-    import { useGlobalSearchStore } from '../../stores/globalSearch';
+    import { useQuickSearchStore } from '../../stores/quickSearch';
     import { userStatusClass } from '../../shared/utils';
 
     import FriendsSidebar from './components/FriendsSidebar.vue';
-    import GlobalSearchDialog from '../../components/GlobalSearchDialog.vue';
+    import QuickSearchDialog from '../../components/QuickSearchDialog.vue';
     import GroupOrderSheet from './components/GroupOrderSheet.vue';
     import GroupsSidebar from './components/GroupsSidebar.vue';
     import NotificationCenterSheet from './components/NotificationCenterSheet.vue';
@@ -290,11 +307,10 @@
         () => import('@/components/dialogs/UserDialog/SocialStatusDialog.vue')
     );
     const { friends, isRefreshFriendsLoading, onlineFriendCount } = storeToRefs(useFriendStore());
-    const { refreshFriendsList } = useFriendStore();
     const { groupInstances } = storeToRefs(useGroupStore());
     const notificationStore = useNotificationStore();
     const { isNotificationCenterOpen, hasUnseenNotifications } = storeToRefs(notificationStore);
-    const globalSearchStore = useGlobalSearchStore();
+    const quickSearchStore = useQuickSearchStore();
     const { currentUser } = storeToRefs(useUserStore());
     const { t } = useI18n();
 
@@ -302,14 +318,14 @@
 
     // Keyboard shortcut: Ctrl+K (Windows) / ⌘K (Mac)
     const keys = useMagicKeys();
-    whenever(keys['Meta+k'], () => openGlobalSearch());
-    whenever(keys['Ctrl+k'], () => openGlobalSearch());
+    whenever(keys['Meta+k'], () => openQuickSearch());
+    whenever(keys['Ctrl+k'], () => openQuickSearch());
 
     /**
      *
      */
-    function openGlobalSearch() {
-        globalSearchStore.open();
+    function openQuickSearch() {
+        quickSearchStore.open();
     }
 
     /**
@@ -326,6 +342,7 @@
         sidebarSortMethod3,
         isSidebarGroupByInstance,
         isHideFriendsInSameInstance,
+        isSameInstanceAboveFavorites,
         isSidebarDivideByFriendGroup,
         sidebarFavoriteGroups
     } = storeToRefs(appearanceSettingsStore);
@@ -335,6 +352,7 @@
         setSidebarSortMethod3,
         setIsSidebarGroupByInstance,
         setIsHideFriendsInSameInstance,
+        setIsSameInstanceAboveFavorites,
         setIsSidebarDivideByFriendGroup,
         setSidebarFavoriteGroups
     } = appearanceSettingsStore;

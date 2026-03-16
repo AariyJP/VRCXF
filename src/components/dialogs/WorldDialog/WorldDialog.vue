@@ -10,12 +10,19 @@
             <div style="display: flex">
                 <div style="flex: none; width: 160px; height: 120px">
                     <img
-                        v-if="!worldDialog.loading"
+                        v-if="!worldDialog.loading && !imageError"
                         :src="worldDialog.ref.thumbnailImageUrl"
                         class="cursor-pointer"
                         style="width: 160px; height: 120px; border-radius: var(--radius-xl)"
                         @click="showFullscreenImageDialog(worldDialog.ref.imageUrl)"
+                        @error="imageError = true"
                         loading="lazy" />
+                    <div
+                        v-else-if="!worldDialog.loading"
+                        class="flex items-center justify-center bg-muted"
+                        style="width: 160px; height: 120px; border-radius: var(--radius-xl)">
+                        <Image class="size-8 text-muted-foreground" />
+                    </div>
                 </div>
                 <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
                     <div style="flex: 1">
@@ -374,7 +381,7 @@
         Upload,
         Wand2
     } from 'lucide-vue-next';
-    import { computed, defineAsyncComponent, ref, watch } from 'vue';
+    import { computed, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
     import { Spinner } from '@/components/ui/spinner';
@@ -395,6 +402,7 @@
         useUserStore,
         useWorldStore
     } from '../../../stores';
+    import { showWorldDialog } from '../../../coordinators/worldCoordinator';
     import {
         DropdownMenu,
         DropdownMenuContent,
@@ -405,23 +413,24 @@
     import { deleteVRChatCache, openFolderGeneric } from '../../../shared/utils';
     import { Badge } from '../../ui/badge';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { runNewInstanceSelfInviteFlow as newInstanceSelfInvite } from '../../../coordinators/inviteCoordinator';
     import { useWorldDialogCommands } from './useWorldDialogCommands';
 
     import DialogJsonTab from '../DialogJsonTab.vue';
     import ImageCropDialog from '../ImageCropDialog.vue';
     import WorldDialogInfoTab from './WorldDialogInfoTab.vue';
     import WorldDialogInstancesTab from './WorldDialogInstancesTab.vue';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
-    const SetWorldTagsDialog = defineAsyncComponent(() => import('./SetWorldTagsDialog.vue'));
-    const WorldAllowedDomainsDialog = defineAsyncComponent(() => import('./WorldAllowedDomainsDialog.vue'));
-    const NewInstanceDialog = defineAsyncComponent(() => import('../NewInstanceDialog.vue'));
+    import NewInstanceDialog from '../NewInstanceDialog/NewInstanceDialog.vue';
+    import SetWorldTagsDialog from './SetWorldTagsDialog.vue';
+    import WorldAllowedDomainsDialog from './WorldAllowedDomainsDialog.vue';
 
-    const { showUserDialog } = useUserStore();
     const { currentUser, userDialog } = storeToRefs(useUserStore());
     const { worldDialog } = storeToRefs(useWorldStore());
-    const { cachedWorlds, showWorldDialog } = useWorldStore();
+    const { cachedWorlds } = useWorldStore();
     const { lastLocation } = storeToRefs(useLocationStore());
-    const { newInstanceSelfInvite, canOpenInstanceInGame } = useInviteStore();
+    const { canOpenInstanceInGame } = useInviteStore();
     const { showFavoriteDialog } = useFavoriteStore();
     const { showPreviousInstancesListDialog: openPreviousInstancesListDialog } = useInstanceStore();
     const { isGameRunning } = storeToRefs(useGameStore());
@@ -478,6 +487,14 @@
     const treeData = ref({});
     const translatedDescription = ref('');
     const isTranslating = ref(false);
+    const imageError = ref(false);
+
+    watch(
+        () => worldDialog.value.id,
+        () => {
+            imageError.value = false;
+        }
+    );
 
     const isDialogVisible = computed({
         get() {

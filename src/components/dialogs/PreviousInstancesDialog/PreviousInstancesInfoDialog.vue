@@ -41,10 +41,10 @@
     import { DataTableLayout } from '../../ui/data-table';
     import { InputGroupField } from '../../../components/ui/input-group';
     import { createColumns } from './previousInstancesInfoColumns.jsx';
-    import { database } from '../../../service/database';
+    import { database } from '../../../services/database';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
+    import { lookupUser } from '../../../coordinators/userCoordinator';
 
-    const { lookupUser } = useUserStore();
     const { previousInstancesInfoDialog, previousInstancesInfoState } = storeToRefs(useInstanceStore());
     const { gameLogIsFriend, gameLogIsFavorite } = useGameLogStore();
     const { t } = useI18n();

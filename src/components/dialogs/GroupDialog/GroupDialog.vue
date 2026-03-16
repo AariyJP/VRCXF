@@ -10,12 +10,19 @@
             <div style="display: flex">
                 <div style="flex: none; width: 120px; height: 120px">
                     <img
-                        v-if="!groupDialog.loading"
+                        v-if="!groupDialog.loading && !imageError"
                         :src="groupDialog.ref.iconUrl"
                         style="width: 120px; height: 120px; border-radius: var(--radius-xl)"
                         class="cursor-pointer"
                         @click="showFullscreenImageDialog(groupDialog.ref.iconUrl)"
+                        @error="imageError = true"
                         loading="lazy" />
+                    <div
+                        v-else-if="!groupDialog.loading"
+                        class="flex items-center justify-center bg-muted"
+                        style="width: 120px; height: 120px; border-radius: var(--radius-xl)">
+                        <Image class="size-8 text-muted-foreground" />
+                    </div>
                 </div>
                 <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
                     <div class="group-header" style="flex: 1">
@@ -374,6 +381,7 @@
         Check,
         CheckCircle,
         Eye,
+        Image,
         MessageSquare,
         MoreHorizontal,
         RefreshCw,
@@ -407,6 +415,13 @@
         removeFromArray
     } from '../../../shared/utils';
     import { useGalleryStore, useGroupStore, useModalStore, useUserStore } from '../../../stores';
+    import {
+        getGroupDialogGroup,
+        showGroupDialog,
+        leaveGroupPrompt,
+        setGroupVisibility,
+        setGroupSubscription
+    } from '../../../coordinators/groupCoordinator';
     import { groupRequest, queryRequest } from '../../../api';
     import { queryKeys, refetchActiveEntityQuery } from '../../../queries';
     import { Badge } from '../../ui/badge';
@@ -419,6 +434,7 @@
     import GroupDialogPhotosTab from './GroupDialogPhotosTab.vue';
     import GroupDialogPostsTab from './GroupDialogPostsTab.vue';
     import GroupPostEditDialog from './GroupPostEditDialog.vue';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
     const { t } = useI18n();
     const groupDialogTabs = computed(() => [
@@ -431,18 +447,9 @@
 
     const modalStore = useModalStore();
 
-    const { showUserDialog } = useUserStore();
     const { currentUser } = storeToRefs(useUserStore());
     const { groupDialog, inviteGroupDialog } = storeToRefs(useGroupStore());
-    const {
-        getGroupDialogGroup,
-        updateGroupPostSearch,
-        showGroupDialog,
-        leaveGroupPrompt,
-        setGroupVisibility,
-        setGroupSubscription,
-        showGroupMemberModerationDialog
-    } = useGroupStore();
+    const { updateGroupPostSearch, showGroupMemberModerationDialog } = useGroupStore();
 
     const { showFullscreenImageDialog } = useGalleryStore();
 
@@ -470,6 +477,14 @@
 
     const groupDialogTabCurrentName = ref('0');
     const treeData = ref({});
+    const imageError = ref(false);
+
+    watch(
+        () => groupDialog.value.id,
+        () => {
+            imageError.value = false;
+        }
+    );
     const membersTabRef = ref(null);
     const photosTabRef = ref(null);
 
@@ -562,7 +577,8 @@
         modalStore
             .confirm({
                 description: t('confirm.delete_post'),
-                title: t('confirm.title')
+                title: t('confirm.title'),
+                destructive: true
             })
             .then(({ ok }) => {
                 if (!ok) return;
@@ -702,7 +718,7 @@
                 selectedImageUrl: post.imageUrl
             };
         }
-        queryRequest.fetch('group', { groupId }).then((args) => {
+        queryRequest.fetch('group.dialog', { groupId }).then((args) => {
             D.groupRef = args.ref;
         });
         D.visible = true;
