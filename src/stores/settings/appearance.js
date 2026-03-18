@@ -25,7 +25,7 @@ import {
 } from '../../shared/utils/base/ui';
 import { computeTrustLevel, getNameColour } from '../../shared/utils';
 import { database } from '../../services/database';
-import { languageCodes } from '../../localization';
+
 import { loadLocalizedStrings } from '../../plugins';
 import { useFeedStore } from '../feed';
 import { useGameLogStore } from '../gameLog';
@@ -109,12 +109,16 @@ export const useAppearanceSettingsStore = defineStore(
                 'friends-locations',
                 'friend-list',
                 'charts-instance',
-                'charts-mutual'
+                'charts-mutual',
+                'charts-hot-worlds'
             ].includes(currentRouteName);
         });
 
         const isDataTableStriped = ref(false);
         const showPointerOnHover = ref(false);
+        const accessibleStatusIndicators = ref(false);
+        const useOfficialStatusColors = ref(true);
+        const showNewDashboardButton = ref(true);
         const tableLimitsDialog = ref({
             visible: false,
             maxTableSize: 500,
@@ -174,6 +178,9 @@ export const useAppearanceSettingsStore = defineStore(
                 navIsCollapsedConfig,
                 dataTableStripedConfig,
                 showPointerOnHoverConfig,
+                accessibleStatusIndicatorsConfig,
+                useOfficialStatusColorsConfig,
+                showNewDashboardButtonConfig,
                 appFontFamilyConfig,
                 customFontFamilyConfig,
                 appCjkFontPackConfig,
@@ -243,6 +250,9 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getBool('VRCX_navIsCollapsed', false),
                 configRepository.getBool('VRCX_dataTableStriped', false),
                 configRepository.getBool('VRCX_showPointerOnHover', false),
+                configRepository.getBool('VRCX_accessibleStatusIndicators', false),
+                configRepository.getBool('VRCX_useOfficialStatusColors', true),
+                configRepository.getBool('VRCX_showNewDashboardButton', true),
                 configRepository.getString(
                     'VRCX_fontFamily',
                     APP_FONT_DEFAULT_KEY
@@ -258,19 +268,15 @@ export const useAppearanceSettingsStore = defineStore(
                 )
             ]);
 
-            if (!appLanguageConfig) {
-                const result = await AppApi.CurrentLanguage();
-
-                const lang = result.split('-')[0];
-
-                for (const ref of languageCodes) {
-                    const refLang = ref.split('_')[0];
-                    if (refLang === lang) {
-                        await changeAppLanguage(ref);
-                    }
-                }
-            } else {
+            if (appLanguageConfig) {
                 await changeAppLanguage(appLanguageConfig);
+            } else {
+                // First launch: load en in-memory only, do NOT persist.
+                // Login.vue detectAndPromptLanguage() will handle first-time language selection.
+                await loadLocalizedStrings('en');
+                appLanguage.value = 'en';
+                locale.value = 'en';
+                changeHtmlLangAttribute('en');
             }
 
             themeMode.value = initThemeMode;
@@ -362,8 +368,13 @@ export const useAppearanceSettingsStore = defineStore(
             isNavCollapsed.value = navIsCollapsedConfig;
             isDataTableStriped.value = dataTableStripedConfig;
             showPointerOnHover.value = showPointerOnHoverConfig;
+            accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
+            useOfficialStatusColors.value = useOfficialStatusColorsConfig;
+            showNewDashboardButton.value = showNewDashboardButtonConfig;
 
             applyPointerHoverClass();
+            applyAccessibleStatusClass();
+            applyOfficialStatusColorsClass();
 
             await configRepository.remove('VRCX_navWidth');
 
@@ -936,6 +947,65 @@ export const useAppearanceSettingsStore = defineStore(
         }
 
         /**
+         *
+         */
+        function applyAccessibleStatusClass() {
+            const classList = document.documentElement.classList;
+            classList.remove('accessible-status-indicators');
+
+            if (accessibleStatusIndicators.value) {
+                classList.add('accessible-status-indicators');
+            }
+        }
+
+        /**
+         *
+         */
+        function toggleAccessibleStatusIndicators() {
+            accessibleStatusIndicators.value = !accessibleStatusIndicators.value;
+            configRepository.setBool(
+                'VRCX_accessibleStatusIndicators',
+                accessibleStatusIndicators.value
+            );
+            applyAccessibleStatusClass();
+        }
+
+        /**
+         *
+         */
+        function applyOfficialStatusColorsClass() {
+            const classList = document.documentElement.classList;
+            classList.remove('vrcx-status-colors');
+
+            if (!useOfficialStatusColors.value) {
+                classList.add('vrcx-status-colors');
+            }
+        }
+
+        /**
+         *
+         */
+        function toggleOfficialStatusColors() {
+            useOfficialStatusColors.value = !useOfficialStatusColors.value;
+            configRepository.setBool(
+                'VRCX_useOfficialStatusColors',
+                useOfficialStatusColors.value
+            );
+            applyOfficialStatusColorsClass();
+        }
+
+        /**
+         *
+         */
+        function setShowNewDashboardButton() {
+            showNewDashboardButton.value = !showNewDashboardButton.value;
+            configRepository.setBool(
+                'VRCX_showNewDashboardButton',
+                showNewDashboardButton.value
+            );
+        }
+
+        /**
          * @param {object} color
          */
         function setTrustColor(color) {
@@ -1169,6 +1239,9 @@ export const useAppearanceSettingsStore = defineStore(
             isNavCollapsed,
             isDataTableStriped,
             showPointerOnHover,
+            accessibleStatusIndicators,
+            useOfficialStatusColors,
+            showNewDashboardButton,
             tableLimitsDialog,
             TABLE_MAX_SIZE_MIN,
             TABLE_MAX_SIZE_MAX,
@@ -1203,6 +1276,9 @@ export const useAppearanceSettingsStore = defineStore(
             setRandomUserColours,
             toggleStripedDataTable,
             togglePointerOnHover,
+            toggleAccessibleStatusIndicators,
+            toggleOfficialStatusColors,
+            setShowNewDashboardButton,
             setTableDensity,
             setTrustColor,
             tryInitUserColours,

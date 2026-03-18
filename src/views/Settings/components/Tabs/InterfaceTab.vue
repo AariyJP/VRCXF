@@ -132,9 +132,27 @@
             <SettingsItem :label="t('view.settings.appearance.appearance.toggle_pointer_on_hover')">
                 <Switch :model-value="showPointerOnHover" @update:modelValue="togglePointerOnHover" />
             </SettingsItem>
+
+            <SettingsItem
+                :label="t('view.settings.appearance.appearance.accessible_status_indicators')"
+                :description="t('view.settings.appearance.appearance.accessible_status_indicators_description')">
+                <Switch :model-value="accessibleStatusIndicators" @update:modelValue="toggleAccessibleStatusIndicators" />
+            </SettingsItem>
+
+            <SettingsItem
+                :label="t('view.settings.appearance.appearance.use_official_status_colors')"
+                :description="t('view.settings.appearance.appearance.use_official_status_colors_description')">
+                <Switch :model-value="useOfficialStatusColors" @update:modelValue="toggleOfficialStatusColors" />
+            </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.appearance.sorting_tables.header')">
+        <SettingsGroup :title="t('view.settings.interface.navigation.header')">
+            <SettingsItem :label="t('view.settings.interface.navigation.show_new_dashboard_button')">
+                <Switch :model-value="showNewDashboardButton" @update:modelValue="setShowNewDashboardButton" />
+            </SettingsItem>
+        </SettingsGroup>
+
+        <SettingsGroup :title="t('view.settings.interface.lists_tables.header')">
             <SettingsItem :label="t('view.settings.appearance.appearance.sort_favorite_by')">
                 <RadioGroup
                     :model-value="sortFavorites ? 'true' : 'false'"
@@ -222,7 +240,9 @@
                 </Popover>
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.appearance.appearance.table_entries_settings')">
+            <SettingsItem
+                :label="t('view.settings.appearance.appearance.table_entries_settings')"
+                :description="t('view.settings.appearance.appearance.table_entries_settings_description')">
                 <Button size="sm" variant="outline" @click="showTableLimitsDialog">{{
                     t('view.settings.appearance.appearance.table_entries_settings')
                 }}</Button>
@@ -257,37 +277,16 @@
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.appearance.user_dialog.header')">
-            <SettingsItem :label="t('view.settings.appearance.user_dialog.vrchat_notes')">
+            <SettingsItem
+                :label="t('view.settings.appearance.user_dialog.vrchat_notes')"
+                :description="t('view.settings.appearance.user_dialog.vrchat_notes_description')">
                 <Switch :model-value="!hideUserNotes" @update:modelValue="setHideUserNotes" />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.appearance.user_dialog.vrcx_memos')">
+            <SettingsItem
+                :label="t('view.settings.appearance.user_dialog.vrcx_memos')"
+                :description="t('view.settings.appearance.user_dialog.vrcx_memos_description')">
                 <Switch :model-value="!hideUserMemos" @update:modelValue="setHideUserMemos" />
-            </SettingsItem>
-
-            <SettingsItem
-                :label="t('view.settings.appearance.user_dialog.recent_action_cooldown')"
-                :description="t('view.settings.appearance.user_dialog.recent_action_cooldown_description')">
-                <Switch :model-value="recentActionCooldownEnabled" @update:modelValue="setRecentActionCooldownEnabled" />
-            </SettingsItem>
-
-            <SettingsItem
-                v-if="recentActionCooldownEnabled"
-                :label="t('view.settings.appearance.user_dialog.recent_action_cooldown_minutes')">
-                <NumberField
-                    :model-value="recentActionCooldownMinutes"
-                    :min="1"
-                    :max="1440"
-                    :step="1"
-                    :format-options="{ maximumFractionDigits: 0 }"
-                    class="w-32"
-                    @update:modelValue="setRecentActionCooldownMinutes">
-                    <NumberFieldContent>
-                        <NumberFieldDecrement />
-                        <NumberFieldInput />
-                        <NumberFieldIncrement />
-                    </NumberFieldContent>
-                </NumberField>
             </SettingsItem>
         </SettingsGroup>
 
@@ -360,7 +359,7 @@
     import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
     import { CheckIcon, ChevronDown } from 'lucide-vue-next';
-    import { useAppearanceSettingsStore, useFavoriteStore, useGeneralSettingsStore, useVrStore } from '@/stores';
+    import { useAppearanceSettingsStore, useFavoriteStore, useVrStore } from '@/stores';
     import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
     import { Switch } from '@/components/ui/switch';
     import { getLanguageName, languageCodes } from '@/localization';
@@ -380,7 +379,6 @@
     const { t } = useI18n();
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
-    const generalSettingsStore = useGeneralSettingsStore();
     const { saveOpenVROption, updateVRConfigVars } = useVrStore();
 
     const {
@@ -404,7 +402,10 @@
         notificationIconDot,
         tablePageSizes,
         isDataTableStriped,
-        showPointerOnHover
+        showPointerOnHover,
+        accessibleStatusIndicators,
+        useOfficialStatusColors,
+        showNewDashboardButton
     } = storeToRefs(appearanceSettingsStore);
 
     const appLanguageDisplayName = computed(() => getLanguageName(String(appLanguage.value)));
@@ -427,20 +428,15 @@
         setTablePageSizes,
         toggleStripedDataTable,
         togglePointerOnHover,
+        toggleAccessibleStatusIndicators,
+        toggleOfficialStatusColors,
+        setShowNewDashboardButton,
         setAppFontFamily,
         setCustomFontFamily,
         setAppCjkFontPack
     } = appearanceSettingsStore;
 
-    const {
-        recentActionCooldownEnabled,
-        recentActionCooldownMinutes
-    } = storeToRefs(generalSettingsStore);
 
-    const {
-        setRecentActionCooldownEnabled,
-        setRecentActionCooldownMinutes
-    } = generalSettingsStore;
 
     const trustColorEntries = [
         {

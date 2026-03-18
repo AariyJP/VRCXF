@@ -153,12 +153,18 @@
                                             v-if="item.row.friend.state === 'online'"
                                             @click="friendRequestInvite(item.row.friend)">
                                             {{ t('dialog.user.actions.request_invite') }}
+                                            <ContextMenuShortcut v-if="isActionRecent(item.row.friend.id, 'Request Invite')">
+                                                <Clock class="size-3.5 text-muted-foreground" />
+                                            </ContextMenuShortcut>
                                         </ContextMenuItem>
                                         <ContextMenuItem
                                             v-if="isGameRunning"
                                             :disabled="!canInviteToMyLocation"
                                             @click="friendInvite(item.row.friend)">
                                             {{ t('dialog.user.actions.invite') }}
+                                            <ContextMenuShortcut v-if="isActionRecent(item.row.friend.id, 'Invite')">
+                                                <Clock class="size-3.5 text-muted-foreground" />
+                                            </ContextMenuShortcut>
                                         </ContextMenuItem>
                                         <ContextMenuItem
                                             :disabled="!currentUser.isBoopingEnabled"
@@ -199,7 +205,7 @@
 
 <script setup>
     import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
-    import { ChevronDown, User } from 'lucide-vue-next';
+    import { ChevronDown, Clock, User } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
@@ -211,6 +217,7 @@
         ContextMenuContent,
         ContextMenuItem,
         ContextMenuSeparator,
+        ContextMenuShortcut,
         ContextMenuSub,
         ContextMenuSubContent,
         ContextMenuSubTrigger,
@@ -231,6 +238,7 @@
     import { getFriendsSortFunction, isRealInstance } from '../../../shared/utils';
     import { instanceRequest, notificationRequest, queryRequest, userRequest } from '../../../api';
     import { useInviteChecks } from '../../../composables/useInviteChecks';
+    import { isActionRecent, recordRecentAction } from '../../../composables/useRecentActions';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { getFriendsLocations } from '../../../shared/utils/location.js';
     import { parseLocation } from '../../../shared/utils';
@@ -799,6 +807,7 @@
      */
     function friendRequestInvite(friend) {
         notificationRequest.sendRequestInvite({ platform: 'standalonewindows' }, friend.id).then(() => {
+            recordRecentAction(friend.id, 'Request Invite');
             toast.success('Request invite sent');
         });
     }
@@ -823,6 +832,7 @@
                     friend.id
                 )
                 .then(() => {
+                    recordRecentAction(friend.id, 'Invite');
                     toast.success(t('message.invite.sent'));
                 });
         });
