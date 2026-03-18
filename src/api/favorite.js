@@ -1,16 +1,22 @@
 import { useFavoriteStore, useUserStore } from '../stores';
-import { request } from '../service/request';
 import {
-    entityQueryPolicies,
-    fetchWithEntityPolicy,
-    queryClient,
-    queryKeys
-} from '../query';
+    handleFavoriteAdd,
+    handleFavoriteDelete,
+    handleFavoriteGroupClear
+} from '../coordinators/favoriteCoordinator';
+import { queryClient } from '../queries';
+import { request } from '../services/request';
 
+/**
+ *
+ */
 function getCurrentUserId() {
     return useUserStore().currentUser.id;
 }
 
+/**
+ *
+ */
 function refetchActiveFavoriteQueries() {
     queryClient
         .invalidateQueries({
@@ -34,17 +40,6 @@ const favoriteReq = {
         });
     },
 
-    getCachedFavoriteLimits() {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.favoriteLimits(),
-            policy: entityQueryPolicies.favoriteCollection,
-            queryFn: () => favoriteReq.getFavoriteLimits()
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
-    },
-
     /**
      * @type {import('../types/api/favorite').GetFavorites}
      */
@@ -61,17 +56,6 @@ const favoriteReq = {
         });
     },
 
-    getCachedFavorites(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.favorites(params),
-            policy: entityQueryPolicies.favoriteCollection,
-            queryFn: () => favoriteReq.getFavorites(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
-    },
-
     /**
      * @type {import('../types/api/favorite').AddFavorite}
      */
@@ -84,7 +68,7 @@ const favoriteReq = {
                 json,
                 params
             };
-            useFavoriteStore().handleFavoriteAdd(args);
+            handleFavoriteAdd(args);
             refetchActiveFavoriteQueries();
             return args;
         });
@@ -92,7 +76,7 @@ const favoriteReq = {
 
     /**
      * @param {{ objectId: string }} params
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     deleteFavorite(params) {
         return request(`favorites/${params.objectId}`, {
@@ -102,7 +86,7 @@ const favoriteReq = {
                 json,
                 params
             };
-            useFavoriteStore().handleFavoriteDelete(params.objectId);
+            handleFavoriteDelete(params.objectId);
             refetchActiveFavoriteQueries();
             return args;
         });
@@ -110,7 +94,7 @@ const favoriteReq = {
 
     /**
      * @param {{ n: number, offset: number, type: string }} params
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     getFavoriteGroups(params) {
         return request('favorite/groups', {
@@ -125,21 +109,10 @@ const favoriteReq = {
         });
     },
 
-    getCachedFavoriteGroups(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.favoriteGroups(params),
-            policy: entityQueryPolicies.favoriteCollection,
-            queryFn: () => favoriteReq.getFavoriteGroups(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
-    },
-
     /**
      *
      * @param {{ type: string, group: string, displayName?: string, visibility?: string }} params group is a name
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     saveFavoriteGroup(params) {
         return request(
@@ -163,7 +136,7 @@ const favoriteReq = {
      *    type: string,
      *    group: string
      * }} params
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     clearFavoriteGroup(params) {
         return request(
@@ -177,7 +150,7 @@ const favoriteReq = {
                 json,
                 params
             };
-            useFavoriteStore().handleFavoriteGroupClear(args);
+            handleFavoriteGroupClear(args);
             refetchActiveFavoriteQueries();
             return args;
         });
@@ -199,17 +172,6 @@ const favoriteReq = {
         });
     },
 
-    getCachedFavoriteWorlds(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.favoriteWorlds(params),
-            policy: entityQueryPolicies.favoriteCollection,
-            queryFn: () => favoriteReq.getFavoriteWorlds(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
-    },
-
     /**
      * @type {import('../types/api/favorite').GetFavoriteAvatars}
      */
@@ -224,17 +186,6 @@ const favoriteReq = {
             };
             return args;
         });
-    },
-
-    getCachedFavoriteAvatars(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.favoriteAvatars(params),
-            policy: entityQueryPolicies.favoriteCollection,
-            queryFn: () => favoriteReq.getFavoriteAvatars(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     }
 };
 

@@ -3,7 +3,7 @@
  * Export all API requests from here
  */
 
-import { request } from '../service/request';
+import { request } from '../services/request';
 
 import authRequest from './auth';
 import avatarModerationRequest from './avatarModeration';
@@ -19,6 +19,7 @@ import miscRequest from './misc';
 import notificationRequest from './notification';
 import playerModerationRequest from './playerModeration';
 import propRequest from './prop';
+import queryRequest from './queryRequest';
 import userRequest from './user';
 import vrcPlusIconRequest from './vrcPlusIcon';
 import vrcPlusImageRequest from './vrcPlusImage';
@@ -43,7 +44,8 @@ window.request = {
     groupRequest,
     inventoryRequest,
     propRequest,
-    imageRequest
+    imageRequest,
+    queryRequest
 };
 
 export {
@@ -65,5 +67,6 @@ export {
     groupRequest,
     inventoryRequest,
     propRequest,
-    imageRequest
+    imageRequest,
+    queryRequest
 };

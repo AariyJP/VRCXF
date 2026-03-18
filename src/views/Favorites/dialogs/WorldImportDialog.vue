@@ -5,7 +5,7 @@
                 <DialogTitle>{{ t('dialog.world_import.header') }}</DialogTitle>
             </DialogHeader>
             <div style="display: flex; align-items: center; justify-content: space-between">
-                <div style="font-size: 12px">{{ t('dialog.world_import.description') }}</div>
+                <div class="text-xs">{{ t('dialog.world_import.description') }}</div>
                 <div style="display: flex; align-items: center">
                     <div v-if="worldImportDialog.progress">
                         {{ t('dialog.world_import.process_progress') }}
@@ -101,7 +101,7 @@
                 <h2 class="my-1.5 mx-0" style="font-weight: bold">
                     {{ t('dialog.world_import.errors') }}
                 </h2>
-                <pre style="white-space: pre-wrap; font-size: 12px" v-text="worldImportDialog.errors"></pre>
+                <pre class="whitespace-pre-wrap text-xs" v-text="worldImportDialog.errors"></pre>
             </template>
             <DataTableLayout
                 class="min-w-0 w-full"
@@ -127,16 +127,18 @@
     import { useI18n } from 'vue-i18n';
 
     import { useFavoriteStore, useGalleryStore, useUserStore, useWorldStore } from '../../../stores';
+    import { showWorldDialog } from '../../../coordinators/worldCoordinator';
+    import { addLocalWorldFavorite } from '../../../coordinators/favoriteCoordinator';
     import { favoriteRequest, worldRequest } from '../../../api';
     import { createColumns } from './worldImportColumns.jsx';
     import { removeFromArray } from '../../../shared/utils';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
-    const { showUserDialog } = useUserStore();
     const { favoriteWorldGroups, worldImportDialogInput, worldImportDialogVisible, localWorldFavoriteGroups } =
         storeToRefs(useFavoriteStore());
-    const { localWorldFavGroupLength, addLocalWorldFavorite, getCachedFavoritesByObjectId } = useFavoriteStore();
-    const { showWorldDialog } = useWorldStore();
+    const { localWorldFavGroupLength, getCachedFavoritesByObjectId } = useFavoriteStore();
+
     const { showFullscreenImageDialog } = useGalleryStore();
 
     const emit = defineEmits(['update:worldImportDialogInput']);
@@ -166,9 +168,7 @@
 
     const tableStyle = { maxHeight: '400px' };
 
-    const rows = computed(() =>
-        Array.isArray(worldImportTable.value?.data) ? worldImportTable.value.data.slice() : []
-    );
+    const rows = computed(() => (Array.isArray(worldImportTable.value?.data) ? worldImportTable.value.data.slice() : []));
 
     const columns = computed(() =>
         createColumns({

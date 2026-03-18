@@ -1,11 +1,9 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import { toast } from 'vue-sonner';
-import { useI18n } from 'vue-i18n';
 
-import { formatDateFilter, openExternalLink } from '../shared/utils';
+import { openExternalLink } from '../shared/utils';
 
-import webApiService from '../service/webapi';
+import webApiService from '../services/webapi';
 
 import * as workerTimers from 'worker-timers';
 
@@ -13,14 +11,12 @@ export const useVrcStatusStore = defineStore('VrcStatus', () => {
     const vrcStatusApiUrl = 'https://status.vrchat.com/api/v2';
 
     const lastStatus = ref('');
+    const lastStatusIndicator = ref('');
     const lastStatusTime = ref(null);
     const lastStatusSummary = ref('');
     const lastTimeFetched = ref(0);
     const pollingInterval = ref(0);
-    const alertRef = ref(null);
-    const { t } = useI18n();
 
-    const lastStatusText = ref('');
     const statusText = computed(() => {
         if (lastStatus.value && lastStatusSummary.value) {
             return `${lastStatus.value}: ${lastStatusSummary.value}`;
@@ -28,52 +24,20 @@ export const useVrcStatusStore = defineStore('VrcStatus', () => {
         return lastStatus.value;
     });
 
-    function dismissAlert() {
-        if (!alertRef.value) {
-            return;
-        }
-        toast.dismiss(alertRef.value);
-        alertRef.value = null;
-    }
+    const hasIssue = computed(() => !!lastStatus.value);
 
-    function updateAlert() {
-        if (lastStatusText.value === statusText.value) {
-            return;
-        }
-        lastStatusText.value = statusText.value;
+    const isMajor = computed(() => lastStatusIndicator.value === 'major');
 
-        if (!statusText.value) {
-            if (alertRef.value) {
-                dismissAlert();
-                alertRef.value = toast.success(t('status.title'), {
-                    description: `${formatDateFilter(lastStatusTime.value, 'short')}: All Systems Operational`,
-                    position: 'bottom-right',
-                    action: {
-                        label: 'Open',
-                        onClick: () => openStatusPage()
-                    }
-                });
-            }
-            return;
-        }
-
-        dismissAlert();
-        alertRef.value = toast.warning(t('status.title'), {
-            description: `${formatDateFilter(lastStatusTime.value, 'short')}: ${statusText.value}`,
-            duration: Infinity,
-            closeButton: true,
-            position: 'bottom-right',
-            action: {
-                label: 'Open',
-                onClick: () => openStatusPage()
-            }
-        });
-    }
-
+    /**
+     * @returns {void}
+     */
     function openStatusPage() {
         openExternalLink('https://status.vrchat.com');
     }
 
+    /**
+     * @returns {Promise<void>}
+     */
     async function getVrcStatus() {
         const response = await webApiService.execute({
             url: `${vrcStatusApiUrl}/status.json`,
@@ -87,23 +51,25 @@ export const useVrcStatusStore = defineStore('VrcStatus', () => {
             console.error('Failed to fetch VRChat status', response);
             lastStatus.value = 'Failed to fetch VRC status';
             pollingInterval.value = 2 * 60 * 1000; // 2 minutes
-            updateAlert();
             return;
         }
         const data = JSON.parse(response.data);
         lastStatusTime.value = new Date(data.page.updated_at);
         if (data.status.description === 'All Systems Operational') {
             lastStatus.value = '';
+            lastStatusIndicator.value = '';
             pollingInterval.value = 15 * 60 * 1000; // 15 minutes
-            updateAlert();
             return;
         }
         lastStatus.value = data.status.description;
+        lastStatusIndicator.value = data.status.indicator || '';
         pollingInterval.value = 2 * 60 * 1000; // 2 minutes
-        updateAlert();
         getVrcStatusSummary();
     }
 
+    /**
+     * @returns {Promise<void>}
+     */
     async function getVrcStatusSummary() {
         const response = await webApiService.execute({
             url: `${vrcStatusApiUrl}/summary.json`,
@@ -127,16 +93,21 @@ export const useVrcStatusStore = defineStore('VrcStatus', () => {
             summary = summary.slice(0, -2);
         }
         lastStatusSummary.value = summary;
-        updateAlert();
     }
 
     // ran from Cef and Electron when browser is focused
+    /**
+     * @returns {void}
+     */
     function onBrowserFocus() {
         if (Date.now() - lastTimeFetched.value > 60 * 1000) {
             getVrcStatus();
         }
     }
 
+    /**
+     * @returns {void}
+     */
     function init() {
         getVrcStatus();
         workerTimers.setInterval(() => {
@@ -150,7 +121,13 @@ export const useVrcStatusStore = defineStore('VrcStatus', () => {
 
     return {
         lastStatus,
+        lastStatusIndicator,
+        lastStatusTime,
+        lastStatusSummary,
         statusText,
+        hasIssue,
+        isMajor,
+        openStatusPage,
         onBrowserFocus,
         getVrcStatus
     };

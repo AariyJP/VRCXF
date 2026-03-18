@@ -5,7 +5,7 @@
                 <DialogTitle>{{ t('dialog.friend_import.header') }}</DialogTitle>
             </DialogHeader>
             <div style="display: flex; align-items: center; justify-content: space-between">
-                <div style="font-size: 12px">{{ t('dialog.friend_import.description') }}</div>
+                <div class="text-xs">{{ t('dialog.friend_import.description') }}</div>
                 <div style="display: flex; align-items: center">
                     <div v-if="friendImportDialog.progress">
                         {{ t('dialog.friend_import.process_progress') }} {{ friendImportDialog.progress }} /
@@ -20,11 +20,7 @@
                     </Button>
                 </div>
             </div>
-            <InputGroupTextareaField
-                v-model="friendImportDialog.input"
-                :rows="10"
-               
-                input-class="resize-none mt-2" />
+            <InputGroupTextareaField v-model="friendImportDialog.input" :rows="10" input-class="resize-none mt-2" />
             <div>
                 <div class="mb-2">
                     <div class="flex items-center gap-2">
@@ -47,10 +43,10 @@
                             </SelectContent>
                         </Select>
 
-                        <Select class="ml-2"
+                        <Select
+                            class="ml-2"
                             :model-value="friendImportLocalFavoriteGroupSelection"
-                            @update:modelValue="handleFriendImportLocalGroupSelect"
-                           >
+                            @update:modelValue="handleFriendImportLocalGroupSelect">
                             <SelectTrigger size="sm">
                                 <SelectValue :placeholder="t('dialog.world_import.select_local_group_placeholder')" />
                             </SelectTrigger>
@@ -104,7 +100,7 @@
                     {{ t('dialog.friend_import.clear_errors') }}
                 </Button>
                 <h2 class="my-1.5 mx-0" style="font-weight: bold">{{ t('dialog.friend_import.errors') }}</h2>
-                <pre style="white-space: pre-wrap; font-size: 12px" v-text="friendImportDialog.errors"></pre>
+                <pre class="whitespace-pre-wrap text-xs" v-text="friendImportDialog.errors"></pre>
             </template>
             <DataTableLayout
                 class="min-w-0 w-full"
@@ -129,21 +125,24 @@
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
-    import { removeFromArray, userImage, userImageFull } from '../../../shared/utils';
+    import { removeFromArray } from '../../../shared/utils';
+    import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { useFavoriteStore, useGalleryStore, useUserStore } from '../../../stores';
+    import { addLocalFriendFavorite } from '../../../coordinators/favoriteCoordinator';
     import { favoriteRequest, userRequest } from '../../../api';
     import { createColumns } from './friendImportColumns.jsx';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
+    const { userImage, userImageFull } = useUserDisplay();
     const { t } = useI18n();
 
     const emit = defineEmits(['update:friendImportDialogInput']);
 
-    const { showUserDialog } = useUserStore();
     const { favoriteFriendGroups, friendImportDialogInput, friendImportDialogVisible, localFriendFavoriteGroups } =
         storeToRefs(useFavoriteStore());
     const { showFullscreenImageDialog } = useGalleryStore();
-    const { getCachedFavoritesByObjectId, localFriendFavGroupLength, addLocalFriendFavorite } = useFavoriteStore();
+    const { getCachedFavoritesByObjectId, localFriendFavGroupLength } = useFavoriteStore();
 
     const friendImportDialog = ref({
         loading: false,
@@ -168,9 +167,7 @@
 
     const tableStyle = { maxHeight: '400px' };
 
-    const rows = computed(() =>
-        Array.isArray(friendImportTable.value?.data) ? friendImportTable.value.data.slice() : []
-    );
+    const rows = computed(() => (Array.isArray(friendImportTable.value?.data) ? friendImportTable.value.data.slice() : []));
 
     const columns = computed(() =>
         createColumns({
@@ -208,8 +205,7 @@
             if (value) {
                 clearFriendImportTable();
                 resetFriendImport();
-                friendImportFavoriteGroupSelection.value =
-                    friendImportDialog.value.friendImportFavoriteGroup?.name ?? '';
+                friendImportFavoriteGroupSelection.value = friendImportDialog.value.friendImportFavoriteGroup?.name ?? '';
                 if (friendImportDialogInput.value) {
                     friendImportDialog.value.input = friendImportDialogInput.value;
                     processFriendImportList();

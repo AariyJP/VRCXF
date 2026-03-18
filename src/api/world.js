@@ -1,18 +1,12 @@
-import { request } from '../service/request';
-import { useWorldStore } from '../stores';
-import {
-    entityQueryPolicies,
-    fetchWithEntityPolicy,
-    patchAndRefetchActiveQuery,
-    queryKeys
-} from '../query';
+import { patchAndRefetchActiveQuery, queryKeys } from '../queries';
+import { request } from '../services/request';
+import { applyWorld } from '../coordinators/worldCoordinator';
 
 const worldReq = {
     /**
      * @type {import('../types/api/world').GetWorld}
      */
     getWorld(params) {
-        const worldStore = useWorldStore();
         return request(`worlds/${params.worldId}`, {
             method: 'GET'
         }).then((json) => {
@@ -20,31 +14,15 @@ const worldReq = {
                 json,
                 params
             };
-            args.ref = worldStore.applyWorld(json);
+            args.ref = applyWorld(json);
             return args;
         });
-    },
-
-    /**
-     * @param {{worldId: string}} params
-     * @returns {Promise<{json: any, ref: any, cache?: boolean, params}>}
-     */
-    getCachedWorld(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.world(params.worldId),
-            policy: entityQueryPolicies.world,
-            queryFn: () => worldReq.getWorld(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     },
 
     /**
      * @type {import('../types/api/world').GetWorlds}
      */
     getWorlds(params, option) {
-        const worldStore = useWorldStore();
         let endpoint = 'worlds';
         if (typeof option !== 'undefined') {
             endpoint = `worlds/${option}`;
@@ -59,28 +37,10 @@ const worldReq = {
                 option
             };
             for (const json of args.json) {
-                worldStore.applyWorld(json);
+                applyWorld(json);
             }
             return args;
         });
-    },
-    /**
-     * @param {object} params
-     * @param {string} [option]
-     * @returns {Promise<{json: any, cache?: boolean, params: any, option?: string}>}
-     */
-    getCachedWorlds(params, option) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.worldsByUser({
-                ...params,
-                option: option || ''
-            }),
-            policy: entityQueryPolicies.worldCollection,
-            queryFn: () => worldReq.getWorlds(params, option)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     },
     /**
      * @param {{worldId: string}} params
@@ -102,7 +62,6 @@ const worldReq = {
      * @type {import('../types/api/world').SaveWorld}
      */
     saveWorld(params) {
-        const worldStore = useWorldStore();
         return request(`worlds/${params.id}`, {
             method: 'PUT',
             params
@@ -111,12 +70,15 @@ const worldReq = {
                 json,
                 params
             };
-            args.ref = worldStore.applyWorld(json);
+            args.ref = applyWorld(json);
             patchAndRefetchActiveQuery({
                 queryKey: queryKeys.world(args.ref.id),
                 nextData: args
             }).catch((err) => {
-                console.error('Failed to refresh world query after mutation:', err);
+                console.error(
+                    'Failed to refresh world query after mutation:',
+                    err
+                );
             });
             return args;
         });
@@ -127,7 +89,6 @@ const worldReq = {
      * @returns {Promise<{json: any, params}>}
      */
     publishWorld(params) {
-        const worldStore = useWorldStore();
         return request(`worlds/${params.worldId}/publish`, {
             method: 'PUT',
             params
@@ -136,12 +97,15 @@ const worldReq = {
                 json,
                 params
             };
-            args.ref = worldStore.applyWorld(json);
+            args.ref = applyWorld(json);
             patchAndRefetchActiveQuery({
                 queryKey: queryKeys.world(args.ref.id),
                 nextData: args
             }).catch((err) => {
-                console.error('Failed to refresh world query after publish:', err);
+                console.error(
+                    'Failed to refresh world query after publish:',
+                    err
+                );
             });
             return args;
         });
@@ -152,7 +116,6 @@ const worldReq = {
      * @returns {Promise<{json: any, params}>}
      */
     unpublishWorld(params) {
-        const worldStore = useWorldStore();
         return request(`worlds/${params.worldId}/publish`, {
             method: 'DELETE',
             params
@@ -161,12 +124,15 @@ const worldReq = {
                 json,
                 params
             };
-            args.ref = worldStore.applyWorld(json);
+            args.ref = applyWorld(json);
             patchAndRefetchActiveQuery({
                 queryKey: queryKeys.world(args.ref.id),
                 nextData: args
             }).catch((err) => {
-                console.error('Failed to refresh world query after unpublish:', err);
+                console.error(
+                    'Failed to refresh world query after unpublish:',
+                    err
+                );
             });
             return args;
         });

@@ -1,11 +1,9 @@
-import { request } from '../service/request';
-import {
-    entityQueryPolicies,
-    fetchWithEntityPolicy,
-    queryClient,
-    queryKeys
-} from '../query';
+import { queryClient } from '../queries';
+import { request } from '../services/request';
 
+/**
+ *
+ */
 function refetchActiveGalleryQueries() {
     queryClient
         .invalidateQueries({
@@ -29,17 +27,6 @@ const VRCPlusIconsReq = {
             };
             return args;
         });
-    },
-
-    getCachedFileList(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.galleryFiles(params),
-            policy: entityQueryPolicies.galleryCollection,
-            queryFn: () => VRCPlusIconsReq.getFileList(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     },
 
     deleteFile(fileId) {

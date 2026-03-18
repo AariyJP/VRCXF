@@ -140,11 +140,12 @@
         useLocationStore,
         useModalStore
     } from '../../stores';
-    import { checkCanInvite, getLaunchURL, isRealInstance, parseLocation } from '../../shared/utils';
-    import { instanceRequest, worldRequest } from '../../api';
+    import { getLaunchURL, isRealInstance, parseLocation } from '../../shared/utils';
+    import { useInviteChecks } from '../../composables/useInviteChecks';
+    import { instanceRequest, queryRequest } from '../../api';
 
     import InviteDialog from './InviteDialog/InviteDialog.vue';
-    import configRepository from '../../service/config';
+    import configRepository from '../../services/config';
 
     const { t } = useI18n();
 
@@ -157,6 +158,7 @@
 
     const { canOpenInstanceInGame } = storeToRefs(useInviteStore());
     const { isGameRunning } = storeToRefs(useGameStore());
+    const { checkCanInvite } = useInviteChecks();
 
     const launchModeLabel = computed(() =>
         launchDialog.value.desktop ? t('dialog.launch.start_as_desktop') : t('dialog.launch.launch')
@@ -209,16 +211,23 @@
 
     getConfig();
 
+    /**
+     *
+     */
     function closeInviteDialog() {
         inviteDialog.value.visible = false;
     }
+    /**
+     *
+     * @param tag
+     */
     function showInviteDialog(tag) {
         if (!isRealInstance(tag)) {
             return;
         }
         const L = parseLocation(tag);
-        worldRequest
-            .getCachedWorld({
+        queryRequest
+            .fetch('world', {
                 worldId: L.worldId
             })
             .then((args) => {
@@ -238,6 +247,12 @@
                 D.visible = true;
             });
     }
+    /**
+     *
+     * @param location
+     * @param shortName
+     * @param desktop
+     */
     function handleLaunchGame(location, shortName, desktop) {
         if (isGameRunning.value) {
             modalStore
@@ -259,10 +274,21 @@
         isVisible.value = false;
     }
 
+    /**
+     *
+     * @param location
+     * @param shortName
+     */
     function handleLaunchDefault(location, shortName) {
         handleLaunchGame(location, shortName, launchDialog.value.desktop);
     }
 
+    /**
+     *
+     * @param command
+     * @param location
+     * @param shortName
+     */
     function handleLaunchCommand(command, location, shortName) {
         const desktop = command === 'desktop';
         configRepository.setBool('launchAsDesktop', desktop);
@@ -272,10 +298,20 @@
             launchDialog.value.desktop = desktop;
         }, 500);
     }
+    /**
+     *
+     * @param location
+     * @param shortName
+     */
     function handleAttachGame(location, shortName) {
         tryOpenInstanceInVrc(location, shortName);
         isVisible.value = false;
     }
+    /**
+     *
+     * @param location
+     * @param shortName
+     */
     function selfInvite(location, shortName) {
         const L = parseLocation(location);
         if (!L.isRealInstance) {
@@ -293,9 +329,15 @@
             });
     }
 
+    /**
+     *
+     */
     function getConfig() {
         configRepository.getBool('launchAsDesktop').then((value) => (launchDialog.value.desktop = value));
     }
+    /**
+     *
+     */
     async function initLaunchDialog() {
         const { tag, shortName } = launchDialogData.value;
         if (!isRealInstance(tag)) {
@@ -340,6 +382,10 @@
             }
         }
     }
+    /**
+     *
+     * @param input
+     */
     async function copyInstanceMessage(input) {
         try {
             await navigator.clipboard.writeText(input);

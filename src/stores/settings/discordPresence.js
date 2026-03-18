@@ -19,14 +19,14 @@ import {
     ActivityType,
     StatusDisplayType
 } from '../../shared/constants/discord';
+import { queryRequest } from '../../api';
 import { useGameLogStore } from '../gameLog';
 import { useGameStore } from '../game';
 import { useLocationStore } from '../location';
 import { useUpdateLoopStore } from '../updateLoop';
 import { useUserStore } from '../user';
-import { worldRequest } from '../../api';
 
-import configRepository from '../../service/config';
+import configRepository from '../../services/config';
 
 export const useDiscordPresenceSettingsStore = defineStore(
     'DiscordPresenceSettings',
@@ -222,7 +222,7 @@ export const useDiscordPresenceSettingsStore = defineStore(
                     groupAccessName: ''
                 };
                 try {
-                    const args = await worldRequest.getCachedWorld({
+                    const args = await queryRequest.fetch('world.location', {
                         worldId: L.worldId
                     });
                     state.lastLocationDetails.worldName = args.ref.name;

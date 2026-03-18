@@ -2,13 +2,15 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const mockRequest = vi.fn();
 const mockPatchAndRefetchActiveQuery = vi.fn(() => Promise.resolve());
-const mockFetchWithEntityPolicy = vi.fn();
 
-const mockApplyCurrentUser = vi.fn((json) => ({ id: json.id || 'usr_me', ...json }));
+const mockApplyCurrentUser = vi.fn((json) => ({
+    id: json.id || 'usr_me',
+    ...json
+}));
 const mockApplyUser = vi.fn((json) => ({ ...json }));
 const mockApplyWorld = vi.fn((json) => ({ ...json }));
 
-vi.mock('../../service/request', () => ({
+vi.mock('../../services/request', () => ({
     request: (...args) => mockRequest(...args)
 }));
 
@@ -23,23 +25,28 @@ vi.mock('../../stores', () => ({
     })
 }));
 
-vi.mock('../../query', () => ({
-    entityQueryPolicies: {
-        user: { staleTime: 20000, gcTime: 90000, retry: 1, refetchOnWindowFocus: false },
-        avatar: { staleTime: 60000, gcTime: 300000, retry: 1, refetchOnWindowFocus: false },
-        world: { staleTime: 60000, gcTime: 300000, retry: 1, refetchOnWindowFocus: false },
-        worldCollection: { staleTime: 60000, gcTime: 300000, retry: 1, refetchOnWindowFocus: false },
-        instance: { staleTime: 0, gcTime: 10000, retry: 0, refetchOnWindowFocus: false }
-    },
-    fetchWithEntityPolicy: (...args) => mockFetchWithEntityPolicy(...args),
+vi.mock('../../coordinators/userCoordinator', () => ({
+    applyCurrentUser: (...args) => mockApplyCurrentUser(...args),
+    applyUser: (...args) => mockApplyUser(...args)
+}));
+
+vi.mock('../../coordinators/worldCoordinator', () => ({
+    applyWorld: (...args) => mockApplyWorld(...args)
+}));
+
+vi.mock('../../queries', () => ({
     patchAndRefetchActiveQuery: (...args) =>
         mockPatchAndRefetchActiveQuery(...args),
     queryKeys: {
         user: (userId) => ['user', userId],
         avatar: (avatarId) => ['avatar', avatarId],
-        world: (worldId) => ['world', worldId],
-        worldsByUser: (params) => ['worlds', 'user', params.userId, params],
-        instance: (worldId, instanceId) => ['instance', worldId, instanceId]
+        world: (worldId) => ['world', worldId]
+    },
+    entityQueryPolicies: {
+        user: {},
+        avatar: {},
+        world: {},
+        worldCollection: {}
     }
 }));
 
@@ -86,28 +93,5 @@ describe('entity mutation query sync', () => {
                 queryKey: ['world', 'wrld_1']
             })
         );
-    });
-
-    test('getCachedWorlds uses policy wrapper for world list data', async () => {
-        mockFetchWithEntityPolicy.mockResolvedValue({
-            data: {
-                json: [{ id: 'wrld_1' }],
-                params: { userId: 'usr_me', n: 50, offset: 0 }
-            },
-            cache: true
-        });
-
-        const args = await worldRequest.getCachedWorlds({
-            userId: 'usr_me',
-            n: 50,
-            offset: 0,
-            sort: 'updated',
-            order: 'descending',
-            user: 'me',
-            releaseStatus: 'all'
-        });
-
-        expect(mockFetchWithEntityPolicy).toHaveBeenCalled();
-        expect(args.cache).toBe(true);
     });
 });

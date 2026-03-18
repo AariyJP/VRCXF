@@ -1,11 +1,11 @@
 <template>
-    <div class="x-container" ref="friendsListRef">
-        <div>
+    <div class="x-container x-container--auto-height" ref="friendsListRef">
+        <div class="flex-1 min-h-0 flex flex-col">
             <DataTableLayout
                 class="min-w-0 w-full"
                 :table="table"
                 :loading="friendsListLoading"
-                :table-style="tableHeightStyle"
+                auto-height
                 :page-sizes="pageSizes"
                 :total-items="totalItems"
                 table-class="min-w-max w-max [&_tbody_tr]:cursor-pointer"
@@ -134,9 +134,7 @@
         useAppearanceSettingsStore,
         useFriendStore,
         useModalStore,
-        useSearchStore,
-        useUserStore,
-        useVrcxStore
+        useSearchStore
     } from '../../stores';
     import { friendRequest, userRequest } from '../../api';
     import { DataTableLayout } from '../../components/ui/data-table';
@@ -144,10 +142,11 @@
     import { Toggle } from '../../components/ui/toggle';
     import { createColumns } from './columns.jsx';
     import { localeIncludes } from '../../shared/utils';
-    import removeConfusables, { removeWhitespace } from '../../service/confusables';
-    import { router } from '../../plugin/router';
-    import { useDataTableScrollHeight } from '../../composables/useDataTableScrollHeight';
+    import removeConfusables, { removeWhitespace } from '../../services/confusables';
+    import { router } from '../../plugins/router';
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
+    import { showUserDialog } from '../../coordinators/userCoordinator';
+    import { confirmDeleteFriend, handleFriendDelete } from '../../coordinators/friendRelationshipCoordinator';
 
     const { t } = useI18n();
 
@@ -155,10 +154,10 @@
 
     const { friends, allFavoriteFriendIds } = storeToRefs(useFriendStore());
     const modalStore = useModalStore();
-    const { getAllUserStats, getAllUserMutualCount, confirmDeleteFriend, handleFriendDelete } = useFriendStore();
+    const { getAllUserStats, getAllUserMutualCount } = useFriendStore();
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { randomUserColours } = storeToRefs(appearanceSettingsStore);
-    const { showUserDialog } = useUserStore();
+
     const { stringComparer, friendsListSearch } = storeToRefs(useSearchStore());
 
     const friendsListSearchFilters = ref([]);
@@ -184,11 +183,6 @@
     });
 
     const friendsListRef = ref(null);
-    const { tableStyle: tableHeightStyle } = useDataTableScrollHeight(friendsListRef, {
-        offset: 30,
-        toolbarHeight: 54,
-        paginationHeight: 52
-    });
 
     const friendsListColumns = computed(() =>
         createColumns({
@@ -259,6 +253,7 @@
     watch(
         () => route.path,
         () => {
+            refreshFriendStats();
             nextTick(() => friendsListSearchChange());
         },
         { immediate: true }
@@ -267,9 +262,15 @@
     watch(
         () => friends.value.size,
         () => {
+            refreshFriendStats();
             friendsListSearchChange();
         }
     );
+
+    function refreshFriendStats() {
+        getAllUserStats();
+        getAllUserMutualCount();
+    }
 
     /**
      *
@@ -317,8 +318,6 @@
             results.push(ctx.ref);
         }
         friendsListDisplayData.value = results;
-        getAllUserStats();
-        getAllUserMutualCount();
         table.setPageIndex(0);
         table.setSorting([...defaultSorting]);
         sorting.value = [...defaultSorting];

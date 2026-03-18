@@ -1,14 +1,12 @@
 <template>
-    <span @click="showUserDialog" class="cursor-pointer">{{ username }}</span>
+    <span @click="openUserDialog" class="cursor-pointer">{{ username }}</span>
 </template>
 
 <script setup>
     import { ref, watch } from 'vue';
 
-    import { useUserStore } from '../stores';
-    import { userRequest } from '../api';
-
-    const userStore = useUserStore();
+    import { queryRequest } from '../api';
+    import { showUserDialog } from '../coordinators/userCoordinator';
 
     const props = defineProps({
         userid: String,
@@ -22,20 +20,26 @@
 
     const username = ref(props.userid);
 
+    /**
+     *
+     */
     async function parse() {
         username.value = props.userid;
         if (props.hint) {
             username.value = props.hint;
         } else if (props.userid) {
-            const args = await userRequest.getCachedUser({ userId: props.userid });
+            const args = await queryRequest.fetch('user.dialog', { userId: props.userid });
             if (args?.json?.displayName) {
                 username.value = args.json.displayName;
             }
         }
     }
 
-    function showUserDialog() {
-        userStore.showUserDialog(props.userid);
+    /**
+     *
+     */
+    function openUserDialog() {
+        showUserDialog(props.userid);
     }
 
     watch([() => props.userid, () => props.location, () => props.forceUpdateKey], parse, { immediate: true });

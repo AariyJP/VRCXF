@@ -4,20 +4,29 @@
             <img
                 v-if="
                     !userDialog.loading &&
+                    !profileImageError &&
                     (userDialog.ref.profilePicOverrideThumbnail || userDialog.ref.profilePicOverride)
                 "
                 class="cursor-pointer"
                 :src="userDialog.ref.profilePicOverrideThumbnail || userDialog.ref.profilePicOverride"
                 style="height: 120px; width: 213.33px; border-radius: var(--radius-xl); object-fit: cover"
                 @click="showFullscreenImageDialog(userDialog.ref.profilePicOverride)"
+                @error="profileImageError = true"
                 loading="lazy" />
             <img
-                v-else-if="!userDialog.loading"
+                v-else-if="!userDialog.loading && !profileImageError && userDialog.ref.currentAvatarThumbnailImageUrl"
                 class="cursor-pointer"
                 :src="userDialog.ref.currentAvatarThumbnailImageUrl"
                 style="height: 120px; width: 160px; border-radius: var(--radius-xl); object-fit: cover"
                 @click="showFullscreenImageDialog(userDialog.ref.currentAvatarImageUrl)"
+                @error="profileImageError = true"
                 loading="lazy" />
+            <div
+                v-else-if="!userDialog.loading"
+                class="flex items-center justify-center bg-muted"
+                style="height: 120px; width: 160px; border-radius: var(--radius-xl)">
+                <Image class="size-8 text-muted-foreground" />
+            </div>
         </div>
         <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
             <div style="flex: 1">
@@ -52,8 +61,8 @@
                         @click="copyUserDisplayName(userDialog.ref.displayName)"></span>
                     <TooltipWrapper v-if="userDialog.ref.pronouns" side="top" :content="t('dialog.user.pronouns')">
                         <span
-                            class="x-grey"
-                            style="margin-right: 6px; font-family: monospace; font-size: 12px"
+                            class="x-grey font-mono text-xs"
+                            style="margin-right: 6px"
                             v-text="userDialog.ref.pronouns"></span>
                     </TooltipWrapper>
                     <TooltipWrapper v-for="item in userDialog.ref.$languages" :key="item.key" side="top">
@@ -68,8 +77,8 @@
                     <template v-if="userDialog.ref.id === currentUser.id">
                         <br />
                         <span
-                            class="x-grey"
-                            style="margin-right: 8px; font-family: monospace; font-size: 12px; cursor: pointer"
+                            class="x-grey font-mono text-xs"
+                            style="margin-right: 8px; cursor: pointer"
                             v-text="currentUser.username"
                             @click="copyUserDisplayName(currentUser.username)"></span>
                     </template>
@@ -197,12 +206,9 @@
                                     <div style="display: block; width: 275px; word-break: normal">
                                         <span>{{ badge.badgeName }}</span>
                                         <br />
-                                        <span class="x-grey" style="font-size: 12px">{{ badge.badgeDescription }}</span>
+                                        <span class="x-grey text-xs">{{ badge.badgeDescription }}</span>
                                         <br />
-                                        <span
-                                            v-if="badge.assignedAt"
-                                            class="x-grey"
-                                            style="font-family: monospace; font-size: 12px">
+                                        <span v-if="badge.assignedAt" class="x-grey font-mono text-xs">
                                             {{ t('dialog.user.badges.assigned') }}:
                                             {{ formatDateFilter(badge.assignedAt, 'long') }}
                                         </span>
@@ -229,17 +235,25 @@
                     </TooltipWrapper>
                 </div>
                 <div>
-                    <span style="font-size: 12px" v-text="userDialog.ref.statusDescription"></span>
+                    <span class="text-xs" v-text="userDialog.ref.statusDescription"></span>
                 </div>
             </div>
 
             <div v-if="userDialog.ref.userIcon" style="flex: none; margin-right: 8px">
                 <img
+                    v-if="!userIconError"
                     class="cursor-pointer"
                     :src="userImage(userDialog.ref, true, '256', true)"
                     style="flex: none; width: 120px; height: 120px; border-radius: var(--radius-xl); object-fit: cover"
                     @click="showFullscreenImageDialog(userDialog.ref.userIcon)"
+                    @error="userIconError = true"
                     loading="lazy" />
+                <div
+                    v-else
+                    class="flex items-center justify-center bg-muted"
+                    style="width: 120px; height: 120px; border-radius: var(--radius-xl)">
+                    <Image class="size-8 text-muted-foreground" />
+                </div>
             </div>
 
             <UserActionDropdown class="ml-2 mt-12" :user-dialog-command="userDialogCommand" />
@@ -248,17 +262,12 @@
 </template>
 
 <script setup>
-    import { Apple, ChevronDown, IdCard, Monitor, Shield, Smartphone, UserPlus, Users } from 'lucide-vue-next';
+    import { Apple, ChevronDown, IdCard, Image, Monitor, Shield, Smartphone, UserPlus, Users } from 'lucide-vue-next';
+    import { ref, watch } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import {
-        formatDateFilter,
-        languageClass,
-        openDiscordProfile,
-        userImage,
-        userStatusClass
-    } from '../../../shared/utils';
+    import { formatDateFilter, languageClass, openDiscordProfile, userImage, userStatusClass } from '../../../shared/utils';
     import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
     import { useGalleryStore, useUserStore } from '../../../stores';
     import { Badge } from '../../ui/badge';
@@ -295,6 +304,17 @@
     const { userDialog, currentUser } = storeToRefs(useUserStore());
 
     const { showFullscreenImageDialog } = useGalleryStore();
+
+    const profileImageError = ref(false);
+    const userIconError = ref(false);
+
+    watch(
+        () => userDialog.value.id,
+        () => {
+            profileImageError.value = false;
+            userIconError.value = false;
+        }
+    );
 
     const getUserStateText = props.getUserStateText;
     const copyUserDisplayName = props.copyUserDisplayName;

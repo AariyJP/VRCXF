@@ -23,8 +23,8 @@ import {
     replaceBioSymbols
 } from '../shared/utils';
 import {
-    groupRequest,
     instanceRequest,
+    queryRequest,
     userRequest,
     worldRequest
 } from '../api';
@@ -32,8 +32,7 @@ import {
     accessTypeLocaleKeyMap,
     instanceContentSettings
 } from '../shared/constants';
-import { database } from '../service/database';
-import { patchInstanceFromEvent } from '../query';
+import { database } from '../services/database';
 import { resolveRef } from '../shared/utils/resolveRef';
 import { useAppearanceSettingsStore } from './settings/appearance';
 import { useFriendStore } from './friend';
@@ -45,9 +44,9 @@ import { useSharedFeedStore } from './sharedFeed';
 import { useUiStore } from './ui';
 import { useUserStore } from './user';
 import { useWorldStore } from './world';
-import { watchState } from '../service/watchState';
+import { watchState } from '../services/watchState';
 
-import configRepository from '../service/config';
+import configRepository from '../services/config';
 
 export const useInstanceStore = defineStore('Instance', () => {
     const locationStore = useLocationStore();
@@ -246,7 +245,7 @@ export const useInstanceStore = defineStore('Instance', () => {
             emptyDefault: { id: '', displayName: '' },
             idAlias: 'userId',
             nameKey: 'displayName',
-            fetchFn: (id) => userRequest.getCachedUser({ userId: id })
+            fetchFn: (id) => queryRequest.fetch('user.dialog', { userId: id })
         });
     }
 
@@ -259,7 +258,8 @@ export const useInstanceStore = defineStore('Instance', () => {
             emptyDefault: { id: '', name: '' },
             idAlias: 'worldId',
             nameKey: 'name',
-            fetchFn: (id) => worldRequest.getCachedWorld({ worldId: id })
+            fetchFn: (id) =>
+                queryRequest.fetch('world.location', { worldId: id })
         });
     }
 
@@ -272,7 +272,7 @@ export const useInstanceStore = defineStore('Instance', () => {
             emptyDefault: { id: '', name: '' },
             idAlias: 'groupId',
             nameKey: 'name',
-            fetchFn: (id) => groupRequest.getCachedGroup({ groupId: id })
+            fetchFn: (id) => queryRequest.fetch('group.dialog', { groupId: id })
         });
     }
 
@@ -340,8 +340,8 @@ export const useInstanceStore = defineStore('Instance', () => {
                 location.worldId &&
                 !worldStore.cachedWorlds.get(location.worldId)?.name
             ) {
-                worldRequest
-                    .getCachedWorld({ worldId: location.worldId })
+                queryRequest
+                    .fetch('world.dialog', { worldId: location.worldId })
                     .then((args) => {
                         uiStore.setDialogCrumbLabel(
                             'previous-instances-info',
@@ -467,8 +467,8 @@ export const useInstanceStore = defineStore('Instance', () => {
                     console.error('Error fetching world data:', error);
                 });
         } else {
-            worldRequest
-                .getCachedWorld({
+            queryRequest
+                .fetch('world.location', {
                     worldId: currentInstanceLocation.value.worldId
                 })
                 .then((args) => {
@@ -537,8 +537,8 @@ export const useInstanceStore = defineStore('Instance', () => {
         }
         ref.$location = parseLocation(ref.location);
         if (ref.world?.id) {
-            worldRequest
-                .getCachedWorld({
+            queryRequest
+                .fetch('world.location', {
                     worldId: ref.world.id
                 })
                 .then((args) => {
@@ -577,7 +577,6 @@ export const useInstanceStore = defineStore('Instance', () => {
             }
         }
         lastInstanceApplied.value = ref.id;
-        patchInstanceFromEvent(ref);
         return ref;
     }
 
@@ -591,7 +590,7 @@ export const useInstanceStore = defineStore('Instance', () => {
         const L = parseLocation(location);
         if (L.isRealInstance && L.worldId && L.instanceId) {
             try {
-                const args = await instanceRequest.getCachedInstance({
+                const args = await instanceRequest.getInstance({
                     worldId: L.worldId,
                     instanceId: L.instanceId
                 });

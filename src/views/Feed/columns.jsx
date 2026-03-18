@@ -15,8 +15,9 @@ import {
     ChevronRight
 } from 'lucide-vue-next';
 import { formatDateFilter, statusClass, timeToText } from '../../shared/utils';
-import { i18n } from '../../plugin';
-import { useUserStore, useGalleryStore } from '../../stores';
+import { i18n } from '../../plugins/i18n';
+import { useGalleryStore } from '../../stores';
+import { showUserDialog } from '../../coordinators/userCoordinator';
 
 const { t } = i18n.global;
 
@@ -276,7 +277,7 @@ export const columns = [
         header: () => t('table.feed.user'),
         meta: { label: () => t('table.feed.user') },
         cell: ({ row }) => {
-            const { showUserDialog } = useUserStore();
+
             const original = row.original;
             return (
                 <span
@@ -370,9 +371,9 @@ export const columns = [
 
             if (type === 'Bio') {
                 return (
-                    <div class="block w-full min-w-0 truncate">
+                    <span class="block w-full min-w-0 truncate">
                         {original.bio}
-                    </div>
+                    </span>
                 );
             }
 
@@ -399,7 +400,7 @@ function formatDifference(
     markerDeletion = '<span class="x-text-removed">{{text}}</span>'
 ) {
     [oldString, newString] = [oldString, newString].map((s) =>
-        s
+        String(s ?? '')
             .replaceAll(/&/g, '&amp;')
             .replaceAll(/</g, '&lt;')
             .replaceAll(/>/g, '&gt;')

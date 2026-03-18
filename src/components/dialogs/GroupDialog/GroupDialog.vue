@@ -10,12 +10,19 @@
             <div style="display: flex">
                 <div style="flex: none; width: 120px; height: 120px">
                     <img
-                        v-if="!groupDialog.loading"
+                        v-if="!groupDialog.loading && !imageError"
                         :src="groupDialog.ref.iconUrl"
                         style="width: 120px; height: 120px; border-radius: var(--radius-xl)"
                         class="cursor-pointer"
                         @click="showFullscreenImageDialog(groupDialog.ref.iconUrl)"
+                        @error="imageError = true"
                         loading="lazy" />
+                    <div
+                        v-else-if="!groupDialog.loading"
+                        class="flex items-center justify-center bg-muted"
+                        style="width: 120px; height: 120px; border-radius: var(--radius-xl)">
+                        <Image class="size-8 text-muted-foreground" />
+                    </div>
                 </div>
                 <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
                     <div class="group-header" style="flex: 1">
@@ -25,7 +32,7 @@
                             style="cursor: pointer"
                             v-text="groupDialog.ref.name"
                             @click="copyToClipboard(groupDialog.ref.name)"></span>
-                        <span class="group-discriminator x-grey mr-1.5" style="font-family: monospace; font-size: 12px">
+                        <span class="group-discriminator x-grey mr-1.5 font-mono text-xs">
                             {{ groupDialog.ref.shortCode }}.{{ groupDialog.ref.discriminator }}
                         </span>
                         <TooltipWrapper v-for="item in groupDialog.ref.$languages" :key="item.key" side="top">
@@ -39,8 +46,7 @@
                         </TooltipWrapper>
                         <div style="margin-top: 6px">
                             <span
-                                class="cursor-pointer x-grey"
-                                style="font-family: monospace"
+                                class="cursor-pointer x-grey font-mono"
                                 @click="showUserDialog(groupDialog.ref.ownerId)"
                                 v-text="groupDialog.ownerDisplayName"></span>
                         </div>
@@ -129,13 +135,8 @@
                         <div style="margin-top: 6px">
                             <pre
                                 v-show="groupDialog.ref.name !== groupDialog.ref.description"
-                                style="
-                                    font-family: inherit;
-                                    font-size: 12px;
-                                    white-space: pre-wrap;
-                                    max-height: 40vh;
-                                    overflow-y: auto;
-                                "
+                                class="text-xs font-[inherit]"
+                                style="white-space: pre-wrap; max-height: 40vh; overflow-y: auto"
                                 v-text="groupDialog.ref.description"></pre>
                         </div>
                     </div>
@@ -342,827 +343,28 @@
                 :unmount-on-hide="false"
                 @update:modelValue="groupDialogTabClick">
                 <template #Info>
-                    <div>
-                        <img
-                            v-if="!groupDialog.loading"
-                            :src="groupDialog.ref.bannerUrl"
-                            class="cursor-pointer"
-                            style="
-                                flex: none;
-                                width: 100%;
-                                aspect-ratio: 6/1;
-                                object-fit: cover;
-                                border-radius: var(--radius-md);
-                            "
-                            @click="showFullscreenImageDialog(groupDialog.ref.bannerUrl)"
-                            loading="lazy" />
-                    </div>
-                    <div class="flex flex-wrap items-start px-2.5" style="max-height: none">
-                        <span
-                            v-if="groupDialog.instances.length"
-                            style="font-size: 12px; font-weight: bold; margin: 6px">
-                            {{ t('dialog.group.info.instances') }}
-                        </span>
-                        <div v-for="room in groupDialog.instances" :key="room.tag" style="width: 100%">
-                            <div style="margin: 6px 0" class="flex items-center">
-                                <Location :location="room.tag" class="text-sm" />
-                                <InstanceActionBar
-                                    class="ml-1"
-                                    :location="room.tag"
-                                    :currentlocation="lastLocation.location"
-                                    :instance="room.ref"
-                                    :friendcount="room.friendCount"
-                                    refresh-tooltip="Refresh player count"
-                                    :on-refresh="() => refreshInstancePlayerCount(room.tag)" />
-                            </div>
-                            <div
-                                v-if="room.users.length"
-                                class="flex flex-wrap items-start"
-                                style="margin: 8px 0; padding: 0; max-height: unset">
-                                <div
-                                    v-for="user in room.users"
-                                    :key="user.id"
-                                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
-                                    @click="showUserDialog(user.id)">
-                                    <div
-                                        class="relative inline-block flex-none size-9 mr-2.5"
-                                        :class="userStatusClass(user)">
-                                        <img
-                                            class="size-full rounded-full object-cover"
-                                            :src="userImage(user)"
-                                            loading="lazy" />
-                                    </div>
-                                    <div class="flex-1 overflow-hidden">
-                                        <span
-                                            class="block truncate font-medium leading-[18px]"
-                                            :style="{ color: user.$userColour }"
-                                            v-text="user.displayName" />
-                                        <span v-if="user.location === 'traveling'" class="block truncate text-xs">
-                                            <Spinner class="inline-block mr-1" />
-                                            <Timer :epoch="user.$travelingToTime" />
-                                        </span>
-                                        <span v-else class="block truncate text-xs">
-                                            <Timer :epoch="user.$location_at" />
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
-                            <div class="flex-1 overflow-hidden">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.announcement')
-                                }}</span>
-                                <span style="display: block" v-text="groupDialog.announcement.title" />
-                                <div
-                                    v-if="groupDialog.announcement.imageUrl"
-                                    style="display: inline-block; margin-right: 6px">
-                                    <img
-                                        :src="groupDialog.announcement.imageUrl"
-                                        class="cursor-pointer"
-                                        style="
-                                            flex: none;
-                                            width: 60px;
-                                            height: 60px;
-                                            border-radius: var(--radius-md);
-                                            object-fit: cover;
-                                        "
-                                        @click="showFullscreenImageDialog(groupDialog.announcement.imageUrl)"
-                                        loading="lazy" />
-                                </div>
-                                <pre
-                                    class="text-xs"
-                                    style="
-                                        display: inline-block;
-                                        vertical-align: top;
-                                        font-family: inherit;
-                                        font-size: 12px;
-                                        white-space: pre-wrap;
-                                        margin: 0;
-                                    "
-                                    >{{ groupDialog.announcement.text || '-' }}</pre
-                                >
-                                <br />
-                                <div
-                                    v-if="groupDialog.announcement.id"
-                                    class="text-xs"
-                                    style="float: right; margin-left: 6px">
-                                    <TooltipWrapper v-if="groupDialog.announcement.roleIds.length" side="top">
-                                        <template #content>
-                                            <span>{{ t('dialog.group.posts.visibility') }}</span>
-                                            <br />
-                                            <template v-for="roleId in groupDialog.announcement.roleIds" :key="roleId">
-                                                <template v-for="role in groupDialog.ref.roles" :key="roleId + role.id"
-                                                    ><span v-if="role.id === roleId" v-text="role.name"
-                                                /></template>
-                                                <span
-                                                    v-if="
-                                                        groupDialog.announcement.roleIds.indexOf(roleId) <
-                                                        groupDialog.announcement.roleIds.length - 1
-                                                    ">
-                                                    ,&nbsp;
-                                                </span>
-                                            </template>
-                                        </template>
-                                        <Eye style="margin-right: 6px" />
-                                    </TooltipWrapper>
-                                    <DisplayName
-                                        :userid="groupDialog.announcement.authorId"
-                                        style="margin-right: 6px" />
-                                    <span v-if="groupDialog.announcement.editorId" style="margin-right: 6px">
-                                        ({{ t('dialog.group.posts.edited_by') }}
-                                        <DisplayName :userid="groupDialog.announcement.editorId" />)
-                                    </span>
-                                    <TooltipWrapper side="bottom">
-                                        <template #content>
-                                            <span
-                                                >{{ t('dialog.group.posts.created_at') }}
-                                                {{ formatDateFilter(groupDialog.announcement.createdAt, 'long') }}</span
-                                            >
-                                            <template
-                                                v-if="
-                                                    groupDialog.announcement.updatedAt !==
-                                                    groupDialog.announcement.createdAt
-                                                ">
-                                                <br />
-                                                <span
-                                                    >{{ t('dialog.group.posts.edited_at') }}
-                                                    {{
-                                                        formatDateFilter(groupDialog.announcement.updatedAt, 'long')
-                                                    }}</span
-                                                >
-                                            </template>
-                                        </template>
-                                        <Timer :epoch="Date.parse(groupDialog.announcement.updatedAt)" />
-                                    </TooltipWrapper>
-                                    <template v-if="hasGroupPermission(groupDialog.ref, 'group-announcement-manage')">
-                                        <TooltipWrapper side="top" :content="t('dialog.group.posts.edit_tooltip')">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                style="margin-left: 6px; padding: 0"
-                                                @click="
-                                                    showGroupPostEditDialog(groupDialog.id, groupDialog.announcement)
-                                                "></Button>
-                                        </TooltipWrapper>
-                                        <TooltipWrapper side="top" :content="t('dialog.group.posts.delete_tooltip')">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                style="margin-left: 6px; padding: 0"
-                                                @click="confirmDeleteGroupPost(groupDialog.announcement)"></Button>
-                                        </TooltipWrapper>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
-                            <div class="flex-1 overflow-hidden">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.rules')
-                                }}</span>
-                                <pre
-                                    class="text-xs"
-                                    style="
-                                        font-family: inherit;
-                                        font-size: 12px;
-                                        white-space: pre-wrap;
-                                        margin: 0 0.5em 0 0;
-                                    "
-                                    >{{ groupDialog.ref.rules || '-' }}</pre
-                                >
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
-                            <div class="flex-1" style="overflow: visible">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.upcoming_events')
-                                }}</span>
-                                <template v-if="upcomingCalenderEvents.length > 0">
-                                    <br />
-                                    <div class="grid-view flex flex-wrap gap-4 overflow-y-auto max-h-[360px] py-2.5">
-                                        <GroupCalendarEventCard
-                                            v-for="value in upcomingCalenderEvents"
-                                            :key="value.id"
-                                            :event="value"
-                                            :is-following="value.userInterest?.isFollowing"
-                                            @update-following-calendar-data="updateFollowingCalendarData"
-                                            mode="grid"
-                                            card-class="group-dialog-grid-card" />
-                                    </div>
-                                </template>
-                                <span v-else class="block truncate text-xs">-</span>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
-                            <div class="flex-1" style="overflow: visible">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.past_events')
-                                }}</span>
-                                <template v-if="pastCalenderEvents.length > 0">
-                                    <br />
-                                    <div class="grid-view flex flex-wrap gap-4 overflow-y-auto max-h-[360px] py-2.5">
-                                        <GroupCalendarEventCard
-                                            v-for="value in pastCalenderEvents"
-                                            :key="value.id"
-                                            :event="value"
-                                            :is-following="value.userInterest?.isFollowing"
-                                            @update-following-calendar-data="updateFollowingCalendarData"
-                                            mode="grid"
-                                            card-class="group-dialog-grid-card" />
-                                    </div>
-                                </template>
-                                <span v-else class="block truncate text-xs">-</span>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
-                            <div class="flex-1 overflow-hidden">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.members')
-                                }}</span>
-                                <div class="block truncate text-xs">
-                                    {{ groupDialog.ref.memberCount }} ({{ groupDialog.ref.onlineMemberCount }})
-                                </div>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
-                            <div class="flex-1 overflow-hidden">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.created_at')
-                                }}</span>
-                                <span class="block truncate text-xs">{{
-                                    formatDateFilter(groupDialog.ref.createdAt, 'long')
-                                }}</span>
-                            </div>
-                        </div>
-                        <div
-                            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
-                            @click="showPreviousInstancesListDialog(groupDialog.ref)">
-                            <div class="flex-1 overflow-hidden">
-                                <div
-                                    class="block truncate font-medium leading-[18px]"
-                                    style="display: flex; justify-content: space-between; align-items: center">
-                                    <span>
-                                        {{ t('dialog.group.info.last_visited') }}
-                                    </span>
-                                    <TooltipWrapper side="top" :content="t('dialog.user.info.open_previous_instance')">
-                                        <MoreHorizontal style="margin-right: 16px" />
-                                    </TooltipWrapper>
-                                </div>
-                                <span class="block truncate text-xs">{{
-                                    formatDateFilter(groupDialog.lastVisit, 'long')
-                                }}</span>
-                            </div>
-                        </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
-                            <div class="flex-1 overflow-hidden">
-                                <span class="block truncate font-medium leading-[18px]">{{
-                                    t('dialog.group.info.links')
-                                }}</span>
-                                <div
-                                    v-if="groupDialog.ref.links && groupDialog.ref.links.length > 0"
-                                    style="margin-top: 6px"
-                                    class="flex">
-                                    <template v-for="(link, index) in groupDialog.ref.links" :key="index">
-                                        <TooltipWrapper v-if="link">
-                                            <template #content>
-                                                <span v-text="link" />
-                                            </template>
-                                            <img
-                                                :src="getFaviconUrl(link)"
-                                                style="
-                                                    width: 16px;
-                                                    height: 16px;
-                                                    vertical-align: middle;
-                                                    margin-right: 6px;
-                                                    cursor: pointer;
-                                                "
-                                                @click.stop="openExternalLink(link)"
-                                                loading="lazy" />
-                                        </TooltipWrapper>
-                                    </template>
-                                </div>
-                                <div v-else class="block truncate text-xs">-</div>
-                            </div>
-                        </div>
-                        <div class="inline-flex justify-between w-full">
-                            <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-1/2">
-                                <div class="flex-1 overflow-hidden">
-                                    <span class="block truncate font-medium leading-[18px]">{{
-                                        t('dialog.group.info.url')
-                                    }}</span>
-                                    <span class="block truncate text-xs"
-                                        >{{ groupDialog.ref.$url }}
-                                        <TooltipWrapper side="top" :content="t('dialog.group.info.url_tooltip')">
-                                            <Button
-                                                class="rounded-full ml-1 text-xs"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                @click="copyToClipboard(groupDialog.ref.$url)"
-                                                ><Copy class="h-4 w-4" />
-                                            </Button> </TooltipWrapper
-                                    ></span>
-                                </div>
-                            </div>
-                            <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-1/2">
-                                <div class="flex-1 overflow-hidden">
-                                    <span class="block truncate font-medium leading-[18px]">{{
-                                        t('dialog.group.info.id')
-                                    }}</span>
-                                    <span class="block truncate text-xs"
-                                        >{{ groupDialog.id }}
-                                        <TooltipWrapper side="top" :content="t('dialog.group.info.id_tooltip')">
-                                            <Button
-                                                class="rounded-full ml-1 text-xs"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                @click="copyToClipboard(groupDialog.id)"
-                                                ><Copy class="h-4 w-4" />
-                                            </Button> </TooltipWrapper
-                                    ></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            v-if="groupDialog.ref.membershipStatus === 'member'"
-                            class="border-t border-border"
-                            style="width: 100%; margin-top: 8px">
-                            <div style="width: 100%; display: flex; margin-top: 8px">
-                                <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
-                                    <div class="flex-1 overflow-hidden">
-                                        <span class="block truncate font-medium leading-[18px]">{{
-                                            t('dialog.group.info.joined_at')
-                                        }}</span>
-                                        <span class="block truncate text-xs">{{
-                                            formatDateFilter(groupDialog.ref.myMember.joinedAt, 'long')
-                                        }}</span>
-                                    </div>
-                                </div>
-                                <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
-                                    <div class="flex-1 overflow-hidden">
-                                        <span class="block truncate font-medium leading-[18px]">{{
-                                            t('dialog.group.info.roles')
-                                        }}</span>
-                                        <span
-                                            v-if="groupDialog.memberRoles.length === 0"
-                                            class="block truncate text-xs">
-                                            -
-                                        </span>
-                                        <span v-else class="block truncate text-xs">
-                                            <template v-for="(role, rIndex) in groupDialog.memberRoles" :key="rIndex">
-                                                <TooltipWrapper side="top">
-                                                    <template #content>
-                                                        <span>{{ t('dialog.group.info.role') }} {{ role.name }}</span>
-                                                        <br />
-                                                        <span
-                                                            >{{ t('dialog.group.info.role_description') }}
-                                                            {{ role.description }}</span
-                                                        >
-                                                        <br />
-                                                        <span v-if="role.updatedAt"
-                                                            >{{ t('dialog.group.info.role_updated_at') }}
-                                                            {{ formatDateFilter(role.updatedAt, 'long') }}</span
-                                                        >
-                                                        <span v-else
-                                                            >{{ t('dialog.group.info.role_created_at') }}
-                                                            {{ formatDateFilter(role.createdAt, 'long') }}</span
-                                                        >
-                                                        <br />
-                                                        <span>{{ t('dialog.group.info.role_permissions') }}</span>
-                                                        <br />
-                                                        <template
-                                                            v-for="(permission, pIndex) in role.permissions"
-                                                            :key="pIndex">
-                                                            <span>{{ permission }}</span>
-                                                            <br />
-                                                        </template>
-                                                    </template>
-                                                    <span
-                                                        >{{ role.name
-                                                        }}{{
-                                                            rIndex < groupDialog.memberRoles.length - 1 ? ', ' : ''
-                                                        }}</span
-                                                    >
-                                                </TooltipWrapper>
-                                            </template>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <GroupDialogInfoTab
+                        :show-group-post-edit-dialog="showGroupPostEditDialog"
+                        :confirm-delete-group-post="confirmDeleteGroupPost" />
                 </template>
                 <template #Posts>
-                    <template v-if="groupDialog.visible">
-                        <span style="margin-right: 8px; vertical-align: top"
-                            >{{ t('dialog.group.posts.posts_count') }} {{ groupDialog.posts.length }}</span
-                        >
-                        <InputGroupField
-                            v-model="groupDialog.postsSearch"
-                            clearable
-                            size="sm"
-                            :placeholder="t('dialog.group.posts.search_placeholder')"
-                            style="width: 89%; margin-bottom: 8px"
-                            @input="updateGroupPostSearch" />
-                        <div class="flex flex-wrap items-start">
-                            <div
-                                v-for="post in groupDialog.postsFiltered"
-                                :key="post.id"
-                                class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
-                                <div class="flex-1 overflow-hidden">
-                                    <span style="display: block" v-text="post.title" />
-                                    <div v-if="post.imageUrl" style="display: inline-block; margin-right: 6px">
-                                        <img
-                                            :src="post.imageUrl"
-                                            class="cursor-pointer"
-                                            style="
-                                                flex: none;
-                                                width: 60px;
-                                                height: 60px;
-                                                border-radius: var(--radius-md);
-                                                object-fit: cover;
-                                            "
-                                            @click="showFullscreenImageDialog(post.imageUrl)"
-                                            loading="lazy" />
-                                    </div>
-                                    <pre
-                                        class="text-xs"
-                                        style="
-                                            display: inline-block;
-                                            vertical-align: top;
-                                            font-family: inherit;
-                                            font-size: 12px;
-                                            white-space: pre-wrap;
-                                            margin: 0;
-                                        "
-                                        >{{ post.text || '-' }}</pre
-                                    >
-                                    <br />
-                                    <div v-if="post.authorId" class="text-xs" style="float: right; margin-left: 6px">
-                                        <TooltipWrapper v-if="post.roleIds.length" side="top">
-                                            <template #content>
-                                                <span>{{ t('dialog.group.posts.visibility') }}</span>
-                                                <br />
-                                                <template v-for="roleId in post.roleIds" :key="roleId">
-                                                    <template
-                                                        v-for="role in groupDialog.ref.roles"
-                                                        :key="role.id + roleId"
-                                                        ><span v-if="role.id === roleId" v-text="role.name" />
-                                                    </template>
-                                                    <template
-                                                        v-if="post.roleIds.indexOf(roleId) < post.roleIds.length - 1"
-                                                        ><span>,&nbsp;</span></template
-                                                    >
-                                                </template>
-                                            </template>
-                                            <Eye style="margin-right: 6px" />
-                                        </TooltipWrapper>
-                                        <DisplayName :userid="post.authorId" style="margin-right: 6px" />
-                                        <span v-if="post.editorId" style="margin-right: 6px"
-                                            >({{ t('dialog.group.posts.edited_by') }}
-                                            <DisplayName :userid="post.editorId" />)</span
-                                        >
-                                        <TooltipWrapper side="bottom">
-                                            <template #content>
-                                                <span
-                                                    >{{ t('dialog.group.posts.created_at') }}
-                                                    {{ formatDateFilter(post.createdAt, 'long') }}</span
-                                                >
-                                                <template v-if="post.updatedAt !== post.createdAt">
-                                                    <br />
-                                                    <span
-                                                        >{{ t('dialog.group.posts.edited_at') }}
-                                                        {{ formatDateFilter(post.updatedAt, 'long') }}</span
-                                                    >
-                                                </template>
-                                            </template>
-                                            <Timer :epoch="Date.parse(post.updatedAt)" />
-                                        </TooltipWrapper>
-                                        <template
-                                            v-if="hasGroupPermission(groupDialog.ref, 'group-announcement-manage')">
-                                            <TooltipWrapper side="top" :content="t('dialog.group.posts.edit_tooltip')">
-                                                <Button
-                                                    size="icon-sm"
-                                                    class="h-6 w-6 text-xs text-muted-foreground hover:text-foreground"
-                                                    variant="ghost"
-                                                    @click="showGroupPostEditDialog(groupDialog.id, post)"
-                                                    ><Pencil class="h-4 w-4" />
-                                                </Button>
-                                            </TooltipWrapper>
-                                            <TooltipWrapper
-                                                side="top"
-                                                :content="t('dialog.group.posts.delete_tooltip')">
-                                                <Button
-                                                    size="icon-sm"
-                                                    class="h-6 w-6 text-xs text-muted-foreground hover:text-foreground"
-                                                    variant="ghost"
-                                                    @click="confirmDeleteGroupPost(post)"
-                                                    ><Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </TooltipWrapper>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                    <GroupDialogPostsTab
+                        :show-group-post-edit-dialog="showGroupPostEditDialog"
+                        :confirm-delete-group-post="confirmDeleteGroupPost" />
                 </template>
                 <template #Members>
-                    <template v-if="groupDialog.visible">
-                        <span
-                            v-if="hasGroupPermission(groupDialog.ref, 'group-members-viewall')"
-                            style="font-weight: bold; font-size: 16px"
-                            >{{ t('dialog.group.members.all_members') }}</span
-                        >
-                        <span v-else style="font-weight: bold; font-size: 16px">{{
-                            t('dialog.group.members.friends_only')
-                        }}</span>
-                        <div style="margin-top: 8px">
-                            <Button
-                                class="rounded-full h-6 w-6"
-                                variant="ghost"
-                                size="icon-sm"
-                                :loading="isGroupMembersLoading"
-                                circle
-                                @click="loadAllGroupMembers">
-                                <Spinner v-if="isGroupMembersLoading" /><RefreshCcw v-else
-                            /></Button>
-                            <Button
-                                class="rounded-full h-6 w-6 ml-2"
-                                size="icon-sm"
-                                variant="ghost"
-                                style="margin-left: 6px"
-                                @click="downloadAndSaveJson(`${groupDialog.id}_members`, groupDialog.members)">
-                                <Download class="h-4 w-4" />
-                            </Button>
-                            <span
-                                v-if="groupDialog.memberSearch.length"
-                                style="font-size: 14px; margin-left: 6px; margin-right: 6px"
-                                >{{ groupDialog.memberSearchResults.length }}/{{ groupDialog.ref.memberCount }}</span
-                            >
-                            <span v-else style="font-size: 14px; margin-left: 6px; margin-right: 6px"
-                                >{{ groupDialog.members.length }}/{{ groupDialog.ref.memberCount }}</span
-                            >
-                            <div
-                                v-if="hasGroupPermission(groupDialog.ref, 'group-members-manage')"
-                                style="float: right"
-                                class="flex items-center">
-                                <span style="margin-right: 6px">{{ t('dialog.group.members.sort_by') }}</span>
-                                <Select
-                                    v-model="groupDialogMemberSortValue"
-                                    :disabled="isGroupMembersLoading || groupDialog.memberSearch.length > 0">
-                                    <SelectTrigger class="h-8 w-45 mr-1">
-                                        <SelectValue :placeholder="t('dialog.group.members.sort_by')" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="item in groupDialogSortingOptions"
-                                            :key="item.value"
-                                            :value="item.value">
-                                            {{ t(item.name) }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <span class="ml-2 mr-1">{{ t('dialog.group.members.filter') }}</span>
-                                <div style="display: inline-block; width: 220px">
-                                    <VirtualCombobox
-                                        v-model="groupDialogMemberFilterKey"
-                                        :groups="groupDialogMemberFilterGroups"
-                                        :disabled="isGroupMembersLoading || groupDialog.memberSearch.length > 0"
-                                        :placeholder="t('dialog.group.members.filter')"
-                                        :search-placeholder="t('dialog.group.members.search')"
-                                        :clearable="false"
-                                        :close-on-select="true">
-                                        <template #trigger="{ text }">
-                                            <span class="truncate">
-                                                {{ text || t('dialog.group.members.filter') }}
-                                            </span>
-                                        </template>
-                                    </VirtualCombobox>
-                                </div>
-                            </div>
-                            <InputGroupField
-                                v-model="groupDialog.memberSearch"
-                                :disabled="!hasGroupPermission(groupDialog.ref, 'group-members-manage')"
-                                clearable
-                                size="sm"
-                                :placeholder="t('dialog.group.members.search')"
-                                style="margin-top: 8px; margin-bottom: 8px"
-                                @input="groupMembersSearch" />
-                        </div>
-                        <div
-                            v-if="groupDialog.memberSearch.length"
-                            class="flex flex-wrap items-start"
-                            style="margin-top: 8px; overflow: auto; max-height: 250px; min-width: 130px">
-                            <div
-                                v-for="user in groupDialog.memberSearchResults"
-                                :key="user.id"
-                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
-                                @click="showUserDialog(user.userId)">
-                                <div class="relative inline-block flex-none size-9 mr-2.5">
-                                    <img
-                                        class="size-full rounded-full object-cover"
-                                        :src="userImage(user.user)"
-                                        loading="lazy" />
-                                </div>
-                                <div class="flex-1 overflow-hidden">
-                                    <span
-                                        class="block truncate font-medium leading-[18px]"
-                                        :style="{ color: user.user?.$userColour }"
-                                        v-text="user.user?.displayName" />
-                                    <span class="block truncate text-xs">
-                                        <template v-if="hasGroupPermission(groupDialog.ref, 'group-members-manage')">
-                                            <TooltipWrapper
-                                                v-if="user.isRepresenting"
-                                                side="top"
-                                                :content="t('dialog.group.members.representing')">
-                                                <Tag style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper v-if="user.visibility !== 'visible'" side="top">
-                                                <template #content>
-                                                    <span
-                                                        >{{ t('dialog.group.members.visibility') }}
-                                                        {{ user.visibility }}</span
-                                                    >
-                                                </template>
-                                                <Eye style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper
-                                                v-if="!user.isSubscribedToAnnouncements"
-                                                side="top"
-                                                :content="t('dialog.group.members.unsubscribed_announcements')">
-                                                <MessageSquare style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper v-if="user.managerNotes" side="top">
-                                                <template #content>
-                                                    <span>{{ t('dialog.group.members.manager_notes') }}</span>
-                                                    <br />
-                                                    <span>{{ user.managerNotes }}</span>
-                                                </template>
-                                                <Pencil style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                        </template>
-                                        <template v-for="roleId in user.roleIds" :key="roleId">
-                                            <template v-for="role in groupDialog.ref.roles" :key="role.id + roleId"
-                                                ><span v-if="role.id === roleId" v-text="role.name" /></template
-                                            ><template v-if="user.roleIds.indexOf(roleId) < user.roleIds.length - 1"
-                                                ><span>,&nbsp;</span></template
-                                            >
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <ul
-                            v-else-if="groupDialog.members.length > 0"
-                            class="infinite-list flex flex-wrap items-start"
-                            style="margin-top: 8px; overflow: auto; max-height: 250px; min-width: 130px">
-                            <li
-                                v-for="user in groupDialog.members"
-                                :key="user.id"
-                                class="infinite-list-item box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
-                                @click="showUserDialog(user.userId)">
-                                <div class="relative inline-block flex-none size-9 mr-2.5">
-                                    <img
-                                        class="size-full rounded-full object-cover"
-                                        :src="userImage(user.user)"
-                                        loading="lazy" />
-                                </div>
-                                <div class="flex-1 overflow-hidden">
-                                    <span
-                                        class="block truncate font-medium leading-[18px]"
-                                        :style="{ color: user.user?.$userColour }"
-                                        v-text="user.user?.displayName" />
-                                    <span class="block truncate text-xs">
-                                        <template v-if="hasGroupPermission(groupDialog.ref, 'group-members-manage')">
-                                            <TooltipWrapper
-                                                v-if="user.isRepresenting"
-                                                side="top"
-                                                :content="t('dialog.group.members.representing')">
-                                                <Tag style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper v-if="user.visibility !== 'visible'" side="top">
-                                                <template #content>
-                                                    <span
-                                                        >{{ t('dialog.group.members.visibility') }}
-                                                        {{ user.visibility }}</span
-                                                    >
-                                                </template>
-                                                <Eye style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper
-                                                v-if="!user.isSubscribedToAnnouncements"
-                                                side="top"
-                                                :content="t('dialog.group.members.unsubscribed_announcements')">
-                                                <MessageSquare style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                            <TooltipWrapper v-if="user.managerNotes" side="top">
-                                                <template #content>
-                                                    <span>{{ t('dialog.group.members.manager_notes') }}</span>
-                                                    <br />
-                                                    <span>{{ user.managerNotes }}</span>
-                                                </template>
-                                                <Pencil style="margin-right: 6px" />
-                                            </TooltipWrapper>
-                                        </template>
-                                        <template v-for="roleId in user.roleIds" :key="roleId">
-                                            <template v-for="role in groupDialog.ref.roles" :key="roleId + role.id"
-                                                ><span v-if="role.id === roleId" v-text="role.name" /></template
-                                            ><template v-if="user.roleIds.indexOf(roleId) < user.roleIds.length - 1"
-                                                ><span>&nbsp;</span></template
-                                            >
-                                        </template>
-                                    </span>
-                                </div>
-                            </li>
-                            <div
-                                v-if="!isGroupMembersDone"
-                                class="box-border flex items-center p-1.5 text-[13px] cursor-pointer"
-                                style="width: 100%; height: 45px; text-align: center"
-                                @click="loadMoreGroupMembers">
-                                <div v-if="!isGroupMembersLoading" class="flex-1 overflow-hidden">
-                                    <span class="block truncate font-medium leading-[18px]">{{
-                                        t('dialog.group.members.load_more')
-                                    }}</span>
-                                </div>
-                            </div>
-                        </ul>
-                    </template>
+                    <GroupDialogMembersTab ref="membersTabRef" />
                 </template>
                 <template #Photos>
-                    <Button
-                        class="rounded-full"
-                        variant="ghost"
-                        size="icon-sm"
-                        :disabled="isGroupGalleryLoading"
-                        @click="getGroupGalleries">
-                        <Spinner v-if="isGroupGalleryLoading" />
-                        <RefreshCw v-else />
-                    </Button>
-                    <TabsUnderline
-                        v-model="groupDialogGalleryCurrentName"
-                        :items="groupGalleryTabs"
-                        :unmount-on-hide="false"
-                        class="mt-2.5">
-                        <template
-                            v-for="(gallery, index) in groupDialog.ref.galleries"
-                            :key="`label-${index}`"
-                            v-slot:[`label-${index}`]>
-                            <span style="font-weight: bold; font-size: 16px" v-text="gallery.name" />
-                            <i class="x-status-icon" style="margin-left: 6px" :class="groupGalleryStatus(gallery)" />
-                            <span class="text-muted-foreground" style="font-size: 12px; margin-left: 6px">{{
-                                groupDialog.galleries[gallery.id] ? groupDialog.galleries[gallery.id].length : 0
-                            }}</span>
-                        </template>
-                        <template
-                            v-for="(gallery, index) in groupDialog.ref.galleries"
-                            :key="`content-${index}`"
-                            v-slot:[String(index)]>
-                            <span class="text-muted-foreground" style="padding: 8px" v-text="gallery.description" />
-                            <div
-                                style="
-                                    display: grid;
-                                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                                    gap: 16px;
-                                    margin-top: 8px;
-                                    max-height: 600px;
-                                    overflow-y: auto;
-                                ">
-                                <Card
-                                    v-for="image in groupDialog.galleries[gallery.id]"
-                                    :key="image.id"
-                                    class="p-0 overflow-hidden transition-shadow hover:shadow-md">
-                                    <img
-                                        :src="image.imageUrl"
-                                        :class="[' cursor-pointer', 'max-w-full', 'max-h-full']"
-                                        @click="showFullscreenImageDialog(image.imageUrl)"
-                                        loading="lazy" />
-                                </Card>
-                            </div>
-                        </template>
-                    </TabsUnderline>
+                    <GroupDialogPhotosTab ref="photosTabRef" />
                 </template>
                 <template #JSON>
-                    <Button
-                        class="rounded-full mr-2"
-                        size="icon-sm"
-                        variant="ghost"
-                        @click="refreshGroupDialogTreeData()">
-                        <RefreshCw />
-                    </Button>
-                    <Button
-                        class="rounded-full"
-                        size="icon-sm"
-                        variant="ghost"
-                        @click="downloadAndSaveJson(groupDialog.id, groupDialog.ref)">
-                        <Download />
-                    </Button>
-                    <vue-json-pretty
-                        :key="treeData?.group?.id"
-                        :data="treeData"
-                        :deep="2"
-                        :theme="isDarkMode ? 'dark' : 'light'"
-                        show-icon />
+                    <DialogJsonTab
+                        :tree-data="treeData"
+                        :tree-data-key="treeData?.group?.id"
+                        :dialog-id="groupDialog.id"
+                        :dialog-ref="groupDialog.ref"
+                        @refresh="refreshGroupDialogTreeData()" />
                 </template>
             </TabsUnderline>
         </div>
@@ -1178,61 +380,26 @@
         BookmarkCheck,
         Check,
         CheckCircle,
-        Copy,
-        Download,
         Eye,
+        Image,
         MessageSquare,
         MoreHorizontal,
-        Pencil,
         RefreshCw,
         Settings,
         Share2,
-        Tag,
         Ticket,
         Trash2,
         X,
         XCircle
     } from 'lucide-vue-next';
-    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { computed, reactive, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
-    import { Card } from '@/components/ui/card';
-    import { InputGroupField } from '@/components/ui/input-group';
-    import { RefreshCcw } from 'lucide-vue-next';
-    import { Spinner } from '@/components/ui/spinner';
     import { TabsUnderline } from '@/components/ui/tabs';
-    import { VirtualCombobox } from '@/components/ui/virtual-combobox';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
-    import VueJsonPretty from 'vue-json-pretty';
-
-    import {
-        copyToClipboard,
-        debounce,
-        downloadAndSaveJson,
-        formatDateFilter,
-        getFaviconUrl,
-        hasGroupModerationPermission,
-        hasGroupPermission,
-        languageClass,
-        openExternalLink,
-        refreshInstancePlayerCount,
-        removeFromArray,
-        userImage,
-        userStatusClass
-    } from '../../../shared/utils';
-    import {
-        useAppearanceSettingsStore,
-        useGalleryStore,
-        useGroupStore,
-        useInstanceStore,
-        useLocationStore,
-        useModalStore,
-        useUserStore
-    } from '../../../stores';
     import {
         DropdownMenu,
         DropdownMenuContent,
@@ -1240,16 +407,34 @@
         DropdownMenuSeparator,
         DropdownMenuTrigger
     } from '../../ui/dropdown-menu';
-    import { groupDialogFilterOptions, groupDialogSortingOptions } from '../../../shared/constants';
+    import {
+        copyToClipboard,
+        hasGroupModerationPermission,
+        hasGroupPermission,
+        languageClass,
+        removeFromArray
+    } from '../../../shared/utils';
+    import { useGalleryStore, useGroupStore, useModalStore, useUserStore } from '../../../stores';
+    import {
+        getGroupDialogGroup,
+        showGroupDialog,
+        leaveGroupPrompt,
+        setGroupVisibility,
+        setGroupSubscription
+    } from '../../../coordinators/groupCoordinator';
+    import { groupRequest, queryRequest } from '../../../api';
+    import { queryKeys, refetchActiveEntityQuery } from '../../../queries';
     import { Badge } from '../../ui/badge';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
-    import { groupRequest } from '../../../api';
 
-    import GroupCalendarEventCard from '../../../views/Tools/components/GroupCalendarEventCard.vue';
+    import DialogJsonTab from '../DialogJsonTab.vue';
+    import GroupDialogInfoTab from './GroupDialogInfoTab.vue';
+    import { useGroupDialogCommands } from './useGroupDialogCommands';
+    import GroupDialogMembersTab from './GroupDialogMembersTab.vue';
+    import GroupDialogPhotosTab from './GroupDialogPhotosTab.vue';
+    import GroupDialogPostsTab from './GroupDialogPostsTab.vue';
     import GroupPostEditDialog from './GroupPostEditDialog.vue';
-    import InstanceActionBar from '../../InstanceActionBar.vue';
-
-    import * as workerTimers from 'worker-timers';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
     const { t } = useI18n();
     const groupDialogTabs = computed(() => [
@@ -1259,114 +444,50 @@
         { value: 'Photos', label: t('dialog.group.gallery.header') },
         { value: 'JSON', label: t('dialog.group.json.header') }
     ]);
-    const groupGalleryTabs = computed(() =>
-        (groupDialog.value?.ref?.galleries || []).map((gallery, index) => ({
-            value: String(index),
-            label: gallery?.name ?? ''
-        }))
-    );
 
     const modalStore = useModalStore();
-    const instanceStore = useInstanceStore();
 
-    const { showUserDialog } = useUserStore();
     const { currentUser } = storeToRefs(useUserStore());
     const { groupDialog, inviteGroupDialog } = storeToRefs(useGroupStore());
-    const {
-        getGroupDialogGroup,
-        updateGroupPostSearch,
+    const { updateGroupPostSearch, showGroupMemberModerationDialog } = useGroupStore();
+
+    const { showFullscreenImageDialog } = useGalleryStore();
+
+    const { groupDialogCommand } = useGroupDialogCommands(groupDialog, {
+        t,
+        modalStore,
+        currentUser,
         showGroupDialog,
         leaveGroupPrompt,
         setGroupVisibility,
         setGroupSubscription,
-        applyGroupMember,
-        handleGroupMember,
-        showGroupMemberModerationDialog
-    } = useGroupStore();
+        showGroupMemberModerationDialog,
+        showInviteGroupDialog: (groupId, userId) => {
+            if (groupId) {
+                inviteGroupDialog.value.groupId = groupId;
+            }
+            if (userId) {
+                inviteGroupDialog.value.userId = userId;
+            }
+            inviteGroupDialog.value.visible = true;
+        },
+        showGroupPostEditDialog,
+        groupRequest
+    });
 
-    const { lastLocation } = storeToRefs(useLocationStore());
-    const { showFullscreenImageDialog } = useGalleryStore();
-
-    const { isDarkMode } = storeToRefs(useAppearanceSettingsStore());
-
-    const isGroupMembersDone = ref(false);
-    const isGroupMembersLoading = ref(false);
-    const groupDialogGalleryCurrentName = ref('0');
     const groupDialogTabCurrentName = ref('0');
-    const isGroupGalleryLoading = ref(false);
     const treeData = ref({});
+    const imageError = ref(false);
 
-    const groupDialogMemberSortValue = computed({
-        get() {
-            return groupDialog.value?.memberSortOrder?.value ?? '';
-        },
-        set(value) {
-            const option = Object.values(groupDialogSortingOptions).find((item) => item.value === value);
-            if (option) {
-                setGroupMemberSortOrder(option);
-            }
+    watch(
+        () => groupDialog.value.id,
+        () => {
+            imageError.value = false;
         }
-    });
+    );
+    const membersTabRef = ref(null);
+    const photosTabRef = ref(null);
 
-    const groupDialogMemberFilterKey = computed({
-        get() {
-            const filter = groupDialog.value?.memberFilter;
-            if (!filter) return null;
-
-            if (filter.id === null) return 'everyone';
-            if (filter.id === '') return 'usersWithNoRole';
-            return `role:${filter.id}`;
-        },
-        set(key) {
-            if (!key) return;
-
-            if (key === 'everyone') {
-                setGroupMemberFilter(groupDialogFilterOptions.everyone);
-                return;
-            }
-            if (key === 'usersWithNoRole') {
-                setGroupMemberFilter(groupDialogFilterOptions.usersWithNoRole);
-                return;
-            }
-
-            if (key.startsWith('role:')) {
-                const roleId = key.slice('role:'.length);
-                const role = groupDialog.value?.ref?.roles?.find((r) => r.id === roleId);
-                if (role) {
-                    setGroupMemberFilter(role);
-                }
-            }
-        }
-    });
-
-    const groupDialogMemberFilterGroups = computed(() => {
-        const filterItems = Object.values(groupDialogFilterOptions).map((item) => ({
-            value: item.id === null ? 'everyone' : item.id === '' ? 'usersWithNoRole' : `role:${item.id}`,
-            label: t(item.name),
-            search: t(item.name)
-        }));
-
-        const roleItems = (groupDialog.value?.ref?.roles ?? [])
-            .filter((role) => !role.defaultRole)
-            .map((role) => ({
-                value: `role:${role.id}`,
-                label: role.name,
-                search: role.name
-            }));
-
-        return [
-            {
-                key: 'filters',
-                label: t('dialog.group.members.filter'),
-                items: filterItems
-            },
-            {
-                key: 'roles',
-                label: 'Roles',
-                items: roleItems
-            }
-        ].filter((group) => group.items.length);
-    });
     const selectedGalleryFile = ref({
         selectedFileId: '',
         selectedImageUrl: ''
@@ -1383,36 +504,6 @@
         groupId: ''
     });
 
-    let loadMoreGroupMembersParams = ref({
-        n: 100,
-        offset: 0,
-        groupId: '',
-        sort: '',
-        roleId: ''
-    });
-
-    const pastCalenderEvents = computed(() => {
-        if (!groupDialog.value.calendar) {
-            return [];
-        }
-        const now = Date.now();
-        return groupDialog.value.calendar.filter((event) => {
-            const eventEnd = new Date(event.endsAt).getTime();
-            return eventEnd < now;
-        });
-    });
-
-    const upcomingCalenderEvents = computed(() => {
-        if (!groupDialog.value.calendar) {
-            return [];
-        }
-        const now = Date.now();
-        return groupDialog.value.calendar.filter((event) => {
-            const eventEnd = new Date(event.endsAt).getTime();
-            return eventEnd >= now;
-        });
-    });
-
     watch(
         () => groupDialog.value.isGetGroupDialogGroupLoading,
         (val) => {
@@ -1421,29 +512,6 @@
             }
         }
     );
-
-    /**
-     *
-     * @param groupId
-     * @param userId
-     */
-    function showInviteGroupDialog(groupId, userId) {
-        if (groupId) {
-            inviteGroupDialog.value.groupId = groupId;
-        }
-        if (userId) {
-            inviteGroupDialog.value.userId = userId;
-        }
-        inviteGroupDialog.value.visible = true;
-    }
-
-    /**
-     *
-     * @param groupRef
-     */
-    function showPreviousInstancesListDialog(groupRef) {
-        instanceStore.showPreviousInstancesListDialog('group', groupRef);
-    }
 
     /**
      *
@@ -1463,50 +531,6 @@
     /**
      *
      */
-    function groupMembersSearch() {
-        if (groupDialog.value.memberSearch.length < 3) {
-            groupDialog.value.memberSearchResults = [];
-            isGroupMembersLoading.value = false;
-            return;
-        }
-        debounce(groupMembersSearchDebounced, 200)();
-    }
-
-    /**
-     *
-     */
-    function groupMembersSearchDebounced() {
-        const D = groupDialog.value;
-        const search = D.memberSearch;
-        D.memberSearchResults = [];
-        if (!search || search.length < 3) {
-            return;
-        }
-        isGroupMembersLoading.value = true;
-        groupRequest
-            .getGroupMembersSearch({
-                groupId: D.id,
-                query: search,
-                n: 100,
-                offset: 0
-            })
-            .then((args) => {
-                for (const json of args.json.results) {
-                    handleGroupMember({
-                        json,
-                        params: {
-                            groupId: args.params.groupId
-                        }
-                    });
-                }
-                if (D.id === args.params.groupId) {
-                    D.memberSearchResults = args.json.results;
-                }
-            })
-            .finally(() => {
-                isGroupMembersLoading.value = false;
-            });
-    }
 
     /**
      *
@@ -1526,6 +550,7 @@
                     });
                     getGroupDialogGroup(groupId);
                 }
+                refetchActiveEntityQuery(queryKeys.representedGroup(currentUser.value.id));
             });
     }
 
@@ -1552,7 +577,8 @@
         modalStore
             .confirm({
                 description: t('confirm.delete_post'),
-                title: t('confirm.title')
+                title: t('confirm.title'),
+                destructive: true
             })
             .then(({ ok }) => {
                 if (!ok) return;
@@ -1593,121 +619,6 @@
      *
      * @param gallery
      */
-    function groupGalleryStatus(gallery) {
-        const style = {};
-        if (!gallery.membersOnly) {
-            style.blue = true;
-        } else if (!gallery.roleIdsToView) {
-            style.green = true;
-        } else {
-            style.red = true;
-        }
-        return style;
-    }
-
-    /**
-     *
-     * @param command
-     */
-    function groupDialogCommand(command) {
-        const D = groupDialog.value;
-        if (D.visible === false) {
-            return;
-        }
-        switch (command) {
-            case 'Share':
-                copyToClipboard(groupDialog.value.ref.$url);
-                break;
-            case 'Create Post':
-                showGroupPostEditDialog(groupDialog.value.id, null);
-                break;
-            case 'Moderation Tools':
-                showGroupMemberModerationDialog(groupDialog.value.id);
-                break;
-            case 'Invite To Group':
-                showInviteGroupDialog(D.id, '');
-                break;
-            case 'Refresh':
-                const groupId = D.id;
-                showGroupDialog(groupId, { forceRefresh: true });
-                break;
-            case 'Leave Group':
-                leaveGroupPrompt(D.id);
-                break;
-            case 'Block Group':
-                blockGroup(D.id);
-                break;
-            case 'Unblock Group':
-                unblockGroup(D.id);
-                break;
-            case 'Visibility Everyone':
-                setGroupVisibility(D.id, 'visible');
-                break;
-            case 'Visibility Friends':
-                setGroupVisibility(D.id, 'friends');
-                break;
-            case 'Visibility Hidden':
-                setGroupVisibility(D.id, 'hidden');
-                break;
-            case 'Subscribe To Announcements':
-                setGroupSubscription(D.id, true);
-                break;
-            case 'Unsubscribe To Announcements':
-                setGroupSubscription(D.id, false);
-                break;
-        }
-    }
-
-    /**
-     *
-     * @param groupId
-     */
-    function blockGroup(groupId) {
-        modalStore
-            .confirm({
-                description: t('confirm.block_group'),
-                title: t('confirm.title')
-            })
-            .then(({ ok }) => {
-                if (!ok) return;
-                groupRequest
-                    .blockGroup({
-                        groupId
-                    })
-                    .then((args) => {
-                        if (groupDialog.value.visible && groupDialog.value.id === args.params.groupId) {
-                            showGroupDialog(args.params.groupId);
-                        }
-                    });
-            })
-            .catch(() => {});
-    }
-
-    /**
-     *
-     * @param groupId
-     */
-    function unblockGroup(groupId) {
-        modalStore
-            .confirm({
-                description: t('confirm.unblock_group'),
-                title: t('confirm.title')
-            })
-            .then(({ ok }) => {
-                if (!ok) return;
-                groupRequest
-                    .unblockGroup({
-                        groupId,
-                        userId: currentUser.value.id
-                    })
-                    .then((args) => {
-                        if (groupDialog.value.visible && groupDialog.value.id === args.params.groupId) {
-                            showGroupDialog(args.params.groupId);
-                        }
-                    });
-            })
-            .catch(() => {});
-    }
 
     /**
      *
@@ -1746,9 +657,9 @@
     function handleGroupDialogTab(tabName) {
         groupDialog.value.lastActiveTab = tabName;
         if (tabName === 'Members') {
-            getGroupDialogGroupMembers();
+            membersTabRef.value?.getGroupDialogGroupMembers();
         } else if (tabName === 'Photos') {
-            getGroupGalleries();
+            photosTabRef.value?.getGroupGalleries();
         } else if (tabName === 'JSON') {
             refreshGroupDialogTreeData();
         }
@@ -1807,7 +718,7 @@
                 selectedImageUrl: post.imageUrl
             };
         }
-        groupRequest.getCachedGroup({ groupId }).then((args) => {
+        queryRequest.fetch('group.dialog', { groupId }).then((args) => {
             D.groupRef = args.ref;
         });
         D.visible = true;
@@ -1816,144 +727,6 @@
     /**
      *
      */
-    async function getGroupDialogGroupMembers() {
-        const D = groupDialog.value;
-        D.members = [];
-        isGroupMembersDone.value = false;
-        loadMoreGroupMembersParams.value = {
-            sort: 'joinedAt:desc',
-            roleId: '',
-            n: 100,
-            offset: 0,
-            groupId: D.id
-        };
-        if (D.memberSortOrder.value) {
-            loadMoreGroupMembersParams.value.sort = D.memberSortOrder.value;
-        }
-        if (D.memberFilter.id !== null) {
-            loadMoreGroupMembersParams.value.roleId = D.memberFilter.id;
-        }
-        if (D.inGroup) {
-            await groupRequest
-                .getCachedGroupMember({
-                    groupId: D.id,
-                    userId: currentUser.value.id
-                })
-                .then((args) => {
-                    args.ref = applyGroupMember(args.json);
-                    if (args.json) {
-                        args.json.user = currentUser.value;
-                        if (D.memberFilter.id === null) {
-                            // when flitered by role don't include self
-                            D.members.push(args.json);
-                        }
-                    }
-                    return args;
-                });
-        }
-        await loadMoreGroupMembers();
-    }
-
-    /**
-     *
-     */
-    async function loadMoreGroupMembers() {
-        if (isGroupMembersDone.value || isGroupMembersLoading.value) {
-            return;
-        }
-        const D = groupDialog.value;
-        const params = loadMoreGroupMembersParams.value;
-        if (params.roleId === '') {
-            delete params.roleId;
-        }
-        D.memberSearch = '';
-        isGroupMembersLoading.value = true;
-        await groupRequest
-            .getCachedGroupMembers(params)
-            .finally(() => {
-                isGroupMembersLoading.value = false;
-            })
-            .then((args) => {
-                for (const json of args.json) {
-                    handleGroupMember({
-                        json,
-                        params: {
-                            groupId: args.params.groupId
-                        }
-                    });
-                }
-                for (let i = 0; i < args.json.length; i++) {
-                    const member = args.json[i];
-                    if (member.userId === currentUser.value.id) {
-                        if (D.members.length > 0 && D.members[0].userId === currentUser.value.id) {
-                            // remove duplicate and keep sort order
-                            D.members.splice(0, 1);
-                        }
-                        break;
-                    }
-                }
-                if (args.json.length < params.n) {
-                    isGroupMembersDone.value = true;
-                }
-                D.members = [...D.members, ...args.json];
-                params.offset += params.n;
-                return args;
-            })
-            .catch((err) => {
-                isGroupMembersDone.value = true;
-                throw err;
-            });
-    }
-
-    /**
-     *
-     */
-    async function getGroupGalleries() {
-        updateGroupDialogData({ ...groupDialog.value, galleries: {} });
-        groupDialogGalleryCurrentName.value = '0';
-        isGroupGalleryLoading.value = true;
-        const groupId = groupDialog.value.id;
-        const tasks = (groupDialog.value.ref.galleries || []).map((gallery) => getGroupGallery(groupId, gallery.id));
-        await Promise.allSettled(tasks);
-        isGroupGalleryLoading.value = false;
-    }
-
-    /**
-     *
-     * @param groupId
-     * @param galleryId
-     */
-    async function getGroupGallery(groupId, galleryId) {
-        try {
-            const params = {
-                groupId,
-                galleryId,
-                n: 100,
-                offset: 0
-            };
-            const count = 50; // 5000 max
-            for (let i = 0; i < count; i++) {
-                const args = await groupRequest.getCachedGroupGallery(params);
-                if (args) {
-                    for (const json of args.json) {
-                        if (groupDialog.value.id === json.groupId) {
-                            if (!groupDialog.value.galleries[json.galleryId]) {
-                                groupDialog.value.galleries[json.galleryId] = [];
-                            }
-                            groupDialog.value.galleries[json.galleryId].push(json);
-                        }
-                    }
-                }
-                params.offset += 100;
-                if (args.json.length < 100) {
-                    break;
-                }
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
     /**
      *
      */
@@ -1970,50 +743,6 @@
 
     /**
      *
-     */
-    async function loadAllGroupMembers() {
-        if (isGroupMembersLoading.value) {
-            return;
-        }
-        await getGroupDialogGroupMembers();
-        while (groupDialog.value.visible && !isGroupMembersDone.value) {
-            isGroupMembersLoading.value = true;
-            await new Promise((resolve) => {
-                workerTimers.setTimeout(resolve, 1000);
-            });
-            isGroupMembersLoading.value = false;
-            await loadMoreGroupMembers();
-        }
-    }
-
-    /**
-     *
-     * @param sortOrder
-     */
-    async function setGroupMemberSortOrder(sortOrder) {
-        const D = groupDialog.value;
-        if (D.memberSortOrder?.value === sortOrder?.value) {
-            return;
-        }
-        D.memberSortOrder = sortOrder;
-        await getGroupDialogGroupMembers();
-    }
-
-    /**
-     *
-     * @param filter
-     */
-    async function setGroupMemberFilter(filter) {
-        const D = groupDialog.value;
-        if (D.memberFilter === filter) {
-            return;
-        }
-        D.memberFilter = filter;
-        await getGroupDialogGroupMembers();
-    }
-
-    /**
-     *
      * @param obj
      */
     function updateGroupDialogData(obj) {
@@ -2021,22 +750,5 @@
             ...groupDialog.value,
             ...obj
         };
-    }
-
-    /**
-     *
-     * @param event
-     */
-    function updateFollowingCalendarData(event) {
-        const calendar = groupDialog.value.calendar;
-        for (let i = 0; i < calendar.length; i++) {
-            if (calendar[i].id === event.id) {
-                calendar[i] = {
-                    ...calendar[i],
-                    ...event
-                };
-                break;
-            }
-        }
     }
 </script>

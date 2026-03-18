@@ -1,12 +1,11 @@
-import { request } from '../service/request';
+import { queryClient } from '../queries';
+import { request } from '../services/request';
 import { useUserStore } from '../stores/user';
-import {
-    entityQueryPolicies,
-    fetchWithEntityPolicy,
-    queryClient,
-    queryKeys
-} from '../query';
+import { applyUser } from '../coordinators/userCoordinator';
 
+/**
+ *
+ */
 function refetchActiveFriendListQueries() {
     queryClient
         .invalidateQueries({
@@ -24,7 +23,6 @@ const friendReq = {
      * @type {import('../types/api/friend').GetFriends}
      */
     getFriends(params) {
-        const userStore = useUserStore();
         return request('auth/user/friends', {
             method: 'GET',
             params
@@ -38,26 +36,10 @@ const friendReq = {
                     console.error('/friends gave us garbage', user);
                     continue;
                 }
-                userStore.applyUser(user);
+                applyUser(user);
             }
             return args;
         });
-    },
-
-    /**
-     * Fetch friends from query cache if still fresh. Otherwise, calls API.
-     * @param {{ n: number, offset: number, offline?: boolean }} params
-     * @returns {Promise<{json: any, params: { n: number, offset: number, offline?: boolean }, cache?: boolean}>}
-     */
-    getCachedFriends(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.friends(params),
-            policy: entityQueryPolicies.friendList,
-            queryFn: () => friendReq.getFriends(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     },
 
     /**
@@ -96,6 +78,7 @@ const friendReq = {
 
     /**
      * @param {{ userId: string }} params
+     * @param customMsg
      * @returns {Promise<{json: any, params: { userId: string }}>}
      */
     deleteFriend(params, customMsg) {

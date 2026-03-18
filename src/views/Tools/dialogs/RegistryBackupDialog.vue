@@ -5,13 +5,11 @@
                 <DialogTitle>{{ t('dialog.registry_backup.header') }}</DialogTitle>
             </DialogHeader>
             <div class="mt-2">
-                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px">
+                <div class="flex items-center justify-between text-xs">
                     <span class="name mr-6">{{ t('dialog.registry_backup.auto_backup') }}</span>
                     <Switch :model-value="vrcRegistryAutoBackup" @update:modelValue="setVrcRegistryAutoBackup" />
                 </div>
-                <div
-                    class="mt-1.5"
-                    style="display: flex; align-items: center; justify-content: space-between; font-size: 12px">
+                <div class="mt-1.5 flex items-center justify-between text-xs">
                     <span class="name mr-6">{{ t('dialog.registry_backup.ask_to_restore') }}</span>
                     <Switch :model-value="vrcRegistryAskRestore" @update:modelValue="setVrcRegistryAskRestore" />
                 </div>
@@ -54,7 +52,7 @@
     import { createColumns } from '../../Settings/dialogs/registryBackupColumns.jsx';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
 
-    import configRepository from '../../../service/config';
+    import configRepository from '../../../services/config';
 
     const { backupVrcRegistry } = useVrcxStore();
     const { isRegistryBackupDialogVisible } = storeToRefs(useVrcxStore());

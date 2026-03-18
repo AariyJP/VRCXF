@@ -1,7 +1,6 @@
 import { defineConfig } from 'eslint/config';
 import { jsdoc } from 'eslint-plugin-jsdoc';
 
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
@@ -33,7 +32,8 @@ export default defineConfig([
                 VERSION: 'readonly',
                 NIGHTLY: 'readonly',
                 webApiService: 'readonly',
-                process: 'readonly'
+                process: 'readonly',
+                AppDebug: 'readonly'
             }
         }
     },
@@ -42,7 +42,8 @@ export default defineConfig([
             '**/webpack.*.js',
             '**/jest.config.js',
             'src-electron/*.js',
-            'src/localization/*.js'
+            'src/localization/*.js',
+            'src/shared/utils/localizationHelperCLI.js'
         ],
         languageOptions: {
             sourceType: 'commonjs',
@@ -59,7 +60,10 @@ export default defineConfig([
         ],
         languageOptions: {
             globals: {
-                ...globals.jest
+                ...globals.jest,
+                ...globals.node,
+                vi: 'readonly',
+                vitest: 'readonly'
             }
         }
     },
@@ -96,25 +100,30 @@ export default defineConfig([
         }
     },
     jsdoc({
-        config: 'flat/recommended'
-    }),
-    {
-        ignores: [
-            '**/__tests__/**',
-            '**/*.spec.{js,mjs,cjs,vue}',
-            '**/*.test.{js,mjs,cjs,vue}'
-        ],
-        plugins: { 'pretty-import': prettyImport },
+        config: 'flat/recommended',
         rules: {
-            'pretty-import/separate-type-imports': 'warn',
-            'pretty-import/sort-import-groups': [
-                'warn',
-                {
-                    groupStyleImports: true
-                }
-            ],
-            'pretty-import/sort-import-names': 'warn'
+            'jsdoc/require-jsdoc': 'off',
+            'jsdoc/require-param-description': 'off',
+            'jsdoc/require-returns-description': 'off',
+            'jsdoc/reject-function-type': 'off'
         }
-    },
-    eslintPluginPrettierRecommended
+    })
+    // {
+    //     ignores: [
+    //         '**/__tests__/**',
+    //         '**/*.spec.{js,mjs,cjs,vue}',
+    //         '**/*.test.{js,mjs,cjs,vue}'
+    //     ],
+    //     plugins: { 'pretty-import': prettyImport },
+    //     rules: {
+    //         'pretty-import/separate-type-imports': 'warn',
+    //         'pretty-import/sort-import-groups': [
+    //             'warn',
+    //             {
+    //                 groupStyleImports: true
+    //             }
+    //         ],
+    //         'pretty-import/sort-import-names': 'warn'
+    //     }
+    // },
 ]);

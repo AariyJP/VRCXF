@@ -29,7 +29,7 @@
                 t('view.player_list.photon.chatbox_blacklist')
             }}</Button>
             <TooltipWrapper side="bottom" :content="t('view.player_list.photon.status_tooltip')">
-                <div style="display: inline-flex; align-items: center; font-size: 14px">
+                <div class="inline-flex items-center text-sm">
                     <span v-if="ipcEnabled && !photonEventIcon">🟢</span>
                     <span v-else-if="ipcEnabled">⚪</span>
                     <span v-else>🔴</span>
@@ -45,8 +45,7 @@
                     :table-style="tableStyle"
                     :page-sizes="pageSizes"
                     :total-items="currentTotal"
-                    :on-page-size-change="handleCurrentPageSizeChange"
-                    />
+                    :on-page-size-change="handleCurrentPageSizeChange" />
             </template>
             <template #previous>
                 <DataTableLayout
@@ -84,9 +83,11 @@
         useVrcxStore,
         useWorldStore
     } from '../../../stores';
+    import { showWorldDialog } from '../../../coordinators/worldCoordinator';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
     import { createColumns } from './photonEventColumns.jsx';
     import { photonEventTableTypeFilterList } from '../../../shared/constants/photon';
+    import { lookupUser } from '../../../coordinators/userCoordinator';
 
     const emit = defineEmits(['show-chatbox-blacklist']);
     const { t } = useI18n();
@@ -107,9 +108,8 @@
 
     const { stringComparer } = storeToRefs(useSearchStore());
 
-    const { lookupUser } = useUserStore();
     const { showAvatarDialog } = useAvatarStore();
-    const { showWorldDialog } = useWorldStore();
+
     const { showGroupDialog } = useGroupStore();
     const { showFullscreenImageDialog } = useGalleryStore();
     const { ipcEnabled } = storeToRefs(useVrcxStore());
@@ -135,8 +135,7 @@
             if (!query) return true;
 
             return (
-                localeIncludes(row?.displayName ?? '', query, comparer) ||
-                localeIncludes(row?.text ?? '', query, comparer)
+                localeIncludes(row?.displayName ?? '', query, comparer) || localeIncludes(row?.text ?? '', query, comparer)
             );
         });
     };

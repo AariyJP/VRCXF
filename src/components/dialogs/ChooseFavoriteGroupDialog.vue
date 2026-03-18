@@ -104,11 +104,18 @@
     import { Button } from '@/components/ui/button';
     import { Check } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
+    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
-    import Noty from 'noty';
-
     import { useFavoriteStore, useUserStore } from '../../stores';
+    import {
+        addLocalWorldFavorite,
+        removeLocalWorldFavorite,
+        addLocalAvatarFavorite,
+        removeLocalAvatarFavorite,
+        addLocalFriendFavorite,
+        removeLocalFriendFavorite
+    } from '../../coordinators/favoriteCoordinator';
     import { favoriteRequest } from '../../api';
 
     const { t } = useI18n();
@@ -125,18 +132,12 @@
     } = storeToRefs(favoriteStore);
     const {
         localWorldFavGroupLength,
-        addLocalWorldFavorite,
         hasLocalWorldFavorite,
         hasLocalAvatarFavorite,
-        addLocalAvatarFavorite,
         localAvatarFavGroupLength,
-        removeLocalAvatarFavorite,
-        removeLocalWorldFavorite,
         deleteFavoriteNoConfirm,
         localFriendFavGroupLength,
-        addLocalFriendFavorite,
-        hasLocalFriendFavorite,
-        removeLocalFriendFavorite
+        hasLocalFriendFavorite
     } = favoriteStore;
     const { isLocalUserVrcPlusSupporter } = storeToRefs(useUserStore());
 
@@ -159,6 +160,9 @@
         }
     );
 
+    /**
+     * @returns {void}
+     */
     function initFavoriteDialog() {
         if (favoriteDialog.value.type === 'friend') {
             groups.value = favoriteFriendGroups.value;
@@ -169,6 +173,11 @@
         }
     }
 
+    /**
+     *
+     * @param {object} group
+     * @returns {void}
+     */
     function addFavorite(group) {
         const D = favoriteDialog.value;
         loading.value = true;
@@ -180,7 +189,7 @@
             })
             .then(() => {
                 isVisible.value = false;
-                new Noty({ type: 'success', text: 'Favorite added!' }).show();
+                toast.success('Favorite added!');
             })
             .finally(() => {
                 loading.value = false;

@@ -4,7 +4,7 @@
             <DialogHeader>
                 <DialogTitle>{{ t('dialog.launch_options.header') }}</DialogTitle>
             </DialogHeader>
-            <div style="font-size: 12px">
+            <div class="text-xs">
                 {{ t('dialog.launch_options.description') }} <br />
                 {{ t('dialog.launch_options.example') }}
                 <div>--fps=144</div>
@@ -72,7 +72,7 @@
     import { openExternalLink } from '../../../shared/utils';
     import { useLaunchStore } from '../../../stores';
 
-    import configRepository from '../../../service/config';
+    import configRepository from '../../../services/config';
 
     const { t } = useI18n();
 

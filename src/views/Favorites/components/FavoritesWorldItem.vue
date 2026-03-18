@@ -1,167 +1,111 @@
 <template>
     <ContextMenu>
         <ContextMenuTrigger as-child>
-            <div :class="cardClasses" @click="$emit('click')">
-                <template v-if="favorite.ref">
-                    <div class="favorites-search-card__content">
-                        <div
-                            class="favorites-search-card__avatar"
-                            :class="{ 'is-empty': !favorite.ref.thumbnailImageUrl }"
-                            v-once>
-                            <img
-                                v-if="favorite.ref.thumbnailImageUrl"
-                                :src="smallThumbnail"
-                                loading="lazy"
-                                decoding="async"
-                                fetchpriority="low" />
-                        </div>
-                        <div class="favorites-search-card__detail">
-                            <div class="favorites-search-card__title">
-                                <span class="name text-sm">{{ props.favorite.ref.name }}</span>
-                                <span
-                                    v-if="favorite.deleted || favorite.ref.releaseStatus === 'private'"
-                                    class="favorites-search-card__badges">
-                                    <AlertTriangle
-                                        v-if="favorite.deleted"
-                                        :title="t('view.favorite.unavailable_tooltip')"
-                                        class="h-4 w-4" />
-                                    <Lock
-                                        v-if="favorite.ref.releaseStatus === 'private'"
-                                        :title="t('view.favorite.private')"
-                                        class="h-4 w-4" />
-                                </span>
-                            </div>
-                            <span class="text-xs text-muted-foreground">
-                                {{ props.favorite.ref.authorName }}
-                                <template v-if="props.favorite.ref.occupants">
-                                    ({{ props.favorite.ref.occupants }})
-                                </template>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="favorites-search-card__actions">
-                        <template v-if="editMode">
-                            <div
-                                class="favorites-search-card__action favorites-search-card__action--checkbox"
-                                @click.stop>
-                                <Checkbox v-model="isSelected" />
-                            </div>
-                            <div class="favorites-search-card__action-group">
-                                <div
-                                    class="favorites-search-card__action favorites-search-card__action--full"
-                                    @click.stop>
-                                    <FavoritesMoveDropdown
-                                        :favoriteGroup="favoriteWorldGroups"
-                                        :currentFavorite="props.favorite"
-                                        :currentGroup="group"
-                                        class="favorites-search-card__dropdown"
-                                        type="world" />
-                                </div>
-                                <div class="favorites-search-card__action">
-                                    <Button
-                                        size="icon-sm"
-                                        variant="ghost"
-                                        class="rounded-full text-xs h-6 w-6"
-                                        @click.stop="handleDeleteFavorite">
-                                        <Trash2 class="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <div class="favorites-search-card__action-group">
-                                <div class="favorites-search-card__action">
-                                    <TooltipWrapper side="top" :content="inviteOrLaunchText">
-                                        <Button
-                                            size="icon-sm"
-                                            variant="ghost"
-                                            class="rounded-full text-xs h-6 w-6"
-                                            @click.stop="newInstanceSelfInvite(favorite.id)"
-                                            ><Mail class="h-4 w-4"
-                                        /></Button>
-                                    </TooltipWrapper>
-                                </div>
-                                <div class="favorites-search-card__action">
-                                    <TooltipWrapper
-                                        v-if="showDangerUnfavorite"
-                                        side="top"
-                                        :content="t('view.favorite.unfavorite_tooltip')">
-                                        <Button
-                                            size="icon-sm"
-                                            variant="destructive"
-                                            class="rounded-full text-xs h-6 w-6"
-                                            @click.stop="handleDeleteFavorite"
-                                            ><Trash2 class="h-4 w-4"
-                                        /></Button>
-                                    </TooltipWrapper>
-                                    <TooltipWrapper
-                                        v-else
-                                        side="top"
-                                        :content="t('view.favorite.edit_favorite_tooltip')">
-                                        <Button
-                                            size="icon-sm"
-                                            variant="ghost"
-                                            class="rounded-full text-xs h-6 w-6"
-                                            @click.stop="showFavoriteDialog('world', favorite.id)"
-                                            ><Star class="h-4 w-4"
-                                        /></Button>
-                                    </TooltipWrapper>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-                <template v-else>
-                    <div class="favorites-search-card__content">
-                        <div class="favorites-search-card__avatar is-empty"></div>
-                        <div class="favorites-search-card__detail" v-once>
-                            <span>{{ favorite.name || favorite.id }}</span>
-                            <AlertTriangle
-                                v-if="favorite.deleted"
-                                :title="t('view.favorite.unavailable_tooltip')"
-                                class="h-4 w-4" />
-                        </div>
-                    </div>
-                    <div class="favorites-search-card__actions">
-                        <div class="favorites-search-card__action">
-                            <Button
-                                class="rounded-full text-xs h-6 w-6"
-                                size="icon-sm"
-                                variant="ghost"
-                                @click.stop="handleDeleteFavorite">
-                                <Trash2 class="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </template>
-            </div>
+            <Item
+                variant="outline"
+                class="favorites-item cursor-pointer hover:bg-muted x-hover-list"
+                :style="itemStyle"
+                @click="handleViewDetails">
+                <ItemMedia variant="image">
+                    <Avatar class="rounded-sm size-full">
+                        <AvatarImage
+                            v-if="smallThumbnail"
+                            :src="smallThumbnail"
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
+                            class="rounded-sm object-cover" />
+                        <AvatarFallback class="rounded-sm">
+                            <Image class="size-4 text-muted-foreground" />
+                        </AvatarFallback>
+                    </Avatar>
+                </ItemMedia>
+                <ItemContent class="min-w-0">
+                    <ItemTitle class="truncate max-w-full">
+                        {{ displayName }}
+                        <AlertTriangle
+                            v-if="showUnavailable"
+                            :title="t('view.favorite.unavailable_tooltip')"
+                            class="h-4 w-4" />
+                        <Lock v-if="isPrivateWorld" :title="t('view.favorite.private')" class="h-4 w-4" />
+                    </ItemTitle>
+                    <ItemDescription class="truncate line-clamp-1 text-xs">
+                        {{ authorText }}
+                    </ItemDescription>
+                </ItemContent>
+                <ItemActions v-if="editMode && !isLocalFavorite" @click.stop>
+                    <Checkbox v-model="isSelected" />
+                </ItemActions>
+                <DropdownMenu v-else-if="!editMode">
+                    <DropdownMenuTrigger as-child>
+                        <Button size="icon-sm" variant="ghost" class="rounded-full" @click.stop>
+                            <MoreHorizontal class="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem @click="handleViewDetails">
+                            {{ t('common.actions.view_details') }}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="handleNewInstance">
+                            {{ t('dialog.world.actions.new_instance') }}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="handleSelfInvite">
+                            {{ inviteOrLaunchText }}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem @click="showFavoriteDialog('world', favorite.id)">
+                            {{ t('view.favorite.edit_favorite_tooltip') }}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive" @click="handleDeleteFavorite">
+                            {{ deleteMenuLabel }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </Item>
         </ContextMenuTrigger>
         <ContextMenuContent>
-            <ContextMenuItem @click="handleNewInstance">
-                <Plus class="size-4" />
-                {{ t('dialog.world.actions.new_instance') }}
+            <ContextMenuItem @click="handleViewDetails">{{ t('common.actions.view_details') }}</ContextMenuItem>
+            <ContextMenuItem @click="handleNewInstance">{{ t('dialog.world.actions.new_instance') }}</ContextMenuItem>
+            <ContextMenuItem @click="handleSelfInvite">{{ inviteOrLaunchText }}</ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem @click="showFavoriteDialog('world', favorite.id)">
+                {{ t('view.favorite.edit_favorite_tooltip') }}
             </ContextMenuItem>
-            <ContextMenuItem @click="newInstanceSelfInvite(favorite.id)">
-                <Mail class="size-4" />
-                {{ inviteOrLaunchText }}
+            <ContextMenuItem variant="destructive" @click="handleDeleteFavorite">
+                {{ deleteMenuLabel }}
             </ContextMenuItem>
         </ContextMenuContent>
     </ContextMenu>
 </template>
 
 <script setup>
-    import { AlertTriangle, Lock, Mail, Plus, Star, Trash2 } from 'lucide-vue-next';
-    import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
+    import { AlertTriangle, Image, Lock, MoreHorizontal } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
     import { Checkbox } from '@/components/ui/checkbox';
+    import {
+        ContextMenu,
+        ContextMenuContent,
+        ContextMenuItem,
+        ContextMenuSeparator,
+        ContextMenuTrigger
+    } from '@/components/ui/context-menu';
+    import {
+        DropdownMenu,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuSeparator,
+        DropdownMenuTrigger
+    } from '@/components/ui/dropdown-menu';
+    import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item';
     import { computed } from 'vue';
-    import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import { useFavoriteStore, useInstanceStore, useInviteStore, useUiStore } from '../../../stores';
     import { favoriteRequest } from '../../../api';
-
-    import FavoritesMoveDropdown from './FavoritesMoveDropdown.vue';
+    import { removeLocalWorldFavorite } from '../../../coordinators/favoriteCoordinator';
+    import { runNewInstanceSelfInviteFlow as newInstanceSelfInvite } from '../../../coordinators/inviteCoordinator';
+    import { showWorldDialog } from '../../../coordinators/worldCoordinator';
+    import { useFavoriteStore, useInstanceStore, useInviteStore } from '../../../stores';
 
     const props = defineProps({
         group: [Object, String],
@@ -171,35 +115,35 @@
         selected: { type: Boolean, default: false }
     });
 
-    const emit = defineEmits(['toggle-select', 'remove-local-world-favorite', 'click']);
-    const { favoriteWorldGroups } = storeToRefs(useFavoriteStore());
+    const emit = defineEmits(['toggle-select']);
     const { showFavoriteDialog } = useFavoriteStore();
-    const { newInstanceSelfInvite } = useInviteStore();
+
     const { t } = useI18n();
     const { canOpenInstanceInGame } = useInviteStore();
-    const { shiftHeld } = storeToRefs(useUiStore());
+    const { createNewInstance } = useInstanceStore();
 
     const isSelected = computed({
         get: () => props.selected,
         set: (value) => emit('toggle-select', value)
     });
 
-    const showDangerUnfavorite = computed(() => {
-        return shiftHeld.value;
+    const localFavRef = computed(() => (props.isLocalFavorite ? props.favorite : props.favorite?.ref));
+
+    const displayName = computed(() => localFavRef.value?.name || props.favorite?.name || props.favorite?.id);
+
+    const showUnavailable = computed(() => !props.isLocalFavorite && props.favorite?.deleted);
+
+    const isPrivateWorld = computed(() => localFavRef.value?.releaseStatus === 'private');
+
+    const authorText = computed(() => {
+        const author = localFavRef.value?.authorName || '';
+        const occupants = localFavRef.value?.occupants;
+        return occupants ? `${author} (${occupants})` : author;
     });
 
-    const cardClasses = computed(() => [
-        'favorites-search-card',
-        'favorites-search-card--world',
-        {
-            'is-selected': props.selected,
-            'is-edit-mode': props.editMode
-        }
-    ]);
-
     const smallThumbnail = computed(() => {
-        const url = props.favorite.ref.thumbnailImageUrl?.replace('256', '128');
-        return url || props.favorite.ref.thumbnailImageUrl;
+        const url = localFavRef.value?.thumbnailImageUrl?.replace('256', '128');
+        return url || localFavRef.value?.thumbnailImageUrl;
     });
 
     const inviteOrLaunchText = computed(() => {
@@ -208,42 +152,47 @@
             : t('dialog.world.actions.new_instance_and_self_invite');
     });
 
-    /**
-     *
-     */
-    function handleDeleteFavorite() {
-        if (props.isLocalFavorite) {
-            emit('remove-local-world-favorite', props.favorite.id, props.group);
-        } else {
-            deleteFavorite(props.favorite.id);
-        }
+    const deleteMenuLabel = computed(() =>
+        props.isLocalFavorite ? t('view.favorite.delete_tooltip') : t('view.favorite.unfavorite_tooltip')
+    );
+
+    const itemStyle = computed(() => ({
+        padding: 'var(--favorites-card-padding-y, 8px) var(--favorites-card-padding-x, 10px)',
+        gap: 'var(--favorites-card-content-gap, 10px)',
+        minWidth: 'var(--favorites-card-min-width, 220px)',
+        maxWidth: 'var(--favorites-card-target-width, 220px)',
+        width: '100%',
+        fontSize: 'calc(0.875rem * var(--favorites-card-scale, 1))'
+    }));
+
+    function handleViewDetails() {
+        showWorldDialog(props.favorite.id);
     }
 
-    /**
-     *
-     * @param objectId
-     */
-    function deleteFavorite(objectId) {
-        favoriteRequest.deleteFavorite({ objectId });
-    }
-
-    const { createNewInstance } = useInstanceStore();
-
-    /**
-     *
-     */
     function handleNewInstance() {
         createNewInstance(props.favorite.id);
+    }
+
+    function handleSelfInvite() {
+        newInstanceSelfInvite(props.favorite.id);
+    }
+
+    function handleDeleteFavorite() {
+        if (props.isLocalFavorite) {
+            removeLocalWorldFavorite(props.favorite.id, props.group);
+            return;
+        }
+        favoriteRequest.deleteFavorite({ objectId: props.favorite.id });
     }
 </script>
 
 <style scoped>
-    .favorites-search-card img {
+    .favorites-item :deep(img) {
         filter: saturate(0.8) contrast(0.8);
         transition: filter 0.2s ease;
     }
 
-    .favorites-search-card:hover img {
+    .favorites-item:hover :deep(img) {
         filter: saturate(1) contrast(1);
     }
 </style>

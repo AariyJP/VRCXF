@@ -7,9 +7,9 @@ import {
     initPlugins,
     initRouter,
     initSentry
-} from './plugin';
+} from './plugins';
 import { initPiniaPlugins, pinia } from './stores';
-import { queryClient } from './query';
+import { queryClient } from './queries';
 
 import App from './App.vue';
 

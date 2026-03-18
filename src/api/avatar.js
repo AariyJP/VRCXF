@@ -1,11 +1,7 @@
-import { request } from '../service/request';
+import { patchAndRefetchActiveQuery, queryKeys } from '../queries';
+import { request } from '../services/request';
 import { useUserStore } from '../stores';
-import {
-    entityQueryPolicies,
-    fetchWithEntityPolicy,
-    patchAndRefetchActiveQuery,
-    queryKeys
-} from '../query';
+import { applyCurrentUser } from '../coordinators/userCoordinator';
 
 const avatarReq = {
     /**
@@ -21,22 +17,6 @@ const avatarReq = {
             };
             return args;
         });
-    },
-
-    /**
-     * Fetch avatar from query cache if fresh. Otherwise, calls API.
-     * @param {{avatarId: string}} params
-     * @returns {Promise<{json: any, ref?: any, cache?: boolean, params: {avatarId: string}}>}
-     */
-    getCachedAvatar(params) {
-        return fetchWithEntityPolicy({
-            queryKey: queryKeys.avatar(params.avatarId),
-            policy: entityQueryPolicies.avatar,
-            queryFn: () => avatarReq.getAvatar(params)
-        }).then(({ data, cache }) => ({
-            ...data,
-            cache
-        }));
     },
 
     /**
@@ -72,7 +52,10 @@ const avatarReq = {
                 queryKey: queryKeys.avatar(params.id),
                 nextData: args
             }).catch((err) => {
-                console.error('Failed to refresh avatar query after mutation:', err);
+                console.error(
+                    'Failed to refresh avatar query after mutation:',
+                    err
+                );
             });
             return args;
         });
@@ -83,7 +66,6 @@ const avatarReq = {
      * @returns {Promise<{json: any, params}>}
      */
     selectAvatar(params) {
-        const userStore = useUserStore();
         return request(`avatars/${params.avatarId}/select`, {
             method: 'PUT',
             params
@@ -92,7 +74,7 @@ const avatarReq = {
                 json,
                 params
             };
-            const ref = userStore.applyCurrentUser(json);
+            const ref = applyCurrentUser(json);
             patchAndRefetchActiveQuery({
                 queryKey: queryKeys.user(ref.id),
                 nextData: {
@@ -112,10 +94,9 @@ const avatarReq = {
 
     /**
      * @param {{ avatarId: string }} params
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     selectFallbackAvatar(params) {
-        const userStore = useUserStore();
         return request(`avatars/${params.avatarId}/selectfallback`, {
             method: 'PUT',
             params
@@ -124,7 +105,7 @@ const avatarReq = {
                 json,
                 params
             };
-            const ref = userStore.applyCurrentUser(json);
+            const ref = applyCurrentUser(json);
             patchAndRefetchActiveQuery({
                 queryKey: queryKeys.user(ref.id),
                 nextData: {
@@ -144,7 +125,7 @@ const avatarReq = {
 
     /**
      * @param {{ avatarId: string }} params
-     * @return { Promise<{json: any, params}> }
+     * @returns { Promise<{json: any, params}> }
      */
     deleteAvatar(params) {
         return request(`avatars/${params.avatarId}`, {
@@ -247,6 +228,8 @@ const avatarReq = {
 
     /**
      * @param {{ imageData: string, avatarId: string }}
+     * @param imageData
+     * @param avatarId
      * @returns {Promise<{json: any, params}>}
      */
     uploadAvatarGalleryImage(imageData, avatarId) {

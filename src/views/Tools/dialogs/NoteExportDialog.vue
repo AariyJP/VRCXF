@@ -4,7 +4,7 @@
             <DialogHeader>
                 <DialogTitle>{{ t('dialog.note_export.header') }}</DialogTitle>
             </DialogHeader>
-            <div style="font-size: 12px">
+            <div class="text-xs">
                 {{ t('dialog.note_export.description1') }} <br />
                 {{ t('dialog.note_export.description2') }} <br />
                 {{ t('dialog.note_export.description3') }} <br />
@@ -36,7 +36,7 @@
                 <h2 class="m-0" style="font-weight: bold">
                     {{ t('dialog.note_export.errors') }}
                 </h2>
-                <pre style="white-space: pre-wrap; font-size: 12px" v-text="errors"></pre>
+                <pre class="whitespace-pre-wrap text-xs" v-text="errors"></pre>
             </template>
 
             <DataTableLayout
@@ -59,18 +59,21 @@
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import { removeFromArray, userImage, userImageFull } from '../../../shared/utils';
+    import { removeFromArray } from '../../../shared/utils';
+    import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { useFriendStore, useGalleryStore, useUserStore } from '../../../stores';
     import { createColumns } from './noteExportColumns.jsx';
     import { miscRequest } from '../../../api';
     import { useVrcxVueTable } from '../../../lib/table/useVrcxVueTable';
 
     import * as workerTimers from 'worker-timers';
+    import { showUserDialog } from '../../../coordinators/userCoordinator';
 
+    const { userImage, userImageFull } = useUserDisplay();
     const { t } = useI18n();
 
     const { friends } = storeToRefs(useFriendStore());
-    const { showUserDialog } = useUserStore();
+
     const { showFullscreenImageDialog } = useGalleryStore();
 
     const props = defineProps({
