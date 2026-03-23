@@ -23,6 +23,15 @@
             "h": "h",
             "m": "m",
             "s": "s"
+        },
+        "days": {
+            "sunday": "Sunday",
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday"
         }
     },
     "nav_tooltip": {
@@ -837,7 +846,8 @@
                     "vrcplus_profile_icons": "VRCPlus Profile Icons",
                     "show_instance_id": "Show Instance ID",
                     "show_status_bar": "Show Status Bar",
-                    "age_gated_instances": "Age Gated Instances",
+                    "age_gated_instances": "Show Age-Gated Instances",
+                    "age_gated_instances_description": "Show age-restricted instances. When disabled, these instances are hidden and shown as restricted.",
                     "nicknames": "Memo Nicknames",
                     "sort_favorite_by": "Sort Favorites by",
                     "sort_favorite_by_name": "Name",
@@ -873,7 +883,9 @@
                     "time_format": "Time Format",
                     "time_format_24": "24 Hour",
                     "time_format_12": "12 Hour",
-                    "force_iso_date_format": "Force ISO Date Format"
+                    "force_iso_date_format": "Force ISO Date Format",
+                    "week_starts_on": "Week Starts On",
+                    "week_starts_on_description": "Choose the first day of the week. Affects calendars, charts, and activity views."
                 },
                 "theme_color": {
                     "header": "Theme Color",
@@ -1181,7 +1193,10 @@
                         "purge_option_730": "2 years",
                         "purge_option_all": "All data",
                         "purge_confirm_title": "Purge Avatar Feed Data",
-                        "purge_confirm_description": "This will permanently delete avatar change records from the database and reclaim disk space. This action cannot be undone!\n\nIt is strongly recommended to back up your database file before proceeding.\n\nVRCX will restart after the operation completes.",
+                        "purge_confirm_description_1": "This will permanently delete avatar change records from the database and reclaim disk space.",
+                        "purge_confirm_description_2": "This action cannot be undone!",
+                        "purge_confirm_description_3": "VRCX will restart after the operation completes.",
+                        "purge_confirm_alert": "It is strongly recommended to back up your database file before proceeding!",
                         "purge_confirm_button": "Purge & Restart",
                         "purge_in_progress": "Purging avatar data...",
                         "purge_complete": "Avatar data purged successfully. Restarting...",
@@ -1342,6 +1357,8 @@
                 "vrcplus_hides_avatar": "When a VRC+ profile photo is set, avatar info is hidden. This also hides avatar changes in the feed",
                 "instance_full": "full",
                 "instance_closed": "Instance closed",
+                "instance_age_restricted": "Restricted",
+                "instance_age_restricted_tooltip": "In an age-restricted instance",
                 "close_instance": "Close Instance",
                 "instance_age_gated": "Age Gated",
                 "open_previous_instance": "Open Previous Instances",
@@ -1410,6 +1427,8 @@
             },
             "activity": {
                 "header": "Activity",
+                "load": "Load Activity",
+                "load_hint": "Load activity data from the local database when needed.",
                 "total_events": "{count} online events",
                 "times_online": "times online",
                 "most_active_day": "Most active day:",
@@ -1430,7 +1449,21 @@
                     "sat": "Sat",
                     "sun": "Sun"
                 },
-                "easter_egg": "Did you farm your green squares today?"
+                "easter_egg": "Did you farm your green squares today?",
+                "easter_egg_reply": "You can't farm this.",
+                "overlap": {
+                    "header": "Online Overlap",
+                    "peak_overlap": "Peak overlap:",
+                    "exclude_hours": "Exclude hours",
+                    "no_data": "Not enough data to calculate overlap",
+                    "times_overlap": "times overlapping"
+                },
+                "most_visited_worlds": {
+                    "header": "Most Visited Worlds"
+                },
+                "preparing_data": "Preparing activity data...",
+                "preparing_data_hint": "This may take a moment on first load. You'll be notified when ready.",
+                "data_ready": "Activity data is ready"
             },
             "note_memo": {
                 "header": "Edit Note And Memo",
@@ -2284,7 +2317,18 @@
         },
         "open_source": {
             "header": "Open Source Software Notice",
-            "description": "VRCX is based on open source software. It was possible because of their contribution."
+            "description": "VRCX is based on open source software. It was possible because of their contribution.",
+            "loading": "Loading generated third-party notices...",
+            "unavailable": "No generated third-party notice manifest is available in this build. Run a production build to regenerate it.",
+            "search_placeholder": "Search packages, versions, or licenses",
+            "notice_location_prefix": "Full notices file location in the app directory:",
+            "open_project": "Open Project",
+            "open_license_url": "Open License URL",
+            "notice_unavailable": "No local license text was generated for this entry. Open the full notice file and review this component before release.",
+            "select_package": "Select a package to view details.",
+            "review_required": "Review required",
+            "no_results": "No matching packages found.",
+            "no_version": "No version metadata"
         },
         "primary_password": {
             "header": "Primary Password Required",
@@ -2592,6 +2636,12 @@
         },
         "database": {
             "upgrade_complete": "Database upgrade complete",
+            "upgrade_in_progress_title": "Database upgrade in progress",
+            "upgrade_in_progress_description": "Updating database from version {from} to {to}. Please do not close VRCX.",
+            "upgrade_in_progress_initializing": "Initializing database upgrade. Please do not close VRCX.",
+            "upgrade_in_progress_wait": "User actions are temporarily blocked until the upgrade finishes.",
+            "upgrade_failed_title": "Database upgrade failed",
+            "upgrade_failed_description": "Database upgrade failed. Check the console for details.",
             "disk_space": "Please free up some disk space.",
             "disk_error": "Please check your disk for errors."
         },

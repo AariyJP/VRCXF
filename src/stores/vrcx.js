@@ -71,6 +71,11 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         windowState: '',
         externalNotifierVersion: 0
     });
+    const databaseUpgradeState = ref({
+        visible: false,
+        fromVersion: 0,
+        toVersion: 0
+    });
 
     const currentlyDroppingFile = ref(null);
     const isRegistryBackupDialogVisible = ref(false);
@@ -182,15 +187,13 @@ export const useVrcxStore = defineStore('Vrcx', () => {
      */
     async function updateDatabaseVersion() {
         // requires dbVars.userPrefix to be already set
-        const databaseVersion = 13;
-        let msgBox;
+        const databaseVersion = 15;
         if (state.databaseVersion < databaseVersion) {
-            if (state.databaseVersion) {
-                msgBox = toast.warning(
-                    'DO NOT CLOSE VRCX, database upgrade in progress...',
-                    { duration: Infinity, position: 'bottom-right' }
-                );
-            }
+            databaseUpgradeState.value = {
+                visible: state.databaseVersion > 0,
+                fromVersion: state.databaseVersion,
+                toVersion: databaseVersion
+            };
             console.log(
                 `Updating database from ${state.databaseVersion} to ${databaseVersion}...`
             );
@@ -205,6 +208,9 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                 await database.fixCancelFriendRequestTypo(); // fix CancelFriendRequst typo
                 await database.fixBrokenGameLogDisplayNames(); // fix gameLog display names "DisplayName (userId)"
                 await database.upgradeDatabaseVersion(); // update database version
+                if (state.databaseVersion < 15) {
+                    await database.updateActivityTabDatabaseVersion(); // improve activity tab performance, ver 15
+                }
                 await database.vacuum(); // succ
                 await database.optimize();
                 await configRepository.setInt(
@@ -212,19 +218,18 @@ export const useVrcxStore = defineStore('Vrcx', () => {
                     databaseVersion
                 );
                 console.log('Database update complete.');
-                toast.dismiss(msgBox);
-                if (state.databaseVersion) {
-                    // only display when database exists
-                    toast.success(t('message.database.upgrade_complete'));
-                }
                 state.databaseVersion = databaseVersion;
+                databaseUpgradeState.value.visible = false;
             } catch (err) {
                 console.error(err);
-                toast.dismiss(msgBox);
-                toast.error(
-                    'Database upgrade failed, check console for details',
-                    { duration: 120000 }
-                );
+                databaseUpgradeState.value.visible = false;
+                await modalStore.alert({
+                    title: t('message.database.upgrade_failed_title'),
+                    description: t(
+                        'message.database.upgrade_failed_description'
+                    ),
+                    dismissible: false
+                });
                 AppApi.ShowDevTools();
             }
         }
@@ -817,6 +822,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
         state,
 
         appStartAt,
+        databaseUpgradeState,
         proxyServer,
         setProxyServer,
         setIpcEnabled,
