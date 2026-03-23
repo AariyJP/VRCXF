@@ -295,7 +295,7 @@
     import { runRefreshFriendsListFlow } from '../../coordinators/friendSyncCoordinator';
     import { normalizeFavoriteGroupsChange, resolveFavoriteGroups } from './sidebarSettingsUtils';
     import { useQuickSearchStore } from '../../stores/quickSearch';
-    import { userStatusClass } from '../../shared/utils';
+    import { useUserDisplay } from '../../composables/useUserDisplay';
 
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import QuickSearchDialog from '../../components/QuickSearchDialog.vue';
@@ -312,6 +312,7 @@
     const { isNotificationCenterOpen, hasUnseenNotifications } = storeToRefs(notificationStore);
     const quickSearchStore = useQuickSearchStore();
     const { currentUser } = storeToRefs(useUserStore());
+    const { userStatusClass } = useUserDisplay();
     const { t } = useI18n();
 
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
