@@ -9,14 +9,14 @@ Use this split when placing logic:
 - View/UI: `src/views/`, `src/components/`
 - View reuse: `src/composables/`
 - Store state: `src/stores/`
-- Store orchestration: `src/stores/coordinators/`
-- Data fetching / cache policy: `src/query/`
-- External services / persistence: `src/service/`
+- Store orchestration: `src/coordinators/`
+- Data fetching / cache policy: `src/queries/`
+- External services / persistence: `src/services/`
 - Shared pure helpers/constants: `src/shared/`
 
 ### Coordinator Pattern
 
-The project now actively extracts multi-step store workflows into coordinators. Prefer adding new cross-store orchestration to `src/stores/coordinators/` instead of further inflating already-large store files.
+The project now actively extracts multi-step store workflows into coordinators. Prefer adding new cross-store orchestration to `src/coordinators/` instead of further inflating already-large store files.
 
 ### Store Boundary Rule
 
@@ -24,11 +24,11 @@ Do not directly mutate another store's state with `otherStore.foo = ...` or upda
 
 ### Query Pattern
 
-Use Vue Query for cache-aware entity fetching and synchronization concerns. Use `src/service/request.js` and API wrappers for transport, and `src/query/` for client/cache/query-key policy.
+Use Vue Query for cache-aware entity fetching and synchronization concerns. Use `src/services/request.js` and API wrappers for transport, and `src/queries/` for client/cache/query-key policy.
 
 ### Router Pattern
 
-`src/plugin/router.js` uses return-based guards, not legacy `next()`-style guards. Preserve redirect query handling and the explicit block on `/social`.
+`src/plugins/router.js` uses return-based guards, not legacy `next()`-style guards. Preserve redirect query handling and the explicit block on `/social`.
 
 ### Cross-Platform Pattern
 
@@ -49,7 +49,7 @@ Use Vue Query for cache-aware entity fetching and synchronization concerns. Use 
 Keep tests near the area they verify:
 
 - generic store tests: `src/stores/__tests__/`
-- coordinator tests: `src/stores/coordinators/__tests__/`
+- coordinator tests: `src/coordinators/__tests__/`
 - component/view tests: nearby `__tests__` directories
 
 ### Static Assets Pattern
