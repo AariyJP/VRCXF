@@ -16,15 +16,15 @@ VRCXF is a desktop application for VRChat friend management, presence tracking, 
 
 Recent project evolution introduced and/or expanded these layers:
 
-- `src/query/`: Vue Query client, cache helpers, entity query utilities
-- `src/stores/coordinators/`: orchestration layer for auth, friend, game, and user flows
+- `src/queries/`: Vue Query client, cache helpers, entity query utilities
+- `src/coordinators/`: orchestration layer for auth, friend, game, and user flows
 - `src/ipc-electron/`: renderer-side Electron IPC helper surface
 - `src/public/`: Vite-managed public static assets
 - `src/app.css`: app shell layout styling separated from `src/styles/globals.css`
 
 ## Key Runtime Flow
 
-Renderer (`src/`) -> interop bootstrap (`src/plugin/interopApi.js`, `src/ipc-electron/interopApi.js`) -> .NET runtime (`Dotnet/`) -> VRChat API / WebSocket / SQLite / OS integration
+Renderer (`src/`) -> interop bootstrap (`src/plugins/interopApi.js`, `src/ipc-electron/interopApi.js`) -> .NET runtime (`Dotnet/`) -> VRChat API / WebSocket / SQLite / OS integration
 
 ## Important User-Facing Areas
 

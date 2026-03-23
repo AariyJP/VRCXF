@@ -20,6 +20,10 @@ npm run dotnet-arm64
 ## Lint / Format
 
 ```bash
+npm run lint
+npm run lint:eslint
+npm run lint:oxlint
+npm run typecheck:js
 npx eslint .
 npx eslint . --fix
 npx prettier --check .
