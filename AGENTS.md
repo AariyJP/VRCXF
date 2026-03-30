@@ -307,6 +307,7 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - `NIGHTLY` is true in development or when version suffix is a 7-char hash
 - `window.electron` is macOS/Linux only
 - VR overlay remains split between Windows CEF and Electron/shared-memory flows
+- `build-scripts/build-all.ps1` may terminate when invoking `7z`; treat that as acceptable if .NET build, frontend build, license generation, and junction creation already completed successfully
 - Recent project direction includes coordinator extraction, Vue Query adoption, CSS tokenization, and upstream sync merges
 
 ## 🚨 Git Operation Restrictions
