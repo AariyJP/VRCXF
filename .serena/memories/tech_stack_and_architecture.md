@@ -30,12 +30,12 @@
 - `src/components/`: shared components and dialogs
 - `src/composables/`: Vue composables
 - `src/ipc-electron/`: Electron IPC helpers for renderer
-- `src/plugin/`: bootstrap plugins (`dayjs`, `i18n`, `interopApi`, `noty`, `router`, `sentry`, `ui`)
+- `src/plugins/`: bootstrap plugins (`dayjs`, `i18n`, `interopApi`, `noty`, `router`, `sentry`, `ui`)
 - `src/public/`: static assets copied by Vite
-- `src/query/`: Vue Query client, keys, cache, query helpers
-- `src/service/`: request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState
+- `src/queries/`: Vue Query client, keys, cache, query helpers
+- `src/services/`: request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState
 - `src/shared/`: constants and shared utilities
-- `src/stores/coordinators/`: flow orchestration layer
+- `src/coordinators/`: flow orchestration layer
 - `src/stores/gameLog/`, `src/stores/notification/`: store submodules
 - `src/views/MyAvatars/`: My Avatars route
 - `src/styles/globals.css` + `src/app.css`: styling split
@@ -114,9 +114,10 @@ Typed in `src/types/globals.d.ts`:
 
 ## Persistence / Data
 
-- Configs: `src/service/config.js`
+- Configs: `src/services/config.js`
 - Native KV storage: `VRCXStorage`
-- DB schema modules: `feed`, `gameLog`, `notifications`, `moderation`, `friendLogHistory`, `friendLogCurrent`, `memos`, `avatarFavorites`, `avatarTags`, `friendFavorites`, `worldFavorites`, `mutualGraph`, `tableAlter`, `tableFixes`, `tableSize`
+- Current database version: **15** (config key `VRCX_databaseVersion`, managed in `src/stores/vrcx.js`)
+- DB schema modules: `feed`, `gameLog`, `notifications`, `moderation`, `friendLogHistory`, `friendLogCurrent`, `memos`, `avatarFavorites`, `avatarTags`, `friendFavorites`, `worldFavorites`, `mutualGraph`, `activityCache`, `tableAlter`, `tableFixes`, `tableSize`
 
 ## Styling / Assets
 

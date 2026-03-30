@@ -39,15 +39,15 @@ Branching patterns:
 
 - **Frontend JS**: branch with `WINDOWS` / `LINUX`
 - **Native API calls**: Windows = direct globals via `CefSharp.BindObjectAsync`, macOS/Linux = proxy via `window.interopApi.callDotNetMethod`
-- **Interop bootstrap**: `src/plugin/interopApi.js` initializes globals, `src/ipc-electron/interopApi.js` exposes the Electron-side proxy helper
-- **WebApi execution**: `src/service/webapi.js` branches to `WebApi.Execute()` on Windows and `WebApi.ExecuteJson()` on macOS/Linux
+- **Interop bootstrap**: `src/plugins/interopApi.js` initializes globals, `src/ipc-electron/interopApi.js` exposes the Electron-side proxy helper
+- **WebApi execution**: `src/services/webapi.js` branches to `WebApi.Execute()` on Windows and `WebApi.ExecuteJson()` on macOS/Linux
 - **.NET side**: shared logic in `Dotnet/AppApi/Common/`, platform-specific code in `Dotnet/AppApi/Cef/` and `Dotnet/AppApi/Electron/`
 - **Electron-only APIs**: `window.electron.*` exists only on macOS/Linux
 
 Implementation checklist:
 
 1. When adding a new native API used by the frontend, implement it in a shared surface or in both platform backends
-2. For frontend platform branching, follow existing patterns in `src/plugin/interopApi.js` and `src/service/webapi.js`
+2. For frontend platform branching, follow existing patterns in `src/plugins/interopApi.js` and `src/services/webapi.js`
 3. If using `window.electron.*`, provide a Windows-compatible path when required
 4. When modifying .NET code, keep both `Dotnet/VRCX-Cef.csproj` and `Dotnet/VRCX-Electron.csproj` buildable
 
@@ -60,21 +60,21 @@ Implementation checklist:
 
 ## Architecture
 
-Renderer (`src/`) → native bridge (`src/plugin/interopApi.js`, `src/ipc-electron/interopApi.js`) → .NET runtime (`Dotnet/`) → VRChat REST/WebSocket, SQLite, OS integration
+Renderer (`src/`) → native bridge (`src/plugins/interopApi.js`, `src/ipc-electron/interopApi.js`) → .NET runtime (`Dotnet/`) → VRChat REST/WebSocket, SQLite, OS integration
 
 Current frontend shape:
 
 - Vue SPA with Pinia stores and Vue Query
-- Plugin bootstrap in `src/plugin/`
+- Plugin bootstrap in `src/plugins/`
 - API wrappers in `src/api/`
-- request / websocket / database / config services in `src/service/`
+- request / websocket / database / config services in `src/services/`
 - shared utilities/constants in `src/shared/`
 - route views in `src/views/`
 
 Recent structural patterns now in active use:
 
-- **Coordinator pattern** in `src/stores/coordinators/`
-- **Query layer** in `src/query/`
+- **Coordinator pattern** in `src/coordinators/`
+- **Query layer** in `src/queries/`
 - **Electron IPC helper surface** in `src/ipc-electron/`
 - **Public static assets** in `src/public/`
 - **App shell CSS split** across `src/styles/globals.css` and `src/app.css`
@@ -95,21 +95,22 @@ src/
   ipc-electron/           # Electron interop helpers for renderer
   lib/                    # Shared library helpers
   localization/           # i18n JSON files
-  plugin/                 # Bootstrap plugins (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
+  plugins/                # Bootstrap plugins (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
   public/                 # Static assets copied by Vite
-  query/                  # Vue Query client, keys, cache helpers, entity query utilities
-  service/                # Services (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
+  queries/                # Vue Query client, keys, cache helpers, entity query utilities
+  services/               # Services (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
   shared/
     constants/            # Shared constants
     utils/                # Shared utility modules and tests
+  coordinators/           # Coordinator layer for auth/friend/game/user flows
   stores/
-    coordinators/         # Coordinator layer for auth/friend/game/user flows
     gameLog/              # Game log submodules
     notification/         # Notification submodules
     settings/             # Settings stores
     __tests__/            # Store tests
     index.js              # createGlobalStores() + pinia plugin registration
-    globalSearch.js       # Global search store
+    activity.js           # Activity store
+    quickSearch.js        # Quick search store
   styles/
     globals.css           # Tailwind/base CSS variables
     themes/               # Theme CSS
@@ -141,7 +142,7 @@ Dotnet/
 
 ## Routes
 
-Defined in `src/plugin/router.js`.
+Defined in `src/plugins/router.js`.
 
 - Public: `/login`
 - Authenticated shell: `/`
@@ -193,7 +194,7 @@ Primary globals:
 
 ## Query / Data Fetching
 
-- Vue Query client lives in `src/query/client.js`
+- Vue Query client lives in `src/queries/client.js`
 - App bootstrap installs `VueQueryPlugin` in `src/app.js`
 - Default query options: retry once, no refetch on window focus, refetch on reconnect
 - `request()` in `src/service/request.js` still handles direct REST access and request deduplication
@@ -201,13 +202,13 @@ Primary globals:
 ## Store Patterns
 
 - Stores are still created in `createGlobalStores()`
-- Cross-store workflow orchestration is increasingly moving into `src/stores/coordinators/`
-- Tests for coordinators live under `src/stores/coordinators/__tests__/`
+- Cross-store workflow orchestration lives in `src/coordinators/`
+- Tests for coordinators live under `src/coordinators/__tests__/`
 - ESLint now enforces a **store boundary rule** that disallows direct `xxxStore.foo = ...` and `xxxStore.foo++/--` mutations across store boundaries
 
 ## Settings Persistence
 
-- `src/service/config.js`: SQLite-backed config repository using `config:`-prefixed keys
+- `src/services/config.js`: SQLite-backed config repository using `config:`-prefixed keys
 - `VRCXStorage`: file-backed native storage
 
 Representative config keys:
@@ -224,13 +225,15 @@ Representative config keys:
 
 - REST endpoint base: `https://api.vrchat.cloud/api/1`
 - WebSocket base: `wss://pipeline.vrchat.cloud`
-- Request path: `src/service/request.js` → `src/service/webapi.js` → native `WebApi`
+- Request path: `src/services/request.js` → `src/services/webapi.js` → native `WebApi`
 - GET dedup window: 10s
 - 404/403 suppression window: 15min
 
 ## DB Schema
 
-`src/service/database/` currently includes:
+Current database version: **15** (stored as `VRCX_databaseVersion` config key, managed in `src/stores/vrcx.js`)
+
+`src/services/database/` currently includes:
 
 - `feed`
 - `gameLog`
@@ -244,6 +247,7 @@ Representative config keys:
 - `friendFavorites`
 - `worldFavorites`
 - `mutualGraph`
+- `activityCache`
 - `tableAlter`
 - `tableFixes`
 - `tableSize`
@@ -271,6 +275,10 @@ npm run start-electron
 npm run localization
 npm run dotnet-win
 npm run dotnet-arm64
+npm run lint
+npm run lint:eslint
+npm run lint:oxlint
+npm run typecheck:js
 ```
 
 ## .NET Build
@@ -285,6 +293,7 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 - **Prettier**: `printWidth: 80`, `tabWidth: 4`, `semi: true`, `singleQuote: true`, `trailingComma: none`, Vue `printWidth: 120`
 - **ESLint**: flat config, `vue/essential`, `eslint-plugin-prettier`, `eslint-plugin-jsdoc`, `pretty-import`
+- **oxlint**: `.oxlintrc.json`, run via `npm run lint:oxlint`
 - **TypeScript config**: `allowJs`, `checkJs`, `strict: false`, `moduleResolution: bundler`, `noEmit`
 - **Vitest**: `jsdom`, `src/**/*.{test,spec}.js`, setup via `vitest.setup.js`
 - **Path alias**: `@/*` → `./src/*`
