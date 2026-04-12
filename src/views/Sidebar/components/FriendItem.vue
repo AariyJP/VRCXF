@@ -13,7 +13,7 @@
                     </AvatarFallback>
                 </Avatar>
             </div>
-            <div class="flex-1 overflow-hidden h-auto flex flex-col justify-between">
+            <div class="flex-1 overflow-hidden h-9 flex flex-col justify-between">
                 <div class="flex items-center">
                     <span
                         v-if="!hideNicknames && friend.$nickName"

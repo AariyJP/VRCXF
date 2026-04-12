@@ -3,8 +3,6 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import Noty from 'noty';
-
 import {
     runLoginSuccessFlow,
     runLogoutFlow
@@ -12,7 +10,6 @@ import {
 import { AppDebug } from '../services/appConfig';
 import { authRequest } from '../api';
 import { database } from '../services/database';
-import { escapeTag } from '../shared/utils';
 import { links } from '../shared/constants/link';
 import { initWebsocket } from '../services/websocket';
 import { request } from '../services/request';
@@ -31,6 +28,7 @@ import security from '../services/security';
 import webApiService from '../services/webapi';
 
 import * as workerTimers from 'worker-timers';
+import { useActivityStore } from './activity';
 
 export const useAuthStore = defineStore('Auth', () => {
     const advancedSettingsStore = useAdvancedSettingsStore();
@@ -39,6 +37,7 @@ export const useAuthStore = defineStore('Auth', () => {
     const updateLoopStore = useUpdateLoopStore();
     const modalStore = useModalStore();
     const vrcxStore = useVrcxStore();
+    const activityStore = useActivityStore();
 
     const { t } = useI18n();
     const state = reactive({
@@ -1006,6 +1005,8 @@ export const useAuthStore = defineStore('Auth', () => {
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
         AppApi.CheckGameRunning(); // restore state from hot-reload
+
+        activityStore.startFullCacheBuild(userStore.currentUser.id);
     }
 
     /**

@@ -61,3 +61,5 @@ git log --oneline --decorate -n 20
 - `npm run dev:test` does not exist in the current project
 - Prefer Serena/native tools over shell commands when possible
 - Do not rely on agent-side commit/push flows; the user handles those
+- `build-scripts/build-all.ps1` must be run **from the `build-scripts/` directory** (the script starts with `cd ..`); invoke as `Set-Location build-scripts; .\build-all.ps1` or `powershell -Command "Set-Location 'path\to\VRCX\build-scripts'; .\build-all.ps1"`
+- `build-scripts/build-all.ps1` may stop at the `7z` step (e.g. 7-Zip not in PATH); if .NET build, frontend build, license generation, and junction creation already succeeded, treat that outcome as acceptable — ignore the `7z` failure

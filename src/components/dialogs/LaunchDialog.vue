@@ -1,6 +1,6 @@
 <template>
     <Dialog v-model:open="isVisible">
-        <DialogContent class="sm:max-w-xl">
+        <DialogContent class="sm:max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{{ t('dialog.launch.header') }}</DialogTitle>
                 <DialogDescription class="sr-only">{{ t('dialog.launch.header') }}</DialogDescription>

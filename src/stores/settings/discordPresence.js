@@ -300,7 +300,8 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 (state.lastLocationDetails.accessType === 'invite' ||
                     state.lastLocationDetails.accessType === 'invite+' ||
                     state.lastLocationDetails.accessType === 'friends' ||
-                    state.lastLocationDetails.accessType === 'group')
+                    state.lastLocationDetails.accessType === 'group'
+                )
             ) {
                 hidePrivate = true;
             }
@@ -341,8 +342,12 @@ export const useDiscordPresenceSettingsStore = defineStore(
                 partyMaxSize = 0;
                 stateText = '';
             }
-            let buttonText = `${userStore.currentUser.displayName} on VRChat`;
-            let buttonUrl = `https://vrchat.com/home/user/${userStore.currentUser.id}`;
+            let buttonText = 'Join';
+            let buttonUrl = state.lastLocationDetails.joinUrl;
+            if (!buttonUrl) {
+                buttonText = `${userStore.currentUser.displayName} on VRChat`;
+                buttonUrl = `https://vrchat.com/home/user/${userStore.currentUser.id}`;
+            }
             if (!discordJoinButton.value) {
                 buttonText = '';
                 buttonUrl = '';

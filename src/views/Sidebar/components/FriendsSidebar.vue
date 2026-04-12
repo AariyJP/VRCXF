@@ -43,7 +43,7 @@
                                                     </AvatarFallback>
                                                 </Avatar>
                                             </div>
-                                            <div class="flex-1 overflow-hidden h-auto flex flex-col justify-between">
+                                            <div class="flex-1 overflow-hidden h-9 flex flex-col justify-between">
                                                 <div class="flex items-center">
                                                     <span
                                                         class="block truncate font-medium leading-[18px]"
@@ -71,9 +71,7 @@
                                                     :location="currentUser.$locationTag"
                                                     :traveling="currentUser.$travelingToLocation"
                                                     :link="false" />
-                                                <span v-else class="extra block truncate text-xs">{{
-                                                    currentUser.statusDescription
-                                                }}</span>
+                                                <span v-else class="extra block truncate text-xs"></span>
                                             </div>
                                         </div>
                                     </ContextMenuTrigger>
@@ -256,7 +254,6 @@
 
     import '@/styles/status-icon.css';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
-
     const { t } = useI18n();
 
     const friendStore = useFriendStore();
@@ -341,7 +338,9 @@
     });
 
     const visibleFavoriteOnlineFriends = computed(() => {
-        const filtered = allFavoriteOnlineFriends.value.filter((friend) => selectedFavoriteGroupIds.value.has(friend.id));
+        const filtered = allFavoriteOnlineFriends.value.filter((friend) =>
+            selectedFavoriteGroupIds.value.has(friend.id)
+        );
         return excludeSameInstance(filtered);
     });
 

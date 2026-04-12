@@ -38,7 +38,11 @@
             "thursday": "Thursday",
             "friday": "Friday",
             "saturday": "Saturday"
-        }
+        },
+        "duration": "Duration",
+        "load_more": "Load more",
+        "no_more": "No more entries",
+        "current_session": "Current"
     },
     "nav_tooltip": {
         "friends_locations": "Friends Locations",
@@ -279,6 +283,15 @@
                 "External": "External",
                 "StringLoad": "String load",
                 "ImageLoad": "Image load"
+            },
+            "sessions": {
+                "switch_to_table": "Table view",
+                "switch_to_sessions": "Sessions view",
+                "date_range": "Date range",
+                "players_joined": "{count} players joined",
+                "players_left": "{count} players left",
+                "play_count": "×{count}",
+                "no_data": "No game log data"
             }
         },
         "player_list": {
@@ -582,6 +595,14 @@
                     "last_fetched": "Last fetched"
                 }
             },
+            "playtime_trend": {
+                "header": "Daily Playtime",
+                "online_hours": "Hours",
+                "daily_avg": "Daily Average",
+                "total": "Total",
+                "waiting": "Building playtime data, please come back later.",
+                "no_data": "No playtime data available"
+            },
             "hot_worlds": {
                 "tab_label": "Hot Worlds",
                 "header": "Hot Worlds",
@@ -767,8 +788,8 @@
                 },
                 "vrcx_updater": {
                     "header": "VRCX Updater",
-                    "change_build": "Change Build",
-                    "update_action": "Update Action",
+                    "change_build": "Change build",
+                    "update_action": "Update action",
                     "auto_update_off": "Off",
                     "auto_update_notify": "Notify",
                     "auto_update_download": "Auto Download",
@@ -1397,7 +1418,8 @@
                 "instance_age_gated": "Age Gated",
                 "open_previous_instance": "Open Previous Instances",
                 "show_mutual_friends": "Show Mutual Friends",
-                "show_discord_connections": "Show Discord Connections"
+                "show_discord_connections": "Show Discord Connections",
+                "instance_minimum_avatar_performance": "Min Avatar Perf"
             },
             "groups": {
                 "header": "Groups",
@@ -1470,6 +1492,10 @@
                 "most_active_time": "Peak hours:",
                 "period": "Period:",
                 "period_90": "Last 90 Days",
+                "period_180": "Last 6 Months",
+                "period_365": "Last 1 Year",
+                "period_all": "All Time",
+                "building_cache": "Computing all activity data for extended ranges...",
                 "period_30": "Last 30 Days",
                 "period_7": "Last 7 Days",
                 "minutes_online": "min online",
@@ -1843,7 +1869,125 @@
             "legacy": "Legacy",
             "roles": "Roles",
             "open_ingame": "Open in-game",
-            "display_name": "Display Name (VRC+)"
+            "display_name": "Display Name (VRC+)",
+            "minimum_avatar_performance": "Minimum Avatar Performance"
+        },
+        "launch_options": {
+            "header": "VRChat Launch Options",
+            "description": "These options are for advanced users only.",
+            "example": "(to change max fps: --fps=<N> e.g.)",
+            "path_override": "VRChat Path Override",
+            "vrchat_docs": "VRChat Docs",
+            "unity_manual": "Unity Manual",
+            "save": "Save"
+        },
+        "config_json": {
+            "header": "VRChat Config JSON",
+            "description1": "These options are for advanced users only.",
+            "description2": "Leave field empty to set as default, game restart required to apply settings.",
+            "cache_size": "Cache Size:",
+            "refresh": "Refresh",
+            "delete_all_cache": "Delete all cache",
+            "delete_cache": "Delete Cache",
+            "delete_old_cache": "Delete old versions from cache",
+            "sweep_cache": "Sweep Cache",
+            "max_cache_size": "Max Cache Size [GB] (min 30)",
+            "cache_expiry_delay": "Cache Expiry [Days] (min 30)",
+            "cache_directory": "Custom Cache Folder Location",
+            "picture_directory": "Custom Picture Folder Location",
+            "fpv_steadycam_fov": "First-Person Steadycam FOV",
+            "camera_resolution": "Camera Resolution",
+            "spout_resolution": "Spout Resolution",
+            "screenshot_resolution": "Screenshot Resolution",
+            "picture_sort_by_date": "Sort pictures into folders by date",
+            "disable_discord_presence": "Disable Discord Rich Presence",
+            "vrchat_docs": "VRChat Docs",
+            "cancel": "Cancel",
+            "save": "Save"
+        },
+        "youtube_api": {
+            "header": "YouTube API",
+            "description": "Enter your YouTube API Key (optional)",
+            "placeholder": "YouTube API Key",
+            "guide": "Guide",
+            "save": "Save"
+        },
+        "translation_api": {
+            "header": "Bio Translation API",
+            "description": "Enter your Google translate API Key",
+            "placeholder": "Google Translate API Key",
+            "guide": "Guide",
+            "mode": "Provider",
+            "mode_google": "Google Translate",
+            "mode_openai": "OpenAI",
+            "test": "Test",
+            "save": "Save",
+            "msg_disabled": "Translation API disabled",
+            "msg_fill_endpoint_model": "Please fill endpoint and model",
+            "msg_settings_invalid": "Translation settings invalid",
+            "msg_settings_saved": "Translation settings saved",
+            "msg_test_success": "Test succeeded",
+            "msg_test_failed": "Test failed",
+            "openai": {
+                "endpoint": "API Endpoint",
+                "api_key": "API Key (Optional)",
+                "model": "Model Name",
+                "prompt_optional": "Prompt (Optional)"
+            }
+        },
+        "set_world_tags": {
+            "header": "Set World Tags",
+            "avatar_scaling_disabled": "Disable avatar scaling",
+            "focus_view_disabled": "Disable focus view",
+            "stickers_disabled": "Disable stickers",
+            "enable_debugging": "Enable world debugging for others",
+            "author_tags": "Author Tags (comma separated)",
+            "content_tags": "Content Warning Tags",
+            "content_horror": "Horror",
+            "content_gore": "Gore",
+            "content_violence": "Violence",
+            "content_adult": "Adult",
+            "content_sex": "Sexual",
+            "default_content_settings": "Default Content Settings",
+            "cancel": "Cancel",
+            "save": "Save"
+        },
+        "set_avatar_tags": {
+            "header": "Set Avatar Tags",
+            "content_tags": "Content Warning Tags",
+            "content_horror": "Horror",
+            "content_gore": "Gore",
+            "content_violence": "Violence",
+            "content_adult": "Adult",
+            "content_sex": "Sexual",
+            "custom_tags_placeholder": "Custom tags",
+            "select_all": "Select All",
+            "select_none": "Select None",
+            "cancel": "Cancel",
+            "save": "Save"
+        },
+        "set_avatar_styles": {
+            "header": "Set Avatar Styles",
+            "primary_style": "Primary Style",
+            "secondary_style": "Secondary Style",
+            "select_style": "Select Style",
+            "save_success": "Avatar styles changed successfully",
+            "save_failed": "Failed to change avatar styles",
+            "cancel": "Cancel",
+            "save": "Save"
+        },
+        "vrcx_updater": {
+            "header": "VRCXF Updater",
+            "latest_version": "VRCXF is up to date.",
+            "ready_for_update": "Ready for install, restart VRCXF to apply.",
+            "branch_stable": "Stable (Official)",
+            "branch_nightly": "Forked (Unofficial)",
+            "nightly_title": "Forked builds",
+            "nightly_notice": "Forked builds are for testing. For stability, use stable build.",
+            "release": "Release",
+            "download": "Download",
+            "install": "Install",
+            "cancel": "Cancel"
         },
         "launch": {
             "header": "Launch",
@@ -3125,6 +3269,7 @@
         "clock": "Clock",
         "clocks_label": "Clocks",
         "clocks_none": "None",
-        "timezone": "Timezone"
+        "timezone": "Timezone",
+        "now_playing": "Now Playing"
     }
 }

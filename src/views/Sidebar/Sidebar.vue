@@ -57,7 +57,9 @@
                             variant="ghost"
                             size="icon-sm"
                             @click="isNotificationCenterOpen = !isNotificationCenterOpen"
-                            @contextmenu.prevent="toast.info(t('side_panel.notification_center.no_unseen_notifications'))">
+                            @contextmenu.prevent="
+                                toast.info(t('side_panel.notification_center.no_unseen_notifications'))
+                            ">
                             <Bell />
                         </Button>
                     </TooltipWrapper>
@@ -128,11 +130,16 @@
                                                     <SelectTrigger size="sm">
                                                         <SelectValue
                                                             :placeholder="
-                                                                t('view.settings.appearance.side_panel.sorting.placeholder')
+                                                                t(
+                                                                    'view.settings.appearance.side_panel.sorting.placeholder'
+                                                                )
                                                             " />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
+                                                        <SelectItem
+                                                            v-for="opt in sortOptions"
+                                                            :key="opt.value"
+                                                            :value="opt.value">
                                                             {{ opt.label }}
                                                         </SelectItem>
                                                     </SelectContent>
@@ -294,7 +301,7 @@
             </template>
             <template #friends>
                 <div class="h-full overflow-hidden">
-                    <FriendsSidebar />
+                    <FriendsSidebar @show-social-status-dialog="showSocialStatusDialog" />
                 </div>
             </template>
             <template #groups>
@@ -306,13 +313,15 @@
         <NotificationCenterSheet />
         <FavoriteFriendGroupOrderDialog v-model:open="isGroupOrderDialogOpen" />
         <QuickSearchDialog />
+        <SocialStatusDialog
+            :social-status-dialog="socialStatusDialog"
+            :social-status-history-table="socialStatusHistoryTable" />
     </div>
-    <SocialStatusDialog
-        :social-status-dialog="socialStatusDialog"
-        :social-status-history-table="socialStatusHistoryTable" />
 </template>
 
 <script setup>
+    import { computed, defineAsyncComponent, ref } from 'vue';
+    import { useMagicKeys, whenever } from '@vueuse/core';
     import {
         Select,
         SelectContent,
@@ -322,13 +331,11 @@
         SelectTrigger,
         SelectValue
     } from '@/components/ui/select';
-    import { computed, defineAsyncComponent, ref } from 'vue';
     import { Bell, ChevronDown, RefreshCw, Search, Settings } from 'lucide-vue-next';
     import { toast } from 'vue-sonner';
     import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
     import { Field, FieldContent, FieldLabel } from '@/components/ui/field';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-    import { useMagicKeys, whenever } from '@vueuse/core';
     import { Button } from '@/components/ui/button';
     import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
     import { Kbd } from '@/components/ui/kbd';
@@ -352,7 +359,6 @@
     import { normalizeFavoriteGroupsChange, resolveFavoriteGroups } from './sidebarSettingsUtils';
     import { useQuickSearchStore } from '../../stores/quickSearch';
     import { useUserDisplay } from '../../composables/useUserDisplay';
-
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import QuickSearchDialog from '../../components/QuickSearchDialog.vue';
     import FavoriteFriendGroupOrderDialog from './components/FavoriteFriendGroupOrderDialog.vue';
@@ -360,8 +366,9 @@
     import NotificationCenterSheet from './components/NotificationCenterSheet.vue';
 
     const SocialStatusDialog = defineAsyncComponent(
-        () => import('@/components/dialogs/UserDialog/SocialStatusDialog.vue')
+        () => import('../../components/dialogs/UserDialog/SocialStatusDialog.vue')
     );
+
     const { friends, isRefreshFriendsLoading, onlineFriendCount } = storeToRefs(useFriendStore());
     const { groupInstances } = storeToRefs(useGroupStore());
     const notificationStore = useNotificationStore();
@@ -464,7 +471,6 @@
         { value: 'friends', label: t('side_panel.friends') },
         { value: 'groups', label: t('side_panel.groups') }
     ]);
-
     const socialStatusDialog = ref({
         visible: false,
         loading: false,
@@ -475,7 +481,6 @@
         data: [],
         layout: 'table'
     });
-
     function showSocialStatusDialog() {
         const D = socialStatusDialog.value;
         const { statusHistory } = currentUser.value;
@@ -489,7 +494,6 @@
         }
         socialStatusHistoryTable.value.data = statusHistoryArray;
         D.status = currentUser.value.status;
-        // D.status = '';
         D.statusDescription = currentUser.value.statusDescription;
         D.visible = true;
     }
