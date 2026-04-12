@@ -57,7 +57,9 @@
                             variant="ghost"
                             size="icon-sm"
                             @click="isNotificationCenterOpen = !isNotificationCenterOpen"
-                            @contextmenu.prevent="toast.info(t('side_panel.notification_center.no_unseen_notifications'))">
+                            @contextmenu.prevent="
+                                toast.info(t('side_panel.notification_center.no_unseen_notifications'))
+                            ">
                             <Bell />
                         </Button>
                     </TooltipWrapper>
@@ -128,11 +130,16 @@
                                                     <SelectTrigger size="sm">
                                                         <SelectValue
                                                             :placeholder="
-                                                                t('view.settings.appearance.side_panel.sorting.placeholder')
+                                                                t(
+                                                                    'view.settings.appearance.side_panel.sorting.placeholder'
+                                                                )
                                                             " />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
+                                                        <SelectItem
+                                                            v-for="opt in sortOptions"
+                                                            :key="opt.value"
+                                                            :value="opt.value">
                                                             {{ opt.label }}
                                                         </SelectItem>
                                                     </SelectContent>
