@@ -91,8 +91,13 @@
                                     class="ml-1 text-sm inline-flex"
                                     :location="getRowInstanceId(row)"
                                     :instance="getRowInstance(row)"
-                                    :friendcount="getRowCount(row)" />
-                                <span class="friend-view__instance-count">({{ getRowCount(row) }})</span>
+                                    :friendcount="getRowCount(row)"
+                                    :currentlocation="lastLocation.location"
+                                    :refresh-tooltip="t('dialog.world.instances.refresh_instance_info')"
+                                    :show-history="!!instanceJoinHistory.get(getRowInstanceId(row))"
+                                    :history-tooltip="t('dialog.previous_instances.info')"
+                                    :on-refresh="() => refreshInstancePlayerCount(getRowInstanceId(row))"
+                                    :on-history="() => showPreviousInstancesInfoDialog(getRowInstanceId(row))" />
                             </header>
                         </template>
 
@@ -161,6 +166,7 @@
     import { Switch } from '../../components/ui/switch';
     import { getFriendsLocations } from '../../shared/utils/location.js';
     import { debounce, getFriendsSortFunction, parseLocation } from '../../shared/utils';
+    import { refreshInstancePlayerCount } from '../../coordinators/instanceCoordinator';
 
     import InstanceActionBar from '@/components/InstanceActionBar.vue';
     import FriendLocationCard from './components/FriendsLocationsCard.vue';
@@ -187,7 +193,8 @@
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } = storeToRefs(favoriteStore);
 
     const instanceStore = useInstanceStore();
-    const { lastInstanceApplied } = storeToRefs(instanceStore);
+    const { lastInstanceApplied, instanceJoinHistory } = storeToRefs(instanceStore);
+    const { showPreviousInstancesInfoDialog } = instanceStore;
 
     const locationStore = useLocationStore();
     const { lastLocation } = storeToRefs(locationStore);
@@ -1085,10 +1092,6 @@
 
     .friend-view__divider-text {
         flex: none;
-    }
-
-    .friend-view__instance-count {
-        font-size: 12px;
     }
 
     .friend-view__virtual-row--group-header {
