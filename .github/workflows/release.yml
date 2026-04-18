@@ -24,6 +24,7 @@ jobs:
             - uses: actions/checkout@v5
             - id: version
               run: |
+                  export TZ=Asia/Tokyo
                   git_hash=$(git rev-parse --short "$GITHUB_SHA")
                   export FILENAME="$(date '+%Y.%m.%d')-${git_hash}"
                   export DATE="$(date '+%Y.%m.%d')"
