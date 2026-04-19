@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 import {
@@ -67,9 +67,20 @@ export function disableWebSocket() {
     isWebSocketEnabled.value = false;
     closeWebSocket();
 }
+
+watch(
+    [() => isWebSocketEnabled.value, () => watchState.isFriendsLoaded],
+    ([enabled, friendsLoaded]) => {
+        if (enabled && friendsLoaded) {
+            initWebsocket();
+        }
+    },
+    { flush: 'sync' }
+);
+
 export function initWebsocket() {
     // Only connect if user has enabled WebSocket
-    if (!isWebSocketEnabled) {
+    if (!isWebSocketEnabled.value) {
         return;
     }
     if (!watchState.isFriendsLoaded || webSocket !== null) {
