@@ -31,18 +31,6 @@
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-                <SidebarMenuButton :tooltip="webSocketStatusText" @click="handleWebSocketToggle">
-                    <span class="relative inline-flex size-6 items-center justify-center">
-                        <i class="ri-wifi-line text-lg" />
-                        <span
-                            class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full"
-                            :class="isWebSocketConnected ? 'bg-green-500' : 'bg-red-500'"></span>
-                    </span>
-                    <span v-show="!isCollapsed">{{ webSocketStatusText }}</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
                 <SidebarMenuButton :tooltip="t('nav_tooltip.toggle_theme')" @click="emit('toggle-theme')">
                     <i
                         :class="isDarkMode ? 'ri-moon-line' : 'ri-sun-line'"
@@ -191,8 +179,6 @@
     import { computed, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
-    import { disableWebSocket, enableWebSocket, isWebSocketConnected } from '@/services/websocket';
-
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import {
         DropdownMenu,
@@ -285,18 +271,6 @@
 
     const router = useRouter();
     const isSettingsRoute = ref(false);
-    const webSocketStatusText = computed(
-        () => `WebSocket: ${t(isWebSocketConnected.value ? 'status_bar.ws_connected' : 'status_bar.ws_disconnected')}`
-    );
-
-    const handleWebSocketToggle = () => {
-        if (isWebSocketConnected.value) {
-            disableWebSocket();
-            return;
-        }
-        enableWebSocket();
-    };
-
     watch(
         () => router?.currentRoute.value?.name,
         (name) => {
