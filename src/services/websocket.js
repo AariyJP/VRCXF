@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 import {
@@ -25,6 +25,7 @@ import {
 } from '../coordinators/friendRelationshipCoordinator';
 import { parseLocation } from '../shared/utils';
 import { AppDebug } from './appConfig';
+import configRepository from './config';
 import { groupRequest } from '../api';
 import { request } from './request';
 import { runUpdateFriendFlow } from '../coordinators/friendPresenceCoordinator';
@@ -35,6 +36,7 @@ import * as workerTimers from 'worker-timers';
 
 let webSocket = null;
 let lastWebSocketMessage = '';
+const WEBSOCKET_AUTO_CONNECT_KEY = 'VRCX_wsAutoConnect';
 
 /**
  * Reactive WebSocket state for status bar telemetry.
@@ -47,10 +49,52 @@ export const wsState = reactive({
     bytesReceived: 0
 });
 
+// Reactive WebSocket connection state
+export const isWebSocketConnected = ref(false);
+
+export const isWebSocketEnabled = ref(false);
+
+export async function loadWebSocketAutoConnectPreference() {
+    const autoConnectEnabled = await configRepository.getBool(
+        WEBSOCKET_AUTO_CONNECT_KEY,
+        false
+    );
+    if (autoConnectEnabled) {
+        enableWebSocket();
+    }
+}
+
 /**
  *
  */
+export function enableWebSocket() {
+    isWebSocketEnabled.value = true;
+    initWebsocket();
+}
+
+/**
+ * Disable WebSocket connections and close existing connection
+ */
+export function disableWebSocket() {
+    isWebSocketEnabled.value = false;
+    closeWebSocket();
+}
+
+watch(
+    [() => isWebSocketEnabled.value, () => watchState.isFriendsLoaded],
+    ([enabled, friendsLoaded]) => {
+        if (enabled && friendsLoaded) {
+            initWebsocket();
+        }
+    },
+    { flush: 'sync' }
+);
+
 export function initWebsocket() {
+    // Only connect if user has enabled WebSocket
+    if (!isWebSocketEnabled.value) {
+        return;
+    }
     if (!watchState.isFriendsLoaded || webSocket !== null) {
         return;
     }
