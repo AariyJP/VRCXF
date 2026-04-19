@@ -98,7 +98,6 @@
         return url;
     });
 
-
     const cardStyle = computed(() => ({
         '--card-scale': props.cardScale,
         '--card-spacing': props.cardSpacing,
