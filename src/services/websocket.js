@@ -50,14 +50,13 @@ export const wsState = reactive({
 // Reactive WebSocket connection state
 export const isWebSocketConnected = ref(false);
 
-// Flag to control whether WebSocket should be enabled (user must manually enable)
-let isWebSocketEnabled = false;
+export const isWebSocketEnabled = ref(false);
 
 /**
  * Enable WebSocket connections and attempt to connect
  */
 export function enableWebSocket() {
-    isWebSocketEnabled = true;
+    isWebSocketEnabled.value = true;
     initWebsocket();
 }
 
@@ -65,7 +64,7 @@ export function enableWebSocket() {
  * Disable WebSocket connections and close existing connection
  */
 export function disableWebSocket() {
-    isWebSocketEnabled = false;
+    isWebSocketEnabled.value = false;
     closeWebSocket();
 }
 export function initWebsocket() {
