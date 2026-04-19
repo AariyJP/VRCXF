@@ -8,10 +8,12 @@ import { runUpdateIsGameRunningFlow } from '../coordinators/gameCoordinator';
 import { addGameLogEvent } from '../coordinators/gameLogCoordinator';
 import { runRefreshPlayerModerationsFlow } from '../coordinators/moderationCoordinator';
 import { clearVRCXCache } from '../coordinators/vrcxCoordinator';
+import { isWebSocketConnected } from '../services/websocket';
 import { useAuthStore } from './auth';
 import { useDiscordPresenceSettingsStore } from './settings/discordPresence';
 import { useFriendStore } from './friend';
 import { handleGroupUserInstances } from '../coordinators/groupCoordinator';
+import { useNotificationStore } from './notification';
 import {
     getCurrentUser,
     updateAutoStateChange
@@ -32,6 +34,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
     const discordPresenceSettingsStore = useDiscordPresenceSettingsStore();
     const vrcxUpdaterStore = useVRCXUpdaterStore();
     const vrStore = useVrStore();
+    const notificationStore = useNotificationStore();
     const state = {
         nextCurrentUserRefresh: 300,
         nextFriendsRefresh: 3600,
@@ -43,15 +46,28 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         nextAutoStateChange: 0,
         nextGetLogCheck: 0,
         nextGameRunningCheck: 0,
-        nextDatabaseOptimize: 3600
+        nextDatabaseOptimize: 3600,
+        nextNotificationsRefresh: 60
     };
 
     watch(
         () => watchState.isLoggedIn,
         () => {
             state.nextCurrentUserRefresh = 300;
-            state.nextFriendsRefresh = 3600;
+            state.nextFriendsRefresh = 60;
             state.nextGroupInstanceRefresh = 0;
+            state.nextNotificationsRefresh = 60;
+        },
+        { flush: 'sync' }
+    );
+
+    watch(
+        () => isWebSocketConnected.value,
+        (connected) => {
+            if (watchState.isLoggedIn) {
+                state.nextFriendsRefresh = connected ? 3600 : 60;
+                state.nextNotificationsRefresh = connected ? 3600 : 60;
+            }
         },
         { flush: 'sync' }
     );
@@ -75,7 +91,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                     getCurrentUser();
                 }
                 if (--state.nextFriendsRefresh <= 0) {
-                    state.nextFriendsRefresh = 3600; // 1hour
+                    state.nextFriendsRefresh = isWebSocketConnected.value ? 3600 : 60;
                     runRefreshFriendsListFlow();
                     authStore.updateStoredUser(userStore.currentUser);
                     if (
@@ -84,6 +100,12 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                             new Date(Date.now() - 3600 * 1000) // 1hour
                     ) {
                         runRefreshPlayerModerationsFlow();
+                    }
+                }
+                if (--state.nextNotificationsRefresh <= 0) {
+                    state.nextNotificationsRefresh = isWebSocketConnected.value ? 3600 : 60;
+                    if (!isWebSocketConnected.value) {
+                        notificationStore.refreshNotifications(true);
                     }
                 }
                 if (--state.nextGroupInstanceRefresh <= 0) {
