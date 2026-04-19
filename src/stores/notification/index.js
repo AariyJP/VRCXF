@@ -184,7 +184,7 @@ export const useNotificationStore = defineStore('Notification', () => {
      *
      * @param args
      */
-    function handleNotification(args, silent = false) {
+    function handleNotification(args) {
         args.ref = applyNotification(args.json);
         const { ref } = args;
         const array = notificationTable.value.data;
@@ -226,14 +226,10 @@ export const useNotificationStore = defineStore('Notification', () => {
                     notificationTable.value.filters[0].value.length === 0 ||
                     notificationTable.value.filters[0].value.includes(ref.type)
                 ) {
-                    if (!silent) {
-                        uiStore.notifyMenu('notification');
-                    }
+                    uiStore.notifyMenu('notification');
                 }
-                if (!silent) {
-                    queueNotificationNoty(ref);
-                    sharedFeedStore.addEntry(ref);
-                }
+                queueNotificationNoty(ref);
+                sharedFeedStore.addEntry(ref);
             }
         }
         notificationTable.value.data.push(ref);
@@ -614,7 +610,7 @@ export const useNotificationStore = defineStore('Notification', () => {
      *
      * @param args
      */
-    function handleNotificationV2(args, silent = false) {
+    function handleNotificationV2(args) {
         const ref = applyNotificationV2(args.json);
         if (ref.seen) {
             removeFromArray(unseenNotifications.value, ref.id);
@@ -634,16 +630,12 @@ export const useNotificationStore = defineStore('Notification', () => {
             notificationTable.value.filters[0].value.length === 0 ||
             notificationTable.value.filters[0].value.includes(ref.type)
         ) {
-            if (!silent) {
-                uiStore.notifyMenu('notification');
-            }
+            uiStore.notifyMenu('notification');
         }
         database.addNotificationV2ToDatabase(ref);
         notificationTable.value.data.push(ref);
-        if (!silent) {
-            queueNotificationNoty(ref);
-            sharedFeedStore.addEntry(ref);
-        }
+        queueNotificationNoty(ref);
+        sharedFeedStore.addEntry(ref);
     }
 
     /**
@@ -728,7 +720,7 @@ export const useNotificationStore = defineStore('Notification', () => {
      *
      * @returns {Promise<void>}
      */
-    async function refreshNotifications(silent = false) {
+    async function refreshNotifications() {
         isNotificationsLoading.value = true;
         let count;
         let params;
@@ -747,7 +739,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                         params: {
                             notificationId: json.id
                         }
-                    }, silent);
+                    });
                 }
                 params.offset += 100;
                 if (args.json.length < 100) {
@@ -768,7 +760,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                         params: {
                             notificationId: json.id
                         }
-                    }, silent);
+                    });
                 }
                 params.offset += 100;
                 if (args.json.length < 100) {
@@ -790,7 +782,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                         params: {
                             notificationId: json.id
                         }
-                    }, silent);
+                    });
                 }
                 params.offset += 100;
                 if (args.json.length < 100) {
