@@ -8,12 +8,14 @@ import {
     initRouter,
     initSentry
 } from './plugins';
+import { loadWebSocketAutoConnectPreference } from './services/websocket';
 import { initPiniaPlugins, pinia } from './stores';
 import { queryClient } from './queries';
 
 import App from './App.vue';
 
 await initPlugins();
+await loadWebSocketAutoConnectPreference();
 await initPiniaPlugins();
 
 // #region | Hey look it's most of VRCX!

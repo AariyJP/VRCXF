@@ -24,6 +24,12 @@
                 :description="t('view.settings.advanced.advanced.self_invite.description')">
                 <Switch :model-value="selfInviteOverride" @update:modelValue="setSelfInviteOverride" />
             </SettingsItem>
+
+            <SettingsItem label="ウェブソケットに自動接続する">
+                <Switch
+                    :model-value="webSocketAutoConnectEnabled"
+                    @update:modelValue="setWebSocketAutoConnectEnabled" />
+            </SettingsItem>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.advanced_groups.security.header')">
@@ -467,6 +473,7 @@
         vrcQuitFix,
         autoSweepVRChatCache,
         selfInviteOverride,
+        webSocketAutoConnectEnabled,
         enableAppLauncher,
         enableAppLauncherAutoClose,
         enableAppLauncherRunProcessOnce,
@@ -483,6 +490,7 @@
         setVrcQuitFix,
         setAutoSweepVRChatCache,
         setSelfInviteOverride,
+        setWebSocketAutoConnectEnabled,
         setEnableAppLauncher,
         setEnableAppLauncherAutoClose,
         setEnableAppLauncherRunProcessOnce,
