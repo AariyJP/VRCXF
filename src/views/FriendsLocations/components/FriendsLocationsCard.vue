@@ -55,6 +55,7 @@
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
     import { Crown, Pencil, User } from 'lucide-vue-next';
     import { Card } from '@/components/ui/card';
+    import { Spinner } from '@/components/ui/spinner';
     import { computed } from 'vue';
 
     import { statusClass } from '../../../shared/utils';
@@ -84,6 +85,8 @@
             default: 1
         }
     });
+
+    const isFriendTraveling = computed(() => props.friend.ref?.location === 'traveling');
 
     const avatarSize = computed(() => Math.max(36, 46 * props.cardScale));
 
