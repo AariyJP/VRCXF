@@ -399,7 +399,7 @@
     import { THEME_CONFIG, links, navDefinitions } from '../shared/constants';
     import { openExternalLink } from '../shared/utils';
 
-    import configRepository from '@/services/config';
+    import configRepository from '../service/config';
 
     const CustomNavDialog = defineAsyncComponent(() => import('./dialogs/CustomNavDialog.vue'));
 
@@ -408,6 +408,7 @@
 
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const DEFAULT_FOLDER_ICON = 'ri-folder-line';
+
     const getItemTooltip = (item) => {
         const label = item.titleIsCustom ? item.title : t(item.title || '');
         if (item.action !== 'direct-access') {

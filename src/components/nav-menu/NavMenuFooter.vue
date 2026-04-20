@@ -176,9 +176,10 @@
 
 <script setup>
     import { Heart } from 'lucide-vue-next';
-    import { computed, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
+    import { computed, ref, watch } from 'vue';
+
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import {
         DropdownMenu,
@@ -271,6 +272,7 @@
 
     const router = useRouter();
     const isSettingsRoute = ref(false);
+
     watch(
         () => router?.currentRoute.value?.name,
         (name) => {
