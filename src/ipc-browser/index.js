@@ -354,13 +354,9 @@ async function executeFetch(options) {
 const BrowserWebApi = {
     async ClearCookies() {},
     async GetCookies() {
-        return document.cookie || '';
+        return '';
     },
-    async SetCookies(cookie) {
-        if (cookie) {
-            document.cookie = cookie;
-        }
-    },
+    async SetCookies() {},
     async ExecuteJson(options) {
         const response = await executeFetch(options);
         return JSON.stringify({

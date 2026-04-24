@@ -20,4 +20,4 @@ jobs:
             - name: Restore dependencies
               run: npm ci
             - name: Build browser
-              run: npm run prod
+              run: npm run prod-browser
