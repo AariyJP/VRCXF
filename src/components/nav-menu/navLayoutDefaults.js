@@ -35,7 +35,7 @@ export function createBaseDefaultNavLayout(t) {
             // items: ['charts-instance', 'charts-mutual', 'charts-hot-worlds']
             items: ['charts-instance', 'charts-mutual']
         },
-        { type: 'item', key: 'tools' },
+        ...(BROWSER ? [] : [{ type: 'item', key: 'tools' }]),
         { type: 'item', key: 'direct-access' }
     ];
 }

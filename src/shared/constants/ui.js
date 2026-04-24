@@ -1,6 +1,6 @@
 import { toolNavDefinitions } from './tools';
 
-const navDefinitions = [
+const baseNavDefinitions = [
     {
         key: 'feed',
         icon: 'ri-rss-line',
@@ -127,8 +127,12 @@ const navDefinitions = [
         tooltip: 'prompt.direct_access_omni.header',
         labelKey: 'prompt.direct_access_omni.header',
         action: 'direct-access'
-    },
-    ...toolNavDefinitions
+    }
+];
+
+const navDefinitions = [
+    ...baseNavDefinitions.filter((item) => !(BROWSER && item.key === 'tools')),
+    ...(BROWSER ? [] : toolNavDefinitions)
 ];
 
 export { navDefinitions };

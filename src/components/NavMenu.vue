@@ -454,7 +454,7 @@
             icon: 'ri-pie-chart-line',
             items: ['charts-instance', 'charts-mutual']
         },
-        { type: 'item', key: 'tools' },
+        ...(BROWSER ? [] : [{ type: 'item', key: 'tools' }]),
         { type: 'item', key: 'direct-access' }
     ];
 
