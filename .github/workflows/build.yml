@@ -12,15 +12,6 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    build_dotnet:
-        runs-on: windows-latest
-        steps:
-            - uses: actions/checkout@v5
-            - uses: actions/setup-dotnet@v5
-              with:
-                  dotnet-version: '10.0.x'
-            - name: Build Cef .NET Application
-              run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:"Restore;Clean;Build" -m -a x64 --self-contained
     build_node:
         runs-on: ubuntu-slim
         steps:
@@ -28,5 +19,5 @@ jobs:
             - uses: actions/setup-node@v4
             - name: Restore dependencies
               run: npm ci
-            - name: Build Cef-html
+            - name: Build browser
               run: npm run prod
