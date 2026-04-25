@@ -77,7 +77,7 @@
         <div v-else class="friend-view__toolbar friend-view__toolbar--loading">
             <span class="friend-view__loading-text">{{ t('view.friends_locations.loading_more') }}</span>
         </div>
-        <div v-if="settingsReady" ref="scrollbarRef" class="friend-view__scroll">
+        <div v-if="settingsReady && watchState.isFriendsLoaded" ref="scrollbarRef" class="friend-view__scroll">
             <div v-if="virtualRows.length" class="friend-view__virtual" :style="virtualListStyle">
                 <template v-for="row in virtualRows" :key="String(row.key)">
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
@@ -164,6 +164,7 @@
     } from '../../stores';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
+    import { watchState } from '../../services/watchState';
     import { getFriendsLocations } from '../../shared/utils/location.js';
     import { debounce, getFriendsSortFunction, parseLocation } from '../../shared/utils';
     import { refreshInstancePlayerCount } from '../../coordinators/instanceCoordinator';
