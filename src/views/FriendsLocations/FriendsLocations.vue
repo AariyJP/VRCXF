@@ -375,13 +375,13 @@
         }
 
         const friends = Array.isArray(group.friends) ? group.friends : [];
-        for (const friend of friends) {
+        friends.forEach((friend, index) => {
             items.push({
-                key: `f:${friend?.id ?? friend?.userId ?? friend?.displayName ?? Math.random()}`,
+                key: `f:${friend?.id ?? friend?.userId ?? friend?.displayName ?? 'unknown'}:${index}`,
                 friend,
                 displayInstanceInfo
             });
-        }
+        });
 
         return items;
     };
@@ -390,17 +390,23 @@
         const source = friendsInSameInstance?.value;
         if (!Array.isArray(source) || source.length === 0) return [];
 
-        return source
-            .map((group, index) => {
-                if (!Array.isArray(group) || group.length === 0) return null;
-                const friends = group;
-                const instanceId = getFriendsLocations(friends, lastLocation.value) || `instance-${index + 1}`;
-                return {
-                    instanceId: String(instanceId),
-                    friends
-                };
-            })
-            .filter(Boolean);
+        const groupMap = new Map();
+        let fallbackIndex = 0;
+
+        for (const group of source) {
+            if (!Array.isArray(group) || group.length === 0) continue;
+            const instanceId =
+                getFriendsLocations(group, lastLocation.value) ||
+                `instance-${++fallbackIndex}`;
+            const id = String(instanceId);
+            if (groupMap.has(id)) {
+                groupMap.get(id).friends.push(...group);
+            } else {
+                groupMap.set(id, { instanceId: id, friends: [...group] });
+            }
+        }
+
+        return Array.from(groupMap.values());
     });
 
     const sameInstanceEntries = computed(() =>
@@ -785,8 +791,8 @@
 
             const online = mergedOnlineEntries.value;
             if (online.length) {
-                const items = online.map((entry) => ({
-                    key: `e:${getEntryIdentity(entry)}`,
+                const items = online.map((entry, i) => ({
+                    key: `e:${getEntryIdentity(entry)}:${i}`,
                     friend: entry.friend,
                     displayInstanceInfo: displayInstanceInfo.value
                 }));
@@ -808,8 +814,8 @@
                     collapsed: isCollapsed
                 });
                 if (!isCollapsed) {
-                    const items = group.friends.map((friend) => ({
-                        key: `fg:${group.key}:${getFriendIdentity(friend)}`,
+                    const items = group.friends.map((friend, i) => ({
+                        key: `fg:${group.key}:${getFriendIdentity(friend)}:${i}`,
                         friend,
                         displayInstanceInfo: displayInstanceInfo.value
                     }));
@@ -821,8 +827,8 @@
 
         const entries = filteredFriends.value;
         if (entries.length) {
-            const items = entries.map((entry) => ({
-                key: `e:${getEntryIdentity(entry)}`,
+            const items = entries.map((entry, i) => ({
+                key: `e:${getEntryIdentity(entry)}:${i}`,
                 friend: entry.friend,
                 displayInstanceInfo: displayInstanceInfo.value
             }));
