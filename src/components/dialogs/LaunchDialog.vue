@@ -153,7 +153,7 @@
 
     const { friends } = storeToRefs(useFriendStore());
     const { lastLocation } = storeToRefs(useLocationStore());
-    const { launchGame, tryOpenInstanceInVrc } = useLaunchStore();
+    const { launchGame, tryOpenInstanceInVrc, getLaunchUrl } = useLaunchStore();
     const { launchDialogData } = storeToRefs(useLaunchStore());
 
     const { canOpenInstanceInGame } = storeToRefs(useInviteStore());
@@ -289,13 +289,14 @@
      * @param location
      * @param shortName
      */
-    function handleLaunchCommand(command, location, shortName) {
+    async function handleLaunchCommand(command, location, shortName) {
         if (BROWSER) {
-            const steamUri =
-                command === 'desktop'
-                    ? 'steam://rungameid/438100// --no-vr'
-                    : 'steam://rungameid/438100';
-            window.open(steamUri);
+            const vrchatUrl = await getLaunchUrl(location, shortName);
+            const args = [vrchatUrl];
+            if (command === 'desktop') {
+                args.push('--no-vr');
+            }
+            window.open(`steam://rungameid/438100// ${args.join(' ')}`);
             isVisible.value = false;
             return;
         }
