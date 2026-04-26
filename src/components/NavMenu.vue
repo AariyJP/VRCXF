@@ -476,10 +476,17 @@
     const navLayoutReady = ref(false);
     const collapsedDropdownOpenId = ref(null);
 
+    const browserHiddenKeys = new Set(
+        BROWSER ? ['game-log', 'player-list'] : []
+    );
+
     const menuItems = computed(() => {
         const items = [];
         navLayout.value.forEach((entry) => {
             if (entry.type === 'item') {
+                if (browserHiddenKeys.has(entry.key)) {
+                    return;
+                }
                 const definition = navDefinitionMap.get(entry.key);
                 if (!definition) {
                     return;
