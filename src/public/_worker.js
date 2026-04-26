@@ -6,6 +6,10 @@ export default {
         const url = new URL(request.url);
         const upgradeHeader = request.headers.get('Upgrade');
 
+        if (url.pathname === '/_worker-check') {
+            return new Response('_worker.js active', { status: 200 });
+        }
+
         if (upgradeHeader === 'websocket' && url.pathname.startsWith('/ws')) {
             return handleWebSocket(request, url);
         }
@@ -27,34 +31,12 @@ export default {
 async function handleWebSocket(request, url) {
     const auth = url.searchParams.get('auth') ?? '';
 
-    const upstreamResp = await fetch(
+    const upstreamReq = new Request(
         `${VRCHAT_WS}/?auth=${encodeURIComponent(auth)}`,
-        { headers: { Upgrade: 'websocket' } }
+        { headers: request.headers }
     );
 
-    const upstream = upstreamResp.webSocket;
-    if (!upstream) {
-        return new Response('Upstream WebSocket failed', { status: 502 });
-    }
-    upstream.accept();
-
-    const [client, server] = Object.values(new WebSocketPair());
-    server.accept();
-
-    server.addEventListener('message', ({ data }) => upstream.send(data));
-    server.addEventListener('close', ({ code, reason }) =>
-        upstream.close(code, reason)
-    );
-
-    upstream.addEventListener('message', ({ data }) => server.send(data));
-    upstream.addEventListener('close', ({ code, reason }) =>
-        server.close(code, reason)
-    );
-    upstream.addEventListener('error', () =>
-        server.close(1011, 'upstream error')
-    );
-
-    return new Response(null, { status: 101, webSocket: client });
+    return fetch(upstreamReq);
 }
 
 async function handleApi(request, url) {
