@@ -451,7 +451,9 @@
     const onlineFriendsByGroupStatus = computed(() => {
         const selectedGroups = sidebarFavoriteGroups.value;
         if (selectedGroups.length === 0) {
-            return onlineFriends.value.filter((f) => !allFavoriteFriendIds.value.has(f.id));
+            return onlineFriends.value
+                .filter((f) => !allFavoriteFriendIds.value.has(f.id))
+                .sort(getFriendsSortFunction(sidebarSortMethods.value));
         }
         const selectedIds = displayedVipIds.value;
         const nonFavOnline = onlineFriends.value.filter((f) => !selectedIds.has(f.id));
