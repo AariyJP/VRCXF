@@ -180,6 +180,12 @@ export default defineConfig(({ mode }) => {
                     changeOrigin: true,
                     cookieDomainRewrite: '127.0.0.1',
                     secure: true
+                },
+                '/ws': {
+                    target: 'wss://pipeline.vrchat.cloud',
+                    changeOrigin: true,
+                    ws: true,
+                    rewrite: (path) => path.replace(/^\/ws/, '') || '/'
                 }
             }
         },
