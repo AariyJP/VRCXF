@@ -375,6 +375,21 @@
             </SettingsGroup>
         </template>
 
+        <SettingsGroup v-if="isBrowser" title="ブラウザ版データベース">
+            <SettingsItem
+                label="デスクトップ版DBをインポート"
+                description="デスクトップ版 VRCXF の VRCX.db をブラウザ版に移行します。現在のデータは上書きされます。">
+                <Button size="sm" variant="outline" :disabled="dbImport.loading" @click="triggerDbFileInput">
+                    {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
+                </Button>
+            </SettingsItem>
+            <p v-if="dbImport.error" class="text-sm text-destructive px-1">{{ dbImport.error }}</p>
+            <p v-if="dbImport.success" class="text-sm text-green-500 px-1">
+                インポート成功。ページをリロードしています...
+            </p>
+            <input ref="dbFileInputRef" type="file" accept=".db" class="hidden" @change="handleDbFileImport" />
+        </SettingsGroup>
+
         <RegistryBackupDialog />
         <PhotonSettings v-if="photonLoggingEnabled" />
     </div>
@@ -483,6 +498,9 @@
     const visits = ref(null);
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
+    const isBrowser = BROWSER;
+    const dbFileInputRef = ref(null);
+    const dbImport = reactive({ loading: false, error: '', success: false });
 
     const cacheSize = reactive({
         cachedUsers: 0,
@@ -526,6 +544,53 @@
     async function refreshConfigTreeData() {
         await authRequest.getConfig();
         configTreeData.value = cachedConfig.value;
+    }
+
+    function triggerDbFileInput() {
+        dbFileInputRef.value?.click();
+    }
+
+    async function handleDbFileImport(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        dbImport.loading = true;
+        dbImport.error = '';
+        dbImport.success = false;
+
+        try {
+            const buffer = await file.arrayBuffer();
+            const magic = [0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00];
+            const bytes = new Uint8Array(buffer, 0, 16);
+            if (!magic.every((b, i) => bytes[i] === b)) {
+                dbImport.error = '有効な SQLite データベースファイルではありません。';
+                return;
+            }
+
+            await new Promise((resolve, reject) => {
+                const req = indexedDB.open('vrcxf-browser', 1);
+                req.onupgradeneeded = () => {
+                    if (!req.result.objectStoreNames.contains('runtime')) {
+                        req.result.createObjectStore('runtime');
+                    }
+                };
+                req.onsuccess = () => {
+                    const tx = req.result.transaction('runtime', 'readwrite');
+                    const put = tx.objectStore('runtime').put(buffer, 'sqlite-db');
+                    put.onsuccess = () => resolve();
+                    put.onerror = () => reject(put.error);
+                };
+                req.onerror = () => reject(req.error);
+            });
+
+            dbImport.success = true;
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            dbImport.error = `インポートに失敗しました: ${err?.message ?? err}`;
+        } finally {
+            dbImport.loading = false;
+            event.target.value = '';
+        }
     }
 
     /**
