@@ -4,7 +4,7 @@ export function createBaseDefaultNavLayout(t) {
     return [
         { type: 'item', key: 'feed' },
         { type: 'item', key: 'friends-locations' },
-        { type: 'item', key: 'game-log' },
+        ...(BROWSER ? [] : [{ type: 'item', key: 'game-log' }]),
         ...(BROWSER ? [] : [{ type: 'item', key: 'player-list' }]),
         { type: 'item', key: 'search' },
         {
