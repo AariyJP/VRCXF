@@ -91,13 +91,13 @@
                     {{ t('dialog.launch.self_invite') }}
                 </Button>
                 <Button
-                    v-if="!BROWSER"
+                    v-if="!isBrowser"
                     :disabled="!launchDialog.secureOrShortName"
                     @click="handleLaunchCommand('vr', launchDialog.location, launchDialog.shortName)">
                     {{ t('dialog.launch.launch') }}
                 </Button>
                 <Button
-                    v-if="!BROWSER"
+                    v-if="!isBrowser"
                     :disabled="!launchDialog.secureOrShortName"
                     @click="handleLaunchCommand('desktop', launchDialog.location, launchDialog.shortName)">
                     {{ t('dialog.launch.start_as_desktop') }}
@@ -161,6 +161,8 @@
     const { canOpenInstanceInGame } = storeToRefs(useInviteStore());
     const { isGameRunning } = storeToRefs(useGameStore());
     const { checkCanInvite } = useInviteChecks();
+
+    const isBrowser = BROWSER;
 
     const launchModeLabel = computed(() =>
         launchDialog.value.desktop ? t('dialog.launch.start_as_desktop') : t('dialog.launch.launch')
