@@ -290,6 +290,15 @@
      * @param shortName
      */
     function handleLaunchCommand(command, location, shortName) {
+        if (BROWSER) {
+            const steamUri =
+                command === 'desktop'
+                    ? 'steam://rungameid/438100// --no-vr'
+                    : 'steam://rungameid/438100';
+            window.open(steamUri);
+            isVisible.value = false;
+            return;
+        }
         const desktop = command === 'desktop';
         configRepository.setBool('launchAsDesktop', desktop);
         handleLaunchGame(location, shortName, desktop);
