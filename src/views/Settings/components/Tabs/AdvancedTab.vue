@@ -378,7 +378,7 @@
         <SettingsGroup v-if="isBrowser" title="ブラウザ版データベース">
             <SettingsItem
                 label="デスクトップ版DBをインポート"
-                description="デスクトップ版 VRCXF の VRCX.db をブラウザ版に移行します。現在のデータは上書きされます。">
+                description="デスクトップ版 VRCXF の VRCX.sqlite3 をブラウザ版に移行します。現在のデータは上書きされます。">
                 <Button size="sm" variant="outline" :disabled="dbImport.loading" @click="triggerDbFileInput">
                     {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
                 </Button>
@@ -387,7 +387,7 @@
             <p v-if="dbImport.success" class="text-sm text-green-500 px-1">
                 インポート成功。ページをリロードしています...
             </p>
-            <input ref="dbFileInputRef" type="file" accept=".db" class="hidden" @change="handleDbFileImport" />
+            <input ref="dbFileInputRef" type="file" accept=".db,.sqlite,.sqlite3" class="hidden" @change="handleDbFileImport" />
         </SettingsGroup>
 
         <RegistryBackupDialog />
