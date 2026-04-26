@@ -91,11 +91,13 @@
                     {{ t('dialog.launch.self_invite') }}
                 </Button>
                 <Button
+                    v-if="!BROWSER"
                     :disabled="!launchDialog.secureOrShortName"
                     @click="handleLaunchCommand('vr', launchDialog.location, launchDialog.shortName)">
                     {{ t('dialog.launch.launch') }}
                 </Button>
                 <Button
+                    v-if="!BROWSER"
                     :disabled="!launchDialog.secureOrShortName"
                     @click="handleLaunchCommand('desktop', launchDialog.location, launchDialog.shortName)">
                     {{ t('dialog.launch.start_as_desktop') }}
@@ -153,7 +155,7 @@
 
     const { friends } = storeToRefs(useFriendStore());
     const { lastLocation } = storeToRefs(useLocationStore());
-    const { launchGame, tryOpenInstanceInVrc, getLaunchUrl } = useLaunchStore();
+    const { launchGame, tryOpenInstanceInVrc } = useLaunchStore();
     const { launchDialogData } = storeToRefs(useLaunchStore());
 
     const { canOpenInstanceInGame } = storeToRefs(useInviteStore());
@@ -289,17 +291,7 @@
      * @param location
      * @param shortName
      */
-    async function handleLaunchCommand(command, location, shortName) {
-        if (BROWSER) {
-            const vrchatUrl = await getLaunchUrl(location, shortName);
-            const args = [vrchatUrl];
-            if (command === 'desktop') {
-                args.push('--no-vr');
-            }
-            window.open(`steam://rungameid/438100// ${args.join(' ')}`);
-            isVisible.value = false;
-            return;
-        }
+    function handleLaunchCommand(command, location, shortName) {
         const desktop = command === 'desktop';
         configRepository.setBool('launchAsDesktop', desktop);
         handleLaunchGame(location, shortName, desktop);
