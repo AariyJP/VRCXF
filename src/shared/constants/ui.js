@@ -130,8 +130,12 @@ const baseNavDefinitions = [
     }
 ];
 
+const browserHiddenNavKeys = new Set(
+    BROWSER ? ['tools', 'game-log', 'player-list'] : []
+);
+
 const navDefinitions = [
-    ...baseNavDefinitions.filter((item) => !(BROWSER && item.key === 'tools')),
+    ...baseNavDefinitions.filter((item) => !browserHiddenNavKeys.has(item.key)),
     ...(BROWSER ? [] : toolNavDefinitions)
 ];
 
