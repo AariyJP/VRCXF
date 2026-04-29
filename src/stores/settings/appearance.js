@@ -115,7 +115,6 @@ export const useAppearanceSettingsStore = defineStore(
         });
 
         const isDataTableStriped = ref(false);
-        const showPointerOnHover = ref(false);
         const accessibleStatusIndicators = ref(false);
         const useOfficialStatusColors = ref(true);
         const showNewDashboardButton = ref(true);
@@ -178,7 +177,6 @@ export const useAppearanceSettingsStore = defineStore(
                 notificationIconDotConfig,
                 navIsCollapsedConfig,
                 dataTableStripedConfig,
-                showPointerOnHoverConfig,
                 accessibleStatusIndicatorsConfig,
                 useOfficialStatusColorsConfig,
                 showNewDashboardButtonConfig,
@@ -251,7 +249,6 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getBool('VRCX_notificationIconDot', true),
                 configRepository.getBool('VRCX_navIsCollapsed', false),
                 configRepository.getBool('VRCX_dataTableStriped', false),
-                configRepository.getBool('VRCX_showPointerOnHover', false),
                 configRepository.getBool(
                     'VRCX_accessibleStatusIndicators',
                     false
@@ -375,12 +372,10 @@ export const useAppearanceSettingsStore = defineStore(
             }
             isNavCollapsed.value = navIsCollapsedConfig;
             isDataTableStriped.value = dataTableStripedConfig;
-            showPointerOnHover.value = showPointerOnHoverConfig;
             accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
             useOfficialStatusColors.value = useOfficialStatusColorsConfig;
             showNewDashboardButton.value = showNewDashboardButtonConfig;
 
-            applyPointerHoverClass();
             applyAccessibleStatusClass();
             applyOfficialStatusColorsClass();
 
@@ -937,31 +932,6 @@ export const useAppearanceSettingsStore = defineStore(
             );
         }
 
-        // FIXME: this is nasty, there should be a better way of doing this
-        /**
-         *
-         */
-        function applyPointerHoverClass() {
-            const classList = document.documentElement.classList;
-            classList.remove('force-pointer-on-hover');
-
-            if (showPointerOnHover.value) {
-                classList.add('force-pointer-on-hover');
-            }
-        }
-
-        /**
-         *
-         */
-        function togglePointerOnHover() {
-            showPointerOnHover.value = !showPointerOnHover.value;
-            configRepository.setBool(
-                'VRCX_showPointerOnHover',
-                showPointerOnHover.value
-            );
-            applyPointerHoverClass();
-        }
-
         /**
          *
          */
@@ -1256,7 +1226,6 @@ export const useAppearanceSettingsStore = defineStore(
             notificationIconDot,
             isNavCollapsed,
             isDataTableStriped,
-            showPointerOnHover,
             accessibleStatusIndicators,
             useOfficialStatusColors,
             showNewDashboardButton,
@@ -1294,7 +1263,6 @@ export const useAppearanceSettingsStore = defineStore(
             setHideUnfriends,
             setRandomUserColours,
             toggleStripedDataTable,
-            togglePointerOnHover,
             toggleAccessibleStatusIndicators,
             toggleOfficialStatusColors,
             setShowNewDashboardButton,
