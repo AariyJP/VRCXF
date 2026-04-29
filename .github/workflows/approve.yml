@@ -12,9 +12,13 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         steps:
             - uses: actions/checkout@v5
+
             - name: Approve
               run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Unlabel
+              run: gh pr edit "${{ github.event.pull_request.html_url }}" --remove-label "approved"
