@@ -1,7 +1,7 @@
 <template>
     <div class="x-login-container">
         <div class="m-1.5" style="position: absolute; top: 0; left: 0">
-            <LoginSettingsDialog />
+            <LoginSettingsDialog v-if="!BROWSER" />
             <TooltipWrapper v-if="!noUpdater" side="top" :content="t('view.login.updater')">
                 <Button class="rounded-full mr-2 text-xs" size="icon-sm" variant="ghost" @click="showVRCXUpdateDialog">
                     <span class="relative inline-flex items-center justify-center">
