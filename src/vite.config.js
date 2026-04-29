@@ -107,7 +107,6 @@ export default defineConfig(({ mode }) => {
 
     const nightly =
         mode === 'development' || version.split('-').at(-1).length === 7;
-    const isBrowserBuild = process.env.PLATFORM === 'browser';
 
     return {
         base: '',
@@ -207,11 +206,7 @@ export default defineConfig(({ mode }) => {
                 preserveEntrySignatures: false,
                 input: {
                     index: resolve(import.meta.dirname, './index.html'),
-                    ...(isBrowserBuild
-                        ? {}
-                        : {
-                              vr: resolve(import.meta.dirname, './vr.html')
-                          })
+                    vr: resolve(import.meta.dirname, './vr.html')
                 },
                 output: {
                     assetFileNames: getAssetFilename,

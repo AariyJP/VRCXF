@@ -56,14 +56,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     const updateToastRelease = ref('');
 
     async function initVRCXUpdaterSettings() {
-        if (BROWSER) {
-            noUpdater.value = true;
-            autoUpdateVRCX.value = 'Off';
-            appVersion.value = VERSION;
-            await initBranch();
-            await loadVrcxId();
-            return;
-        }
+        if (BROWSER) noUpdater.value = true;
         if (LINUX) {
             arch.value = await window.electron.getArch();
             noUpdater.value = await window.electron.getNoUpdater();
