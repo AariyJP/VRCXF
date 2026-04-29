@@ -1,6 +1,6 @@
 import { toolNavDefinitions } from './tools';
 
-const baseNavDefinitions = [
+const navDefinitions = [
     {
         key: 'feed',
         icon: 'ri-rss-line',
@@ -22,13 +22,17 @@ const baseNavDefinitions = [
         labelKey: 'nav_tooltip.game_log',
         routeName: 'game-log'
     },
-    {
-        key: 'player-list',
-        icon: 'ri-group-3-line',
-        tooltip: 'nav_tooltip.player_list',
-        labelKey: 'nav_tooltip.player_list',
-        routeName: 'player-list'
-    },
+    ...(BROWSER
+        ? []
+        : [
+              {
+                  key: 'player-list',
+                  icon: 'ri-group-3-line',
+                  tooltip: 'nav_tooltip.player_list',
+                  labelKey: 'nav_tooltip.player_list',
+                  routeName: 'player-list'
+              }
+          ]),
     {
         key: 'search',
         icon: 'ri-search-line',
@@ -113,28 +117,24 @@ const baseNavDefinitions = [
         labelKey: 'view.charts.hot_worlds.tab_label',
         routeName: 'charts-hot-worlds'
     },
-    {
-        key: 'tools',
-        icon: 'ri-tools-line',
-        tooltip: 'nav_tooltip.tools',
-        labelKey: 'nav_tooltip.tools',
-        routeName: 'tools'
-    },
+    ...(BROWSER
+        ? []
+        : [
+              {
+                  key: 'tools',
+                  icon: 'ri-tools-line',
+                  tooltip: 'nav_tooltip.tools',
+                  labelKey: 'nav_tooltip.tools',
+                  routeName: 'tools'
+              }
+          ]),
     {
         key: 'direct-access',
         icon: 'ri-compass-3-line',
         tooltip: 'prompt.direct_access_omni.header',
         labelKey: 'prompt.direct_access_omni.header',
         action: 'direct-access'
-    }
-];
-
-const browserHiddenNavKeys = new Set(
-    BROWSER ? ['tools', 'game-log', 'player-list'] : []
-);
-
-const navDefinitions = [
-    ...baseNavDefinitions.filter((item) => !browserHiddenNavKeys.has(item.key)),
+    },
     ...(BROWSER ? [] : toolNavDefinitions)
 ];
 
