@@ -20,6 +20,10 @@ await initPiniaPlugins();
 
 const app = createApp(App);
 
+app.config.globalProperties.BROWSER = BROWSER;
+app.config.globalProperties.WINDOWS = WINDOWS;
+app.config.globalProperties.LINUX = LINUX;
+
 app.use(pinia).use(i18n).use(VueQueryPlugin, { queryClient });
 initComponents(app);
 initRouter(app);

@@ -4,6 +4,29 @@ import configRepository from '../services/config.js';
 import vrcxJsonStorage from '../services/jsonStorage.js';
 
 export async function initInteropApi(isVrOverlay = false) {
+    if (BROWSER) {
+        const { default: BrowserInterop } = await import('../ipc-browser/index.js');
+        if (isVrOverlay) {
+            window.AppApiVr = BrowserInterop.AppApiVr;
+            return;
+        }
+
+        window.AppApi = BrowserInterop.AppApi;
+        window.WebApi = BrowserInterop.WebApi;
+        window.VRCXStorage = BrowserInterop.VRCXStorage;
+        window.SQLite = BrowserInterop.SQLite;
+        window.LogWatcher = BrowserInterop.LogWatcher;
+        window.Discord = BrowserInterop.Discord;
+        window.AssetBundleManager = BrowserInterop.AssetBundleManager;
+        window.AppApiVr = BrowserInterop.AppApiVr;
+
+        await configRepository.init();
+        new vrcxJsonStorage(VRCXStorage);
+
+        AppApi.SetUserAgent();
+        return;
+    }
+
     if (isVrOverlay) {
         if (WINDOWS) {
             await CefSharp.BindObjectAsync('AppApiVr');

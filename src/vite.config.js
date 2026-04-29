@@ -164,6 +164,7 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
+            BROWSER: JSON.stringify(process.env.PLATFORM === 'browser'),
             LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
             WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
             VERSION: JSON.stringify(version),
@@ -171,7 +172,21 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: 9000,
-            strictPort: true
+            strictPort: true,
+            proxy: {
+                '/api/1': {
+                    target: 'https://api.vrchat.cloud',
+                    changeOrigin: true,
+                    cookieDomainRewrite: '127.0.0.1',
+                    secure: true
+                },
+                '/ws': {
+                    target: 'wss://pipeline.vrchat.cloud',
+                    changeOrigin: true,
+                    ws: true,
+                    rewrite: (path) => path.replace(/^\/ws/, '') || '/'
+                }
+            }
         },
         build: {
             target: 'chrome145',
