@@ -31,9 +31,7 @@ export const useVrStore = defineStore('Vr', () => {
     watch(
         () => watchState.isFriendsLoaded,
         (isFriendsLoaded) => {
-            if (BROWSER) {
-                return;
-            }
+            if (BROWSER) return;
             if (isFriendsLoaded) {
                 vrInit();
             }
@@ -43,9 +41,7 @@ export const useVrStore = defineStore('Vr', () => {
 
     // also runs from CEF C# on overlay browser startup
     function vrInit() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         updateVRConfigVars();
         updateVRLastLocation();
         updateVrNowPlaying();
@@ -55,9 +51,7 @@ export const useVrStore = defineStore('Vr', () => {
     }
 
     async function saveOpenVROption() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         updateVRConfigVars();
         updateVRLastLocation();
         AppApi.ExecuteVrOverlayFunction('notyClear', '');
@@ -65,17 +59,13 @@ export const useVrStore = defineStore('Vr', () => {
     }
 
     function updateVrNowPlaying() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         const json = JSON.stringify(gameLogStore.nowPlaying);
         AppApi.ExecuteVrOverlayFunction('nowPlayingUpdate', json);
     }
 
     function updateVRLastLocation() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         let progressPie = false;
         if (advancedSettingsStore.progressPie) {
             progressPie = true;
@@ -107,9 +97,7 @@ export const useVrStore = defineStore('Vr', () => {
     }
 
     function updateVRConfigVars() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         let notificationTheme = 'relax';
         if (appearanceSettingsStore.isDarkMode) {
             notificationTheme = 'sunset';
@@ -160,9 +148,7 @@ export const useVrStore = defineStore('Vr', () => {
     }
 
     function updateOpenVR() {
-        if (BROWSER) {
-            return;
-        }
+        if (BROWSER) return;
         let newState = {
             active: false,
             hmdOverlay: false,

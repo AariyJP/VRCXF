@@ -6,10 +6,6 @@ export default {
         const url = new URL(request.url);
         const upgradeHeader = request.headers.get('Upgrade');
 
-        if (url.pathname === '/_worker-check') {
-            return new Response('_worker.js active', { status: 200 });
-        }
-
         if (upgradeHeader === 'websocket' && url.pathname.startsWith('/ws')) {
             return handleWebSocket(request, url);
         }
