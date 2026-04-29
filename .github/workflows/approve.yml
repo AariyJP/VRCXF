@@ -1,22 +1,20 @@
-name: Auto Approve PR
+name: Approve
 
 on:
     pull_request:
         types:
             - labeled
-        branches:
-            - main
 
 jobs:
-    auto-merge:
-        if: github.event.pull_request.head.ref == 'develop' && contains(github.event.pull_request.labels.*.name, 'approved')
+    approve:
+        if: contains(github.event.pull_request.labels.*.name, 'approved')
         runs-on: ubuntu-slim
         permissions:
             contents: write
             pull-requests: write
         steps:
             - uses: actions/checkout@v5
-            - name: Approve PR
+            - name: Approve
               run: gh pr review --approve "${{ github.event.pull_request.html_url }}"
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
