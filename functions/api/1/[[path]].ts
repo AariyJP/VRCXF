@@ -1,10 +1,6 @@
 const VRCHAT_API_BASE = 'https://api.vrchat.cloud';
 
-/**
- * @param {Request} request
- * @param {string[]} skipHeaders
- */
-function cloneHeaders(request, skipHeaders) {
+function cloneHeaders(request: Request, skipHeaders: string[]): Headers {
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
         if (!skipHeaders.includes(key.toLowerCase())) {
@@ -14,11 +10,7 @@ function cloneHeaders(request, skipHeaders) {
     return headers;
 }
 
-/**
- * @param {Headers} headers
- * @returns {string[]}
- */
-function rewriteSetCookies(headers) {
+function rewriteSetCookies(headers: Headers): string[] {
     const raw = headers.getSetCookie ? headers.getSetCookie() : [];
     return raw.map((cookie) =>
         cookie
@@ -27,7 +19,9 @@ function rewriteSetCookies(headers) {
     );
 }
 
-export async function onRequest({ request }) {
+export async function onRequest({
+    request
+}: EventContext<unknown, string, unknown>): Promise<Response> {
     const url = new URL(request.url);
     const targetUrl = `${VRCHAT_API_BASE}${url.pathname}${url.search}`;
 

@@ -78,28 +78,30 @@
                                     @update:modelValue="toggleFriendsListBulkUnfriendMode" />
                             </div>
                             <div class="flex items-center">
-                                <TooltipWrapper
-                                    v-if="isMutualFetching"
-                                    :content="t('view.friend_list.mutual_loading_hint')">
-                                    <span>
-                                        <Button variant="outline" class="mr-2" disabled>
-                                            <Loader2 class="h-4 w-4 animate-spin" />
-                                            {{ t('view.friend_list.load_mutual_friends') }}
-                                        </Button>
-                                    </span>
-                                </TooltipWrapper>
-                                <Button
-                                    v-else
-                                    variant="outline"
-                                    class="mr-2"
-                                    :disabled="isMutualOptOut"
-                                    @click="loadMutualFriends">
-                                    {{ t('view.friend_list.load_mutual_friends') }}
-                                </Button>
+                                <template v-if="!BROWSER">
+                                    <TooltipWrapper
+                                        v-if="isMutualFetching"
+                                        :content="t('view.friend_list.mutual_loading_hint')">
+                                        <span>
+                                            <Button variant="outline" class="mr-2" disabled>
+                                                <Loader2 class="h-4 w-4 animate-spin" />
+                                                {{ t('view.friend_list.load_mutual_friends') }}
+                                            </Button>
+                                        </span>
+                                    </TooltipWrapper>
+                                    <Button
+                                        v-else
+                                        variant="outline"
+                                        class="mr-2"
+                                        :disabled="isMutualOptOut"
+                                        @click="loadMutualFriends">
+                                        {{ t('view.friend_list.load_mutual_friends') }}
+                                    </Button>
 
-                                <Button variant="outline" @click="friendsListLoadUsers">{{
-                                    t('view.friend_list.load')
-                                }}</Button>
+                                    <Button variant="outline" @click="friendsListLoadUsers">{{
+                                        t('view.friend_list.load')
+                                    }}</Button>
+                                </template>
                             </div>
                         </div>
                     </div>
