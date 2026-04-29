@@ -3,7 +3,7 @@
         <div class="title-bar-content">
             <div class="traffic-lights-spacer"></div>
             <div class="title-bar-center">
-                <span class="app-title">VRCX Forked by AariyJP</span>
+                <span class="app-title">VRCXF</span>
             </div>
             <div class="title-bar-right"></div>
         </div>
