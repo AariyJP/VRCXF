@@ -375,7 +375,7 @@
             </SettingsGroup>
         </template>
 
-        <SettingsGroup v-if="isBrowser" title="ブラウザ版データベース">
+        <SettingsGroup v-if="BROWSER" title="ブラウザ版データベース">
             <SettingsItem
                 label="デスクトップ版DBをインポート"
                 description="デスクトップ版 VRCXF の VRCX.sqlite3 をブラウザ版に移行します。現在のデータは上書きされます。">
@@ -498,7 +498,6 @@
     const visits = ref(null);
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
-    const isBrowser = BROWSER;
     const dbFileInputRef = ref(null);
     const dbImport = reactive({ loading: false, error: '', success: false });
 

@@ -16,13 +16,13 @@
             <template #notifications>
                 <NotificationsTab />
             </template>
-            <template v-if="!isBrowser" #vr>
+            <template v-if="!BROWSER" #vr>
                 <VrTab />
             </template>
-            <template v-if="!isBrowser" #media>
+            <template v-if="!BROWSER" #media>
                 <MediaTab />
             </template>
-            <template v-if="!isBrowser" #integrations>
+            <template v-if="!BROWSER" #integrations>
                 <IntegrationsTab />
             </template>
             <template #advanced>
@@ -47,7 +47,6 @@
     import VrTab from './components/Tabs/VrTab.vue';
 
     const { t } = useI18n();
-    const isBrowser = BROWSER;
     const settingsTabs = computed(() => [
         { value: 'system', label: t('view.settings.category.system') },
         { value: 'interface', label: t('view.settings.category.interface') },

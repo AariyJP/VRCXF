@@ -29,7 +29,7 @@
             </div>
         </SettingsGroup>
 
-        <SettingsGroup v-if="!isBrowser" :title="t('view.settings.general.vrcx_updater.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.vrcx_updater.header')">
             <div class="flex gap-2">
                 <Button size="sm" variant="outline" @click="showChangeLogDialog">{{
                     t('view.settings.general.vrcx_updater.change_log')
@@ -64,7 +64,7 @@
             </div>
         </SettingsGroup>
 
-        <SettingsGroup v-if="!isBrowser" :title="t('view.settings.general.application.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.application.header')">
             <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.startup')">
                 <Switch :model-value="isStartAtWindowsStartup" @update:modelValue="setIsStartAtWindowsStartup" />
             </SettingsItem>
@@ -182,7 +182,6 @@
     const { setAutoUpdateVRCX, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
 
     const ossDialog = ref(false);
-    const isBrowser = BROWSER;
     const isLinux = computed(() => LINUX);
     const isMacOS = computed(() => {
         return navigator.platform.indexOf('Mac') > -1;
