@@ -1,4 +1,6 @@
-export async function onRequest({ request }) {
+export async function onRequest({
+    request
+}: EventContext<unknown, string, unknown>): Promise<Response> {
     const upgradeHeader = request.headers.get('Upgrade');
     if (!upgradeHeader || upgradeHeader !== 'websocket') {
         return new Response('Expected WebSocket upgrade', { status: 426 });
@@ -12,14 +14,15 @@ export async function onRequest({ request }) {
         { headers: { Upgrade: 'websocket' } }
     );
 
-    const upstream = upstreamResp.webSocket;
+    const upstream = (upstreamResp as unknown as { webSocket: WebSocket | null })
+        .webSocket;
     if (!upstream) {
         return new Response('Failed to connect to upstream', { status: 502 });
     }
-    upstream.accept();
+    (upstream as unknown as { accept(): void }).accept();
 
     const [client, server] = Object.values(new WebSocketPair());
-    server.accept();
+    (server as unknown as { accept(): void }).accept();
 
     server.addEventListener('message', ({ data }) => upstream.send(data));
     server.addEventListener('close', ({ code, reason }) =>
@@ -32,5 +35,8 @@ export async function onRequest({ request }) {
     );
     upstream.addEventListener('error', () => server.close(1011, 'upstream error'));
 
-    return new Response(null, { status: 101, webSocket: client });
+    return new Response(null, {
+        status: 101,
+        webSocket: client
+    } as ResponseInit & { webSocket: WebSocket });
 }
