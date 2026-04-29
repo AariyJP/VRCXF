@@ -4,7 +4,7 @@ export function createBaseDefaultNavLayout(t) {
     return [
         { type: 'item', key: 'feed' },
         { type: 'item', key: 'friends-locations' },
-        ...(BROWSER ? [] : [{ type: 'item', key: 'game-log' }]),
+        { type: 'item', key: 'game-log' },
         ...(BROWSER ? [] : [{ type: 'item', key: 'player-list' }]),
         { type: 'item', key: 'search' },
         {
@@ -25,14 +25,18 @@ export function createBaseDefaultNavLayout(t) {
         },
         { type: 'item', key: 'notification' },
         { type: 'item', key: 'my-avatars' },
-        {
-            type: 'folder',
-            id: 'default-folder-charts',
-            nameKey: 'nav_tooltip.charts',
-            name: t('nav_tooltip.charts'),
-            icon: 'ri-pie-chart-line',
-            items: ['charts-instance', 'charts-mutual', 'charts-hot-worlds']
-        },
+        ...(BROWSER
+            ? []
+            : [
+                  {
+                      type: 'folder',
+                      id: 'default-folder-charts',
+                      nameKey: 'nav_tooltip.charts',
+                      name: t('nav_tooltip.charts'),
+                      icon: 'ri-pie-chart-line',
+                      items: ['charts-instance', 'charts-mutual', 'charts-hot-worlds']
+                  }
+              ]),
         ...(BROWSER ? [] : [{ type: 'item', key: 'tools' }]),
         { type: 'item', key: 'direct-access' }
     ];
