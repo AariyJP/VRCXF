@@ -4,8 +4,8 @@ export function createBaseDefaultNavLayout(t) {
     return [
         { type: 'item', key: 'feed' },
         { type: 'item', key: 'friends-locations' },
-        { type: 'item', key: 'game-log' },
-        { type: 'item', key: 'player-list' },
+        ...(BROWSER ? [] : [{ type: 'item', key: 'game-log' }]),
+        ...(BROWSER ? [] : [{ type: 'item', key: 'player-list' }]),
         { type: 'item', key: 'search' },
         {
             type: 'folder',
@@ -35,7 +35,7 @@ export function createBaseDefaultNavLayout(t) {
             // items: ['charts-instance', 'charts-mutual', 'charts-hot-worlds']
             items: ['charts-instance', 'charts-mutual']
         },
-        { type: 'item', key: 'tools' },
+        ...(BROWSER ? [] : [{ type: 'item', key: 'tools' }]),
         { type: 'item', key: 'direct-access' }
     ];
 }

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-10 py-2">
+    <div v-if="!isBrowser" class="flex flex-col gap-10 py-2">
         <!-- VR Core -->
         <SettingsGroup :title="t('view.settings.vr.vr_core.header')">
             <SettingsItem :label="t('view.settings.notifications.notifications.steamvr_notifications.steamvr_overlay')">
@@ -281,6 +281,7 @@
     const isNotificationPositionDialogVisible = ref(false);
     const feedFiltersDialogMode = ref('');
     const isLinux = computed(() => LINUX);
+    const isBrowser = BROWSER;
 
     const notificationOpacityValue = computed({
         get: () => [notificationOpacity.value],
