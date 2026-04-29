@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-10 py-2">
-        <SettingsGroup :title="t('view.settings.advanced.advanced.vrchat_settings.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.advanced.advanced.vrchat_settings.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.relaunch_vrchat.header')"
                 :description="t('view.settings.advanced.advanced.relaunch_vrchat.description')">
@@ -37,7 +37,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.general.logging.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.logging.header')">
             <SettingsItem :label="t('view.settings.advanced.advanced.cache_debug.udon_exception_logging')">
                 <Switch :model-value="udonExceptionLogging" @update:modelValue="setUdonExceptionLogging" />
             </SettingsItem>
@@ -63,7 +63,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <template v-if="!isLinux">
+        <template v-if="!isLinux && !BROWSER">
             <SettingsGroup :title="t('view.settings.advanced.advanced.app_launcher.header')">
                 <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.folder')">
                     <Button size="sm" variant="outline" @click="openShortcutFolder()">{{
