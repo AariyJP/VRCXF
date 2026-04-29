@@ -107,6 +107,7 @@ export default defineConfig(({ mode }) => {
 
     const nightly =
         mode === 'development' || version.split('-').at(-1).length === 7;
+    const isBrowserBuild = process.env.PLATFORM === 'browser';
 
     return {
         base: '',
@@ -164,6 +165,7 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
+            BROWSER: JSON.stringify(process.env.PLATFORM === 'browser'),
             LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
             WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
             VERSION: JSON.stringify(version),
@@ -171,7 +173,21 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: 9000,
-            strictPort: true
+            strictPort: true,
+            proxy: {
+                '/api/1': {
+                    target: 'https://api.vrchat.cloud',
+                    changeOrigin: true,
+                    cookieDomainRewrite: '127.0.0.1',
+                    secure: true
+                },
+                '/ws': {
+                    target: 'wss://pipeline.vrchat.cloud',
+                    changeOrigin: true,
+                    ws: true,
+                    rewrite: (path) => path.replace(/^\/ws/, '') || '/'
+                }
+            }
         },
         build: {
             target: 'chrome145',
@@ -191,7 +207,11 @@ export default defineConfig(({ mode }) => {
                 preserveEntrySignatures: false,
                 input: {
                     index: resolve(import.meta.dirname, './index.html'),
-                    vr: resolve(import.meta.dirname, './vr.html')
+                    ...(isBrowserBuild
+                        ? {}
+                        : {
+                              vr: resolve(import.meta.dirname, './vr.html')
+                          })
                 },
                 output: {
                     assetFileNames: getAssetFilename,

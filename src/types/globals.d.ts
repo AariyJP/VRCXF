@@ -5,6 +5,7 @@ declare global {
     const VERSION: string;
     const NIGHTLY: boolean;
 
+    const BROWSER: boolean;
     const WINDOWS: boolean;
     const LINUX: boolean;
 

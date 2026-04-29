@@ -23,6 +23,40 @@ import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
 
+const toolRoutes = BROWSER
+    ? [
+          {
+              path: 'tools',
+              name: 'tools',
+              redirect: { name: 'feed' }
+          },
+          {
+              path: 'tools/gallery',
+              name: 'gallery',
+              redirect: { name: 'feed' }
+          },
+          {
+              path: 'tools/screenshot-metadata',
+              name: 'screenshot-metadata',
+              redirect: { name: 'feed' }
+          }
+      ]
+    : [
+          { path: 'tools', name: 'tools', component: Tools },
+          {
+              path: 'tools/gallery',
+              name: 'gallery',
+              component: Gallery,
+              meta: { navKeys: ['tool-gallery', 'tools'] }
+          },
+          {
+              path: 'tools/screenshot-metadata',
+              name: 'screenshot-metadata',
+              component: ScreenshotMetadata,
+              meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
+          }
+      ];
+
 const routes = [
     {
         path: '/login',
@@ -115,19 +149,7 @@ const routes = [
                 component: () =>
                     import('./../views/Charts/components/HotWorlds.vue')
             },
-            { path: 'tools', name: 'tools', component: Tools },
-            {
-                path: 'tools/gallery',
-                name: 'gallery',
-                component: Gallery,
-                meta: { navKeys: ['tool-gallery', 'tools'] }
-            },
-            {
-                path: 'tools/screenshot-metadata',
-                name: 'screenshot-metadata',
-                component: ScreenshotMetadata,
-                meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
-            },
+            ...toolRoutes,
             {
                 path: 'settings',
                 name: 'settings',
