@@ -1,6 +1,6 @@
 import { toolNavDefinitions } from './tools';
 
-const navDefinitions = [
+const baseNavDefinitions = [
     {
         key: 'feed',
         icon: 'ri-rss-line',
@@ -126,8 +126,16 @@ const navDefinitions = [
         tooltip: 'prompt.direct_access_omni.header',
         labelKey: 'prompt.direct_access_omni.header',
         action: 'direct-access'
-    },
-    ...toolNavDefinitions
+    }
+];
+
+const browserHiddenNavKeys = new Set(
+    BROWSER ? ['tools', 'game-log', 'player-list'] : []
+);
+
+const navDefinitions = [
+    ...baseNavDefinitions.filter((item) => !browserHiddenNavKeys.has(item.key)),
+    ...(BROWSER ? [] : toolNavDefinitions)
 ];
 
 export { navDefinitions };

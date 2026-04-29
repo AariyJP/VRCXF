@@ -27,5 +27,5 @@ jobs:
             - uses: actions/setup-node@v4
             - name: Restore dependencies
               run: npm ci
-            - name: Build Cef-html
-              run: npm run prod
+            - name: Build browser
+              run: npm run prod-browser
