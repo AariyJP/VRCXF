@@ -141,6 +141,10 @@ router.beforeEach((to) => {
         return false;
     }
 
+    if (BROWSER && to.name?.toString().startsWith('charts')) {
+        return { name: 'feed' };
+    }
+
     if (to.name === 'login' && watchState.isLoggedIn) {
         return { name: 'feed' };
     }
