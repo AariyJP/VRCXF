@@ -95,25 +95,29 @@ const routes = [
             {
                 path: 'charts',
                 name: 'charts',
-                redirect: { name: 'charts-instance' }
+                redirect: { name: 'charts-instance' },
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/instance',
                 name: 'charts-instance',
                 component: () =>
-                    import('./../views/Charts/components/InstanceActivity.vue')
+                    import('./../views/Charts/components/InstanceActivity.vue'),
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/mutual',
                 name: 'charts-mutual',
                 component: () =>
-                    import('./../views/Charts/components/MutualFriends.vue')
+                    import('./../views/Charts/components/MutualFriends.vue'),
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/hot-worlds',
                 name: 'charts-hot-worlds',
                 component: () =>
-                    import('./../views/Charts/components/HotWorlds.vue')
+                    import('./../views/Charts/components/HotWorlds.vue'),
+                meta: { browserDisabled: true }
             },
             { path: 'tools', name: 'tools', component: Tools },
             {
@@ -151,6 +155,10 @@ export function initRouter(app) {
 router.beforeEach((to) => {
     if (to.path === '/social') {
         return false;
+    }
+
+    if (BROWSER && to.matched.some((record) => record.meta?.browserDisabled)) {
+        return { name: 'feed' };
     }
 
     if (to.name === 'login' && watchState.isLoggedIn) {
