@@ -96,27 +96,31 @@ const navDefinitions = [
         labelKey: 'nav_tooltip.my_avatars',
         routeName: 'my-avatars'
     },
-    {
-        key: 'charts-instance',
-        icon: 'ri-bar-chart-horizontal-line',
-        tooltip: 'view.charts.instance_activity.header',
-        labelKey: 'view.charts.instance_activity.header',
-        routeName: 'charts-instance'
-    },
-    {
-        key: 'charts-mutual',
-        icon: 'ri-group-2-line',
-        tooltip: 'view.charts.mutual_friend.tab_label',
-        labelKey: 'view.charts.mutual_friend.tab_label',
-        routeName: 'charts-mutual'
-    },
-    {
-        key: 'charts-hot-worlds',
-        icon: 'ri-fire-line',
-        tooltip: 'view.charts.hot_worlds.tab_label',
-        labelKey: 'view.charts.hot_worlds.tab_label',
-        routeName: 'charts-hot-worlds'
-    },
+    ...(BROWSER
+        ? []
+        : [
+              {
+                  key: 'charts-instance',
+                  icon: 'ri-bar-chart-horizontal-line',
+                  tooltip: 'view.charts.instance_activity.header',
+                  labelKey: 'view.charts.instance_activity.header',
+                  routeName: 'charts-instance'
+              },
+              {
+                  key: 'charts-mutual',
+                  icon: 'ri-group-2-line',
+                  tooltip: 'view.charts.mutual_friend.tab_label',
+                  labelKey: 'view.charts.mutual_friend.tab_label',
+                  routeName: 'charts-mutual'
+              },
+              {
+                  key: 'charts-hot-worlds',
+                  icon: 'ri-fire-line',
+                  tooltip: 'view.charts.hot_worlds.tab_label',
+                  labelKey: 'view.charts.hot_worlds.tab_label',
+                  routeName: 'charts-hot-worlds'
+              }
+          ]),
     ...(BROWSER
         ? []
         : [
