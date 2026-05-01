@@ -63,7 +63,7 @@
                         size="sm"
                         :model-value="activeFilterSelection"
                         @update:model-value="handleFeedFilterChange"
-                        class="w-full justify-start"
+                        class="hidden w-full justify-start md:flex"
                         style="flex: 1">
                         <ToggleGroupItem value="All">
                             {{ t('view.search.avatar.all') }}
@@ -72,12 +72,40 @@
                             {{ t('view.feed.filters.' + type) }}
                         </ToggleGroupItem>
                     </ToggleGroup>
+                    <DropdownMenu class="md:hidden">
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" size="sm" class="h-8 gap-1.5">
+                                <SlidersHorizontal class="size-4" />
+                                {{ t('view.my_avatars.filter') }}
+                                <Badge
+                                    v-if="filterBadgeCount"
+                                    variant="secondary"
+                                    class="ml-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-xs">
+                                    {{ filterBadgeCount }}
+                                </Badge>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" class="w-44">
+                            <DropdownMenuCheckboxItem
+                                :model-value="activeFilterSelection.includes('All')"
+                                @update:model-value="handleFeedFilterChange(['All'])">
+                                {{ t('view.search.avatar.all') }}
+                            </DropdownMenuCheckboxItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuCheckboxItem
+                                v-for="type in feedFilterTypes"
+                                :key="type"
+                                :model-value="activeFilterSelection.includes(type)"
+                                @update:model-value="handleFeedFilterChange(toggleFeedFilter(type))">
+                                {{ t('view.feed.filters.' + type) }}
+                            </DropdownMenuCheckboxItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <InputGroupField
-                        class="ml-2"
+                        class="ml-2 min-w-0 flex-1 md:flex-[0.4]"
                         v-model="feedTable.search"
                         :placeholder="t('view.feed.search_placeholder')"
                         clearable
-                        style="flex: 0.4"
                         @keyup.enter="feedTableLookup"
                         @change="feedTableLookup" />
                 </div>
@@ -88,7 +116,7 @@
 
 <script setup>
     import { computed, ref } from 'vue';
-    import { ListFilter, Star } from 'lucide-vue-next';
+    import { ListFilter, SlidersHorizontal, Star } from 'lucide-vue-next';
     import { getLocalTimeZone, today } from '@internationalized/date';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
@@ -98,6 +126,13 @@
     import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
     import { useAppearanceSettingsStore, useFeedStore, useVrcxStore } from '../../stores';
     import { ToggleGroup, ToggleGroupItem } from '../../components/ui/toggle-group';
+    import {
+        DropdownMenu,
+        DropdownMenuCheckboxItem,
+        DropdownMenuContent,
+        DropdownMenuSeparator,
+        DropdownMenuTrigger
+    } from '../../components/ui/dropdown-menu';
     import { Badge } from '../../components/ui/badge';
     import { Button } from '../../components/ui/button';
     import { DataTableLayout } from '../../components/ui/data-table';
@@ -121,6 +156,13 @@
     const dateRange = ref(undefined);
     const hasDateFilter = computed(() => !!(feedTable.value.dateFrom || feedTable.value.dateTo));
     const activeFilterCount = computed(() => (hasDateFilter.value ? 1 : 0));
+    const filterBadgeCount = computed(() => {
+        const selected = activeFilterSelection.value;
+        if (!Array.isArray(selected) || selected.length === 0 || selected.includes('All')) {
+            return 0;
+        }
+        return selected.length;
+    });
 
     /**
      *
@@ -235,6 +277,14 @@
             feedTable.value.filter = types.length === feedFilterTypes.length ? [] : types.length ? types : [];
         }
         feedTableLookup();
+    }
+
+    function toggleFeedFilter(type) {
+        const current = activeFilterSelection.value.filter((value) => value !== 'All');
+        if (current.includes(type)) {
+            return current.filter((value) => value !== type);
+        }
+        return [...current, type];
     }
 </script>
 
