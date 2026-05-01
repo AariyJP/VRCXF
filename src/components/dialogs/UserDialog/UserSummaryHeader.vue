@@ -241,21 +241,6 @@
             </div>
 
             <div class="mt-2 flex items-start gap-2 md:mt-0 md:flex-none">
-                <div v-if="userDialog.ref.userIcon" class="order-last mt-2 hidden flex-none md:order-none md:mt-0 md:mr-2 md:block">
-                <img
-                    v-if="!userIconError"
-                    class="h-[120px] w-[120px] cursor-pointer rounded-xl object-cover"
-                    :src="userImage(userDialog.ref, true, '256', true)"
-                    @click="showFullscreenImageDialog(userDialog.ref.userIcon)"
-                    @error="userIconError = true"
-                    loading="lazy" />
-                <div
-                    v-else
-                    class="flex h-[120px] w-[120px] items-center justify-center rounded-xl bg-muted">
-                    <Image class="size-8 text-muted-foreground" />
-                </div>
-                </div>
-
                 <UserActionDropdown class="mt-2 self-start md:mt-0 md:self-start" :user-dialog-command="userDialogCommand" />
             </div>
         </div>
