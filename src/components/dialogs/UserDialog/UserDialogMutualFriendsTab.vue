@@ -1,6 +1,6 @@
 <template>
-    <div style="display: flex; align-items: center; justify-content: space-between">
-        <div style="display: flex; align-items: center">
+    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center">
             <Button
                 class="rounded-full"
                 variant="ghost"
@@ -15,9 +15,9 @@
                 {{ t('dialog.user.groups.total_count', { count: userDialog.mutualFriends.length }) }}
             </span>
         </div>
-        <div style="display: flex; align-items: center">
-            <Input v-model="searchQuery" class="h-8 w-40 mr-2" placeholder="Search friends" @click.stop />
-            <span style="margin-right: 6px">{{ t('dialog.user.groups.sort_by') }}</span>
+        <div class="flex flex-col gap-2 md:flex-row md:items-center">
+            <Input v-model="searchQuery" class="h-8 w-full md:mr-2 md:w-40" placeholder="Search friends" @click.stop />
+            <span class="md:mr-1.5">{{ t('dialog.user.groups.sort_by') }}</span>
             <Select
                 :model-value="userDialogMutualFriendSortingKey"
                 :disabled="userDialog.isMutualFriendsLoading"
@@ -36,11 +36,11 @@
             </Select>
         </div>
     </div>
-    <ul class="flex flex-wrap items-start" style="margin-top: 8px; overflow: auto; max-height: 250px; min-width: 130px">
+    <ul class="mt-2 flex flex-col items-stretch overflow-auto md:flex-row md:flex-wrap md:items-start" style="max-height: 250px; min-width: 130px">
         <li
             v-for="user in filteredMutualFriends"
             :key="user.id"
-            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
+            class="box-border flex w-full min-w-0 items-center p-1.5 text-[13px] cursor-pointer md:w-[167px] hover:rounded-[25px_5px_5px_25px]"
             @click="showUserDialog(user.id)">
             <div class="relative inline-block flex-none size-9 mr-2.5">
                 <Avatar class="size-9">
@@ -50,7 +50,7 @@
                     </AvatarFallback>
                 </Avatar>
             </div>
-            <div class="flex-1 overflow-hidden">
+            <div class="min-w-0 flex-1 overflow-hidden">
                 <span
                     class="block truncate font-medium leading-[18px]"
                     :style="{ color: user.$userColour }"
