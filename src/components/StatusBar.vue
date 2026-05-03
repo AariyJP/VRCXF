@@ -158,18 +158,10 @@
                         </HoverCard>
 
                         <TooltipWrapper v-if="visibility.ws" :content="wsTooltip" side="top">
-                            <div
-                                class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
-                                @click="handleWebSocketToggle">
+                            <div class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border">
                                 <span
                                     class="inline-block size-2 rounded-full shrink-0"
-                                    :class="
-                                        wsState.connected
-                                            ? 'bg-status-online'
-                                            : isWebSocketEnabled
-                                                ? 'bg-status-askme'
-                                                : 'bg-status-offline-alt'
-                                    " />
+                                    :class="wsState.connected ? 'bg-status-online' : 'bg-status-offline-alt'" />
                                 <span class="text-foreground text-[11px]">WebSocket</span>
                                 <canvas ref="wsCanvasRef" class="shrink-0 rounded-sm" />
                                 <span class="text-[10px] text-foreground">{{
@@ -422,7 +414,7 @@
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import { useI18n } from 'vue-i18n';
     import { openExternalLink } from '@/shared/utils/appActions';
-    import { disableWebSocket, enableWebSocket, isWebSocketEnabled, wsState } from '@/services/websocket';
+    import { wsState } from '@/services/websocket';
 
     import dayjs from 'dayjs';
     import timezone from 'dayjs/plugin/timezone';
@@ -627,14 +619,6 @@
         const state = wsState.connected ? t('status_bar.ws_connected') : t('status_bar.ws_disconnected');
         return `WebSocket: ${state}`;
     });
-
-    function handleWebSocketToggle() {
-        if (wsState.connected || isWebSocketEnabled.value) {
-            disableWebSocket();
-            return;
-        }
-        enableWebSocket();
-    }
 
     const appUptimeText = computed(() => {
         const elapsedSeconds = Math.floor((now.value - vrcxStore.appStartAt) / 1000);

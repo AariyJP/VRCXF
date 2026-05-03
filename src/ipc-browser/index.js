@@ -284,6 +284,91 @@ function decodeImageBase64(base64, mime = 'image/png') {
     return new Blob([decodeBase64(base64)], { type: mime });
 }
 
+function encodeJsonBase64(value) {
+    return toBase64(new TextEncoder().encode(JSON.stringify(value)));
+}
+
+function decodeJsonBase64(value) {
+    return JSON.parse(new TextDecoder().decode(decodeBase64(value)));
+}
+
+function parseCookieHeader(cookieHeader) {
+    if (!cookieHeader) {
+        return [];
+    }
+    return cookieHeader
+        .split(';')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+            const separatorIndex = entry.indexOf('=');
+            const name =
+                separatorIndex === -1
+                    ? entry
+                    : entry.slice(0, separatorIndex).trim();
+            const value =
+                separatorIndex === -1 ? '' : entry.slice(separatorIndex + 1);
+            return {
+                Name: name,
+                Value: value,
+                Path: '/',
+                Expires: '9999-12-31T23:59:59.9999999Z',
+                Secure: location.protocol === 'https:'
+            };
+        })
+        .filter((cookie) => cookie.Name);
+}
+
+function normalizeCookieList(cookies) {
+    if (!cookies) {
+        return [];
+    }
+    if (Array.isArray(cookies)) {
+        return cookies;
+    }
+    if (typeof cookies === 'string') {
+        try {
+            const decoded = decodeJsonBase64(cookies);
+            if (Array.isArray(decoded)) {
+                return decoded;
+            }
+        } catch (error) {
+            void error;
+        }
+        return parseCookieHeader(cookies);
+    }
+    return [];
+}
+
+function clearBrowserCookie(name, path = '/') {
+    const expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = `${name}=; expires=${expires}; path=${path}`;
+    document.cookie = `${name}=; expires=${expires}; path=${path}; domain=${location.hostname}`;
+}
+
+function applyBrowserCookie(cookie) {
+    const name = cookie?.Name ?? cookie?.name;
+    if (!name) {
+        return;
+    }
+    const value = cookie?.Value ?? cookie?.value ?? '';
+    const path = cookie?.Path ?? cookie?.path ?? '/';
+    const expiresSource = cookie?.Expires ?? cookie?.expires;
+    const expires = expiresSource ? new Date(expiresSource) : null;
+    const parts = [`${name}=${value}`, `path=${path}`];
+    if (expires && !Number.isNaN(expires.getTime())) {
+        parts.push(`expires=${expires.toUTCString()}`);
+    }
+    if (
+        (cookie?.Secure ?? cookie?.secure ?? false) &&
+        location.protocol === 'https:'
+    ) {
+        parts.push('secure');
+    }
+    parts.push('SameSite=Lax');
+    document.cookie = parts.join('; ');
+}
+
 async function buildRequest(options) {
     const headers = new Headers(options.headers || {});
     let method = options.method || 'GET';
@@ -352,11 +437,19 @@ async function executeFetch(options) {
 }
 
 const BrowserWebApi = {
-    async ClearCookies() {},
-    async GetCookies() {
-        return '';
+    async ClearCookies() {
+        parseCookieHeader(document.cookie).forEach((cookie) => {
+            clearBrowserCookie(cookie.Name, cookie.Path);
+        });
     },
-    async SetCookies() {},
+    async GetCookies() {
+        return encodeJsonBase64(parseCookieHeader(document.cookie));
+    },
+    async SetCookies(cookies) {
+        normalizeCookieList(cookies).forEach((cookie) => {
+            applyBrowserCookie(cookie);
+        });
+    },
     async ExecuteJson(options) {
         const response = await executeFetch(options);
         return JSON.stringify({
