@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full max-w-full min-w-0 flex-1 flex flex-col">
+    <div class="w-full max-w-full min-w-0 min-h-0 flex-1 flex flex-col">
         <DialogHeader class="sr-only">
             <DialogTitle>{{
                 userDialog.ref?.displayName || userDialog.id || t('dialog.user.info.header')
@@ -14,27 +14,30 @@
             :toggle-badge-showcased="toggleBadgeShowcased"
             :user-dialog-command="userDialogCommand" />
 
-        <DropdownMenu class="sm:hidden">
-            <DropdownMenuTrigger as-child>
-                <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
-                    {{ activeUserDialogTabLabel }}
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" class="w-44">
-                <DropdownMenuItem
-                    v-for="tab in userDialogTabs"
-                    :key="tab.value"
-                    @click="selectUserDialogTab(tab.value)">
-                    {{ tab.label }}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <div class="sm:hidden">
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
+                        {{ activeUserDialogTabLabel }}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" class="w-44">
+                    <DropdownMenuItem
+                        v-for="tab in userDialogTabs"
+                        :key="tab.value"
+                        @click="selectUserDialogTab(tab.value)">
+                        {{ tab.label }}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
 
         <TabsUnderline
             v-model="userDialog.activeTab"
             :items="userDialogTabs"
             :unmount-on-hide="false"
             fill
+            class="min-h-0 flex-1"
             tab-list-class="!hidden sm:!flex max-sm:!hidden"
             @update:modelValue="userDialogTabClick">
             <template #Info>
