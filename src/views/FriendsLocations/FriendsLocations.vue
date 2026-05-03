@@ -83,23 +83,18 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <div class="flex items-center gap-1 max-w-full">
-                                    <Location
-                                        class="text-xs"
-                                        :location="getRowInstanceId(row)"
-                                        style="display: inline" />
-                                    <InstanceActionBar
-                                        class="text-sm inline-flex"
-                                        :location="getRowInstanceId(row)"
-                                        :instance="getRowInstance(row)"
-                                        :friendcount="getRowCount(row)"
-                                        :currentlocation="lastLocation.location"
-                                        :refresh-tooltip="t('dialog.world.instances.refresh_instance_info')"
-                                        :show-history="!!instanceJoinHistory.get(getRowInstanceId(row))"
-                                        :history-tooltip="t('dialog.previous_instances.info')"
-                                        :on-refresh="() => refreshInstancePlayerCount(getRowInstanceId(row))"
-                                        :on-history="() => showPreviousInstancesInfoDialog(getRowInstanceId(row))" />
-                                </div>
+                                <Location class="text-xs" :location="getRowInstanceId(row)" />
+                                <InstanceActionBar
+                                    class="text-sm"
+                                    :location="getRowInstanceId(row)"
+                                    :instance="getRowInstance(row)"
+                                    :friendcount="getRowCount(row)"
+                                    :currentlocation="lastLocation.location"
+                                    :refresh-tooltip="t('dialog.world.instances.refresh_instance_info')"
+                                    :show-history="!!instanceJoinHistory.get(getRowInstanceId(row))"
+                                    :history-tooltip="t('dialog.previous_instances.info')"
+                                    :on-refresh="() => refreshInstancePlayerCount(getRowInstanceId(row))"
+                                    :on-history="() => showPreviousInstancesInfoDialog(getRowInstanceId(row))" />
                             </header>
                         </template>
 
