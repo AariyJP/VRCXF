@@ -175,7 +175,7 @@
     const instanceStore = useInstanceStore();
 
     const { userDialog, languageDialog, currentUser } = storeToRefs(useUserStore());
-    const { cachedUsers, showSendBoopDialog } = useUserStore();
+    const { cachedUsers, showSendBoopDialog, setUserDialogActiveTab } = useUserStore();
     const { showFavoriteDialog } = useFavoriteStore();
     import { showAvatarDialog, showAvatarAuthorDialog } from '../../../coordinators/avatarCoordinator';
     import { showUserDialog, refreshUserDialogAvatars } from '../../../coordinators/userCoordinator';
@@ -417,7 +417,7 @@
     }
 
     function selectUserDialogTab(tabName) {
-        userDialog.value.activeTab = tabName;
+        setUserDialogActiveTab(tabName);
         userDialogTabClick(tabName);
     }
 
