@@ -298,11 +298,29 @@
                     </div>
                 </div>
             </div>
+            <div class="sm:hidden">
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
+                            {{ activeGroupDialogTabLabel }}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" class="w-44">
+                        <DropdownMenuItem
+                            v-for="tab in groupDialogTabs"
+                            :key="tab.value"
+                            @click="groupDialogTabClick(tab.value)">
+                            {{ tab.label }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             <TabsUnderline
                 v-model="groupDialog.activeTab"
                 :items="groupDialogTabs"
                 :unmount-on-hide="false"
                 fill
+                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="groupDialogTabClick">
                 <template #Info>
                     <GroupDialogInfoTab
@@ -406,6 +424,10 @@
         { value: 'Photos', label: t('dialog.group.gallery.header') },
         { value: 'JSON', label: t('dialog.group.json.header') }
     ]);
+    const activeGroupDialogTabLabel = computed(() => {
+        const activeTab = groupDialog.value.activeTab;
+        return groupDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.group.info.header');
+    });
 
     const modalStore = useModalStore();
 

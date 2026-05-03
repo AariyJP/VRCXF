@@ -309,11 +309,29 @@
                     </div>
                 </div>
             </div>
+            <div class="sm:hidden">
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
+                            {{ activeWorldDialogTabLabel }}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" class="w-44">
+                        <DropdownMenuItem
+                            v-for="tab in worldDialogTabs"
+                            :key="tab.value"
+                            @click="worldDialogTabClick(tab.value)">
+                            {{ tab.label }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             <TabsUnderline
                 v-model="worldDialog.activeTab"
                 :items="worldDialogTabs"
                 :unmount-on-hide="false"
                 fill
+                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="worldDialogTabClick">
                 <template #Instances>
                     <WorldDialogInstancesTab />
@@ -484,6 +502,10 @@
         { value: 'Info', label: t('dialog.world.info.header') },
         { value: 'JSON', label: t('dialog.world.json.header') }
     ]);
+    const activeWorldDialogTabLabel = computed(() => {
+        const activeTab = worldDialog.value.activeTab;
+        return worldDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.world.instances.header');
+    });
 
     const treeData = ref({});
     const translatedDescription = ref('');

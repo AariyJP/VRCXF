@@ -328,11 +328,29 @@
                 </div>
             </div>
 
+            <div class="sm:hidden">
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
+                            {{ activeAvatarDialogTabLabel }}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" class="w-44">
+                        <DropdownMenuItem
+                            v-for="tab in avatarDialogTabs"
+                            :key="tab.value"
+                            @click="avatarDialogTabClick(tab.value)">
+                            {{ tab.label }}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
             <TabsUnderline
                 v-model="avatarDialog.activeTab"
                 :items="avatarDialogTabs"
                 :unmount-on-hide="false"
                 fill
+                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="avatarDialogTabClick">
                 <template #Info>
                     <div class="flex flex-wrap items-start px-2.5" style="max-height: unset">
@@ -686,6 +704,10 @@
         { value: 'Info', label: t('dialog.avatar.info.header') },
         { value: 'JSON', label: t('dialog.avatar.json.header') }
     ]);
+    const activeAvatarDialogTabLabel = computed(() => {
+        const activeTab = avatarDialog.value.activeTab;
+        return avatarDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.avatar.info.header');
+    });
 
     const treeData = ref({});
     const memo = ref('');
