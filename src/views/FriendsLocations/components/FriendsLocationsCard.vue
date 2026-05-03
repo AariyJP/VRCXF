@@ -5,9 +5,11 @@
             :style="cardStyle"
             @click="showUserDialog(friend.id)">
             <div class="friend-card__header grid items-center mb-1.75">
-                <div class="relative inline-block flex-none size-9 mr-2.5">
-                    <Avatar class="size-full rounded-full">
-                        <AvatarImage :src="userImage(friend.ref, true)" class="object-cover" />
+                <div>
+                    <Avatar
+                        class="friend-card__avatar"
+                        :style="{ width: `${avatarSize}px`, height: `${avatarSize}px` }">
+                        <AvatarImage :src="imageUrl" />
                         <AvatarFallback>
                             <User class="text-muted-foreground" :size="Math.max(16, 20 * cardScale)" />
                         </AvatarFallback>
@@ -17,8 +19,11 @@
                     class="friend-card__status-dot absolute rounded-full pointer-events-none"
                     :class="statusDotClass"></span>
                 <div
-                    class="friend-card__name font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                    class="friend-card__name font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap ml-2"
+                    :style="{ color: friend.ref?.$userColour }"
                     :title="friend.name">
+                    <Spinner v-if="isFriendTraveling" class="inline-block mr-1 text-muted-foreground" />
+                    <Crown v-if="friend.isOwner" class="inline-block text-muted-foreground" />
                     {{ friend.name }}
                 </div>
             </div>
@@ -48,10 +53,12 @@
 
 <script setup>
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import { Crown, Pencil, User } from 'lucide-vue-next';
     import { Card } from '@/components/ui/card';
-    import { Pencil, User } from 'lucide-vue-next';
+    import { Spinner } from '@/components/ui/spinner';
     import { computed } from 'vue';
 
+    import { statusClass } from '../../../shared/utils';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
 
     import Location from '../../../components/Location.vue';
@@ -79,6 +86,19 @@
         }
     });
 
+    const isFriendTraveling = computed(() => props.friend.ref?.location === 'traveling');
+
+    const avatarSize = computed(() => Math.max(36, 46 * props.cardScale));
+
+    const imageUrl = computed(() => {
+        const url = userImage(props.friend.ref, true);
+        if (!url || url.startsWith('null/') || url.startsWith('https://null/')) {
+            return '';
+        }
+        return url;
+    });
+
+
     const cardStyle = computed(() => ({
         '--card-scale': props.cardScale,
         '--card-spacing': props.cardSpacing,
@@ -88,7 +108,19 @@
     }));
 
     const statusDotClass = computed(() => {
-        const status = userStatusClass(props.friend.ref, props.friend.pendingOffline);
+        let status = userStatusClass(props.friend.ref, props.friend.pendingOffline);
+
+        if (!status) {
+            status = {};
+        }
+
+        if (props.friend.isOwner && (status.offline || !Object.keys(status).length) && props.friend.status) {
+            status = statusClass(props.friend.status);
+        }
+
+        if (!status) {
+            status = {};
+        }
 
         if (status?.online) {
             return 'friend-card__status-dot--online';
