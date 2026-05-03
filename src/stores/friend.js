@@ -363,15 +363,29 @@ export const useFriendStore = defineStore('Friend', () => {
 
         const sortedFriendsList = [];
         for (const group of Object.values(friendsList)) {
-            if (group.length > 1) {
-                // Group order already matches the globally sorted online list.
-                sortedFriendsList.push(group);
-            }
+            sortedFriendsList.push(
+                group.sort(
+                    getFriendsSortFunction(
+                        appearanceSettingsStore.sidebarSortMethods
+                    )
+                )
+            );
         }
 
         const result = sortedFriendsList.sort((a, b) => b.length - a.length);
         trackDerivedDebug('friendsInSameInstance', result.length);
         return result;
+    });
+
+    const privateFriends = computed(() => {
+        const allFriends = [...vipFriends.value, ...onlineFriends.value];
+        return allFriends
+            .filter((f) => f.ref?.location === 'private')
+            .sort(
+                getFriendsSortFunction(
+                    appearanceSettingsStore.sidebarSortMethods
+                )
+            );
     });
 
     watch(
@@ -1412,6 +1426,8 @@ export const useFriendStore = defineStore('Friend', () => {
         activeFriends,
         offlineFriends,
         friendsInSameInstance,
+
+        privateFriends,
 
         allFavoriteFriendIds,
         allFavoriteOnlineFriends,
