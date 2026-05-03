@@ -262,8 +262,10 @@
             </div>
         </div>
 
-        <div v-if="showPagination" class="dt-pagination mt-4 flex w-full items-center gap-3 mb-1">
-            <div v-if="pageSizes.length" class="dt-pagination-sizes inline-flex items-center flex-1 justify-end gap-2">
+        <div v-if="showPagination" ref="paginationRef" class="dt-pagination mt-4 flex w-full items-center gap-3 mb-1">
+            <div
+                v-if="pageSizes.length"
+                class="dt-pagination-sizes hidden items-center flex-1 justify-end gap-2 md:inline-flex">
                 <span class="text-xs text-muted-foreground truncate">{{ t('table.pagination.rows_per_page') }}</span>
                 <Select v-model="pageSizeValue">
                     <SelectTrigger size="sm">
@@ -280,9 +282,9 @@
                 v-model:page="currentPage"
                 :total="totalItems"
                 :items-per-page="pageSizeProxy"
-                :sibling-count="1"
-                show-edges
-                class="flex-none">
+                :sibling-count="siblingCount"
+                :show-edges="showEdges"
+                class="min-w-0">
                 <PaginationContent v-slot="{ items }">
                     <PaginationPrevious />
                     <template
@@ -306,6 +308,7 @@
 
 <script setup>
     import { computed, nextTick, ref, watch } from 'vue';
+    import { useElementSize } from '@vueuse/core';
     import { DragDropProvider } from '@dnd-kit/vue';
     import { FlexRender } from '@tanstack/vue-table';
     import { Spinner } from '@/components/ui/spinner';
@@ -411,6 +414,10 @@
 
     const { t } = useI18n();
     const tableScrollRef = ref(null);
+    const paginationRef = ref(null);
+    const { width: paginationWidth } = useElementSize(paginationRef);
+    const siblingCount = computed(() => (paginationWidth.value < 420 ? 0 : 1));
+    const showEdges = computed(() => paginationWidth.value >= 280);
 
     const tableMeta = computed(() => props.table?.options?.meta ?? {});
 

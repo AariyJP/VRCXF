@@ -1,5 +1,5 @@
 <template>
-    <div class="w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 min-h-0 flex-1 flex flex-col">
         <DialogHeader class="sr-only">
             <DialogTitle>{{
                 userDialog.ref?.displayName || userDialog.id || t('dialog.user.info.header')
@@ -14,11 +14,31 @@
             :toggle-badge-showcased="toggleBadgeShowcased"
             :user-dialog-command="userDialogCommand" />
 
+        <div class="sm:hidden">
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
+                        {{ activeUserDialogTabLabel }}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" class="w-44">
+                    <DropdownMenuItem
+                        v-for="tab in userDialogTabs"
+                        :key="tab.value"
+                        @click="selectUserDialogTab(tab.value)">
+                        {{ tab.label }}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+
         <TabsUnderline
             v-model="userDialog.activeTab"
             :items="userDialogTabs"
             :unmount-on-hide="false"
             fill
+            class="min-h-0 flex-1"
+            tab-list-class="!hidden sm:!flex max-sm:!hidden"
             @update:modelValue="userDialogTabClick">
             <template #Info>
                 <UserDialogInfoTab ref="infoTabRef" @show-bio-dialog="showBioDialog" />
@@ -78,6 +98,8 @@
 <script setup>
     import { computed, onMounted, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+    import { Button } from '@/components/ui/button';
+    import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -137,6 +159,10 @@
         tabs.splice(jsonIdx, 0, { value: 'Activity', label: t('dialog.user.activity.header') });
         return tabs;
     });
+    const activeUserDialogTabLabel = computed(() => {
+        const activeTab = userDialog.value.activeTab;
+        return userDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.user.info.header');
+    });
     const infoTabRef = ref(null);
     const activityTabRef = ref(null);
     const favoriteWorldsTabRef = ref(null);
@@ -149,7 +175,7 @@
     const instanceStore = useInstanceStore();
 
     const { userDialog, languageDialog, currentUser } = storeToRefs(useUserStore());
-    const { cachedUsers, showSendBoopDialog } = useUserStore();
+    const { cachedUsers, showSendBoopDialog, setUserDialogActiveTab } = useUserStore();
     const { showFavoriteDialog } = useFavoriteStore();
     import { showAvatarDialog, showAvatarAuthorDialog } from '../../../coordinators/avatarCoordinator';
     import { showUserDialog, refreshUserDialogAvatars } from '../../../coordinators/userCoordinator';
@@ -388,6 +414,11 @@
             return;
         }
         handleUserDialogTab(tabName);
+    }
+
+    function selectUserDialogTab(tabName) {
+        setUserDialogActiveTab(tabName);
+        userDialogTabClick(tabName);
     }
 
     /**
