@@ -175,10 +175,9 @@ export default defineConfig(({ mode }) => {
             strictPort: true,
             proxy: {
                 '/api/1': {
-                    target: 'https://api.vrchat.cloud',
+                    target: 'http://127.0.0.1:8788',
                     changeOrigin: true,
-                    cookieDomainRewrite: '127.0.0.1',
-                    secure: true
+                    secure: false
                 },
                 '/ws': {
                     target: 'wss://pipeline.vrchat.cloud',

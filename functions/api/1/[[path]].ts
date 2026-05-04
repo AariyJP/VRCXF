@@ -1,26 +1,49 @@
 const VRCHAT_API_BASE = 'https://api.vrchat.cloud';
 
-function parseCookieNames(cookieHeader: string | null): string[] {
-    if (!cookieHeader) {
-        return [];
+function decodeHeaderValue(value: string | null): string | null {
+    if (!value) {
+        return null;
     }
-    return cookieHeader
-        .split(';')
-        .map((entry) => entry.trim())
-        .filter(Boolean)
-        .map((entry) => {
-            const separatorIndex = entry.indexOf('=');
-            return separatorIndex === -1
-                ? entry
-                : entry.slice(0, separatorIndex).trim();
-        })
-        .filter(Boolean);
+    try {
+        return atob(value);
+    } catch {
+        return null;
+    }
+}
+
+function encodeHeaderValue(value: string): string {
+    return btoa(value);
+}
+
+function shouldForwardHeader(name: string): boolean {
+    const normalized = name.toLowerCase();
+    if (normalized === 'x-vrcx-cookie') {
+        return false;
+    }
+    if (
+        normalized === 'accept' ||
+        normalized === 'accept-language' ||
+        normalized === 'authorization' ||
+        normalized === 'content-type' ||
+        normalized === 'if-none-match' ||
+        normalized === 'if-match' ||
+        normalized === 'user-agent' ||
+        normalized === 'vrcx-id' ||
+        normalized.startsWith('x-')
+    ) {
+        return true;
+    }
+    return false;
 }
 
 function cloneHeaders(request: Request, skipHeaders: string[]): Headers {
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
-        if (!skipHeaders.includes(key.toLowerCase())) {
+        const normalized = key.toLowerCase();
+        if (
+            !skipHeaders.includes(normalized) &&
+            shouldForwardHeader(normalized)
+        ) {
             headers.set(key, value);
         }
     }
@@ -40,29 +63,15 @@ export async function onRequest({
     request
 }: EventContext<unknown, string, unknown>): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === 'POST' && url.pathname === '/api/1/auth/logout') {
-        const headers = new Headers({
-            'content-type': 'application/json'
-        });
-        for (const cookieName of parseCookieNames(request.headers.get('cookie'))) {
-            headers.append(
-                'set-cookie',
-                `${cookieName}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Lax`
-            );
-            headers.append(
-                'set-cookie',
-                `${cookieName}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; HttpOnly; SameSite=Lax`
-            );
-        }
-        return new Response(JSON.stringify({ ok: true }), {
-            status: 200,
-            headers
-        });
-    }
+    const requestCookieHeader =
+        decodeHeaderValue(request.headers.get('x-vrcx-cookie')) ?? '';
     const targetUrl = `${VRCHAT_API_BASE}${url.pathname}${url.search}`;
 
     const reqHeaders = cloneHeaders(request, ['origin', 'referer']);
     reqHeaders.set('host', 'api.vrchat.cloud');
+    if (requestCookieHeader) {
+        reqHeaders.set('cookie', requestCookieHeader);
+    }
 
     const upstream = await fetch(targetUrl, {
         method: request.method,
@@ -79,6 +88,10 @@ export async function onRequest({
         for (const cookie of rewritten) {
             resHeaders.append('set-cookie', cookie);
         }
+        resHeaders.set(
+            'x-vrcx-set-cookies',
+            encodeHeaderValue(JSON.stringify(rewritten))
+        );
     }
 
     return new Response(upstream.body, {
