@@ -650,6 +650,10 @@ export const useAuthStore = defineStore('Auth', () => {
     async function deleteSavedLogin(userId) {
         const savedCredentials = await getAllSavedCredentials();
         delete savedCredentials[userId];
+        if (loginForm.value.lastUserLoggedIn === userId) {
+            loginForm.value.lastUserLoggedIn = '';
+            await configRepository.remove('lastUserLoggedIn');
+        }
         // Disable primary password when no account is available.
         if (Object.keys(savedCredentials).length === 0) {
             advancedSettingsStore.setEnablePrimaryPassword(false);

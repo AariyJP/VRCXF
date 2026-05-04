@@ -144,16 +144,6 @@ class BrowserSQLiteRuntime {
         await setIndexedDbValue(sqliteKey, payload).catch(() => {});
     }
 
-    schedulePersist() {
-        if (this.inTransaction) {
-            return;
-        }
-        clearTimeout(this.persistTimer);
-        this.persistTimer = setTimeout(() => {
-            this.persistNow();
-        }, 50);
-    }
-
     async execute(sql, args) {
         await this.ready;
         return this.enqueue(async () => {
@@ -186,7 +176,7 @@ class BrowserSQLiteRuntime {
                 normalizedSql !== 'BEGIN' &&
                 normalizedSql !== 'PRAGMA OPTIMIZE'
             ) {
-                this.schedulePersist();
+                await this.persistNow();
             }
             return this.db.getRowsModified();
         });
@@ -438,6 +428,10 @@ async function executeFetch(options) {
 
 const BrowserWebApi = {
     async ClearCookies() {
+        await executeFetch({
+            url: '/api/1/auth/logout',
+            method: 'POST'
+        }).catch(() => {});
         parseCookieHeader(document.cookie).forEach((cookie) => {
             clearBrowserCookie(cookie.Name, cookie.Path);
         });

@@ -39,7 +39,7 @@ export async function runLogoutFlow() {
     watchState.isFavoritesLoaded = false;
     notificationStore.setNotificationInitStatus(false);
     await authStore.updateStoredUser(userStore.currentUser);
-    webApiService.clearCookies();
+    await webApiService.clearCookies();
     authStore.loginForm.lastUserLoggedIn = '';
     await configRepository.remove('lastUserLoggedIn');
     authStore.setAttemptingAutoLogin(false);
