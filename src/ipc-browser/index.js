@@ -7,9 +7,12 @@ const metaKey = 'vrcxf-browser:storage:keys';
 const indexedDbName = 'vrcxf-browser';
 const indexedDbStore = 'runtime';
 const sqliteKey = 'sqlite-db';
+const cookieJarKey = 'cookie-jar';
 const overlayQueue = new Map();
 
 let indexedDbPromise;
+let browserCookieJar = [];
+let browserCookieJarReady;
 
 function getBrowserLanguage() {
     if (typeof navigator === 'undefined') {
@@ -88,6 +91,10 @@ function rawStringToBase64(value) {
     return toBase64(bytes);
 }
 
+function stringToBase64(value) {
+    return toBase64(new TextEncoder().encode(value));
+}
+
 function normalizeSqlArgs(args) {
     if (!args) {
         return undefined;
@@ -144,16 +151,6 @@ class BrowserSQLiteRuntime {
         await setIndexedDbValue(sqliteKey, payload).catch(() => {});
     }
 
-    schedulePersist() {
-        if (this.inTransaction) {
-            return;
-        }
-        clearTimeout(this.persistTimer);
-        this.persistTimer = setTimeout(() => {
-            this.persistNow();
-        }, 50);
-    }
-
     async execute(sql, args) {
         await this.ready;
         return this.enqueue(async () => {
@@ -186,7 +183,7 @@ class BrowserSQLiteRuntime {
                 normalizedSql !== 'BEGIN' &&
                 normalizedSql !== 'PRAGMA OPTIMIZE'
             ) {
-                this.schedulePersist();
+                await this.persistNow();
             }
             return this.db.getRowsModified();
         });
@@ -340,6 +337,143 @@ function normalizeCookieList(cookies) {
     return [];
 }
 
+function getCookieName(cookie) {
+    return cookie?.Name ?? cookie?.name ?? '';
+}
+
+function getCookieValue(cookie) {
+    return cookie?.Value ?? cookie?.value ?? '';
+}
+
+function getCookiePath(cookie) {
+    return cookie?.Path ?? cookie?.path ?? '/';
+}
+
+function getCookieDomain(cookie) {
+    return cookie?.Domain ?? cookie?.domain ?? '';
+}
+
+function getCookieExpires(cookie) {
+    return cookie?.Expires ?? cookie?.expires ?? null;
+}
+
+function isCookieExpired(cookie) {
+    const expires = getCookieExpires(cookie);
+    if (!expires) {
+        return false;
+    }
+    const date = new Date(expires);
+    return !Number.isNaN(date.getTime()) && date.getTime() <= Date.now();
+}
+
+function getCookieKey(cookie) {
+    return [
+        getCookieDomain(cookie).toLowerCase(),
+        getCookiePath(cookie),
+        getCookieName(cookie)
+    ].join('\u0000');
+}
+
+async function loadBrowserCookieJar() {
+    if (!browserCookieJarReady) {
+        browserCookieJarReady = getIndexedDbValue(cookieJarKey)
+            .then((value) => {
+                if (typeof value === 'string') {
+                    browserCookieJar = normalizeCookieList(value);
+                } else {
+                    browserCookieJar = [];
+                }
+            })
+            .catch(() => {
+                browserCookieJar = [];
+            });
+    }
+    await browserCookieJarReady;
+}
+
+async function persistBrowserCookieJar() {
+    browserCookieJar = browserCookieJar.filter(
+        (cookie) => getCookieName(cookie) && !isCookieExpired(cookie)
+    );
+    await setIndexedDbValue(cookieJarKey, encodeJsonBase64(browserCookieJar));
+}
+
+function buildCookieHeader(cookies) {
+    return cookies
+        .filter((cookie) => getCookieName(cookie) && !isCookieExpired(cookie))
+        .map((cookie) => `${getCookieName(cookie)}=${getCookieValue(cookie)}`)
+        .join('; ');
+}
+
+function parseSetCookie(setCookie) {
+    const parts = setCookie
+        .split(';')
+        .map((part) => part.trim())
+        .filter(Boolean);
+    const [nameValue, ...attributes] = parts;
+    const separatorIndex = nameValue?.indexOf('=') ?? -1;
+    if (separatorIndex <= 0) {
+        return null;
+    }
+    const cookie = {
+        Name: nameValue.slice(0, separatorIndex),
+        Value: nameValue.slice(separatorIndex + 1),
+        Path: '/',
+        Expires: '9999-12-31T23:59:59.9999999Z',
+        Secure: false,
+        HttpOnly: false
+    };
+    for (const attribute of attributes) {
+        const attributeSeparatorIndex = attribute.indexOf('=');
+        const name =
+            attributeSeparatorIndex === -1
+                ? attribute.toLowerCase()
+                : attribute.slice(0, attributeSeparatorIndex).toLowerCase();
+        const value =
+            attributeSeparatorIndex === -1
+                ? ''
+                : attribute.slice(attributeSeparatorIndex + 1);
+        if (name === 'path') {
+            cookie.Path = value || '/';
+        } else if (name === 'domain') {
+            cookie.Domain = value;
+        } else if (name === 'expires') {
+            cookie.Expires = value;
+        } else if (name === 'max-age') {
+            const seconds = parseInt(value, 10);
+            cookie.Expires =
+                seconds <= 0
+                    ? '1970-01-01T00:00:00.000Z'
+                    : new Date(Date.now() + seconds * 1000).toISOString();
+        } else if (name === 'secure') {
+            cookie.Secure = true;
+        } else if (name === 'httponly') {
+            cookie.HttpOnly = true;
+        }
+    }
+    return cookie;
+}
+
+async function mergeBrowserCookies(cookies) {
+    await loadBrowserCookieJar();
+    const cookieMap = new Map(
+        browserCookieJar.map((cookie) => [getCookieKey(cookie), cookie])
+    );
+    for (const cookie of cookies) {
+        if (!cookie || !getCookieName(cookie)) {
+            continue;
+        }
+        const key = getCookieKey(cookie);
+        if (isCookieExpired(cookie)) {
+            cookieMap.delete(key);
+        } else {
+            cookieMap.set(key, cookie);
+        }
+    }
+    browserCookieJar = Array.from(cookieMap.values());
+    await persistBrowserCookieJar();
+}
+
 function clearBrowserCookie(name, path = '/') {
     const expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = `${name}=; expires=${expires}; path=${path}`;
@@ -370,6 +504,7 @@ function applyBrowserCookie(cookie) {
 }
 
 async function buildRequest(options) {
+    await loadBrowserCookieJar();
     const headers = new Headers(options.headers || {});
     let method = options.method || 'GET';
     let body;
@@ -417,9 +552,16 @@ async function buildRequest(options) {
         body = options.body;
     }
 
+    if (isLocalApi) {
+        const cookieHeader = buildCookieHeader(browserCookieJar);
+        if (cookieHeader) {
+            headers.set('X-VRCX-Cookie', stringToBase64(cookieHeader));
+        }
+    }
+
     return {
         body,
-        credentials: isLocalApi || isVrchatApi ? 'include' : 'omit',
+        credentials: isVrchatApi ? 'include' : 'omit',
         headers,
         method,
         mode: 'cors'
@@ -429,6 +571,17 @@ async function buildRequest(options) {
 async function executeFetch(options) {
     const requestInit = await buildRequest(options);
     const response = await fetch(options.url, requestInit);
+    const setCookiesHeader = response.headers.get('x-vrcx-set-cookies');
+    if (setCookiesHeader) {
+        try {
+            const setCookies = decodeJsonBase64(setCookiesHeader);
+            await mergeBrowserCookies(
+                setCookies.map((setCookie) => parseSetCookie(setCookie))
+            );
+        } catch (error) {
+            void error;
+        }
+    }
     const data = await response.text();
     return {
         data,
@@ -438,15 +591,22 @@ async function executeFetch(options) {
 
 const BrowserWebApi = {
     async ClearCookies() {
+        await loadBrowserCookieJar();
+        browserCookieJar = [];
+        await persistBrowserCookieJar();
         parseCookieHeader(document.cookie).forEach((cookie) => {
             clearBrowserCookie(cookie.Name, cookie.Path);
         });
     },
     async GetCookies() {
-        return encodeJsonBase64(parseCookieHeader(document.cookie));
+        await loadBrowserCookieJar();
+        return encodeJsonBase64(browserCookieJar);
     },
     async SetCookies(cookies) {
-        normalizeCookieList(cookies).forEach((cookie) => {
+        await loadBrowserCookieJar();
+        browserCookieJar = normalizeCookieList(cookies);
+        await persistBrowserCookieJar();
+        browserCookieJar.forEach((cookie) => {
             applyBrowserCookie(cookie);
         });
     },
