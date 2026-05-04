@@ -83,12 +83,9 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location
-                                    class="text-xs"
-                                    :location="getRowInstanceId(row)"
-                                    style="display: inline" />
+                                <Location class="text-xs" :location="getRowInstanceId(row)" />
                                 <InstanceActionBar
-                                    class="ml-1 text-sm inline-flex"
+                                    class="text-sm"
                                     :location="getRowInstanceId(row)"
                                     :instance="getRowInstance(row)"
                                     :friendcount="getRowCount(row)"
@@ -1071,7 +1068,11 @@
 
     .friend-view__instance-header {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        width: fit-content;
+        max-width: 100%;
         padding: 4px 2px;
         font-weight: 600;
         font-size: 13px;
