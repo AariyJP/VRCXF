@@ -38,7 +38,7 @@
                 <div
                     v-for="user in room.users"
                     :key="user.id"
-                    class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px] hover:rounded-[25px_5px_5px_25px]"
+                    class="box-border flex w-full items-center p-1.5 text-[13px] cursor-pointer md:w-[167px] hover:rounded-[25px_5px_5px_25px]"
                     @click="showUserDialog(user.id)">
                     <div class="relative inline-block flex-none size-9 mr-2.5" :class="userStatusClass(user)">
                         <Avatar class="size-9">
@@ -204,7 +204,7 @@
                 <span v-else class="block truncate text-xs">-</span>
             </div>
         </div>
-        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+        <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-[167px]">
             <div class="flex-1 overflow-hidden">
                 <span class="block truncate font-medium leading-[18px]">{{ t('dialog.group.info.members') }}</span>
                 <div class="block truncate text-xs">
@@ -212,14 +212,14 @@
                 </div>
             </div>
         </div>
-        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+        <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-[167px]">
             <div class="flex-1 overflow-hidden">
                 <span class="block truncate font-medium leading-[18px]">{{ t('dialog.group.info.created_at') }}</span>
                 <span class="block truncate text-xs">{{ formatDateFilter(groupDialog.ref.createdAt, 'long') }}</span>
             </div>
         </div>
         <div
-            class="box-border flex items-center p-1.5 text-[13px] cursor-pointer w-[167px]"
+            class="box-border flex w-full items-center p-1.5 text-[13px] cursor-pointer md:w-[167px]"
             @click="showPreviousInstancesListDialog(groupDialog.ref)">
             <div class="flex-1 overflow-hidden">
                 <div
@@ -235,7 +235,7 @@
                 <span class="block truncate text-xs">{{ formatDateFilter(groupDialog.lastVisit, 'long') }}</span>
             </div>
         </div>
-        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+        <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-[167px]">
             <div class="flex-1 overflow-hidden">
                 <span class="block truncate font-medium leading-[18px]">{{ t('dialog.group.info.links') }}</span>
                 <div
@@ -264,8 +264,8 @@
                 <div v-else class="block truncate text-xs">-</div>
             </div>
         </div>
-        <div class="inline-flex justify-between w-full">
-            <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-1/2">
+        <div class="flex w-full flex-wrap justify-between">
+            <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-1/2">
                 <div class="flex-1 overflow-hidden">
                     <span class="block truncate font-medium leading-[18px]">{{ t('dialog.group.info.url') }}</span>
                     <span class="block truncate text-xs"
@@ -281,7 +281,7 @@
                     ></span>
                 </div>
             </div>
-            <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-1/2">
+            <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-1/2">
                 <div class="flex-1 overflow-hidden">
                     <span class="block truncate font-medium leading-[18px]">{{ t('dialog.group.info.id') }}</span>
                     <span class="block truncate text-xs"
@@ -302,8 +302,8 @@
             v-if="groupDialog.ref.membershipStatus === 'member'"
             class="border-t border-border"
             style="width: 100%; margin-top: 8px">
-            <div style="width: 100%; display: flex; margin-top: 8px">
-                <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+            <div class="mt-2 flex w-full flex-wrap">
+                <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-[167px]">
                     <div class="flex-1 overflow-hidden">
                         <span class="block truncate font-medium leading-[18px]">{{
                             t('dialog.group.info.joined_at')
@@ -313,7 +313,7 @@
                         }}</span>
                     </div>
                 </div>
-                <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                <div class="box-border flex w-full items-center p-1.5 text-[13px] cursor-default md:w-[167px]">
                     <div class="flex-1 overflow-hidden">
                         <span class="block truncate font-medium leading-[18px]">{{
                             t('dialog.group.info.roles')

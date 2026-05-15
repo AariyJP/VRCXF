@@ -14,22 +14,12 @@
             :toggle-badge-showcased="toggleBadgeShowcased"
             :user-dialog-command="userDialogCommand" />
 
-        <div class="sm:hidden">
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
-                        {{ activeUserDialogTabLabel }}
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" class="w-44">
-                    <DropdownMenuItem
-                        v-for="tab in userDialogTabs"
-                        :key="tab.value"
-                        @click="selectUserDialogTab(tab.value)">
-                        {{ tab.label }}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+        <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
+            <NativeSelect :model-value="userDialog.activeTab" class="w-full" @update:modelValue="selectUserDialogTab">
+                <NativeSelectOption v-for="tab in userDialogTabs" :key="tab.value" :value="tab.value">
+                    {{ tab.label }}
+                </NativeSelectOption>
+            </NativeSelect>
         </div>
 
         <TabsUnderline
@@ -99,7 +89,7 @@
     import { computed, onMounted, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
-    import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -158,10 +148,6 @@
         const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
         tabs.splice(jsonIdx, 0, { value: 'Activity', label: t('dialog.user.activity.header') });
         return tabs;
-    });
-    const activeUserDialogTabLabel = computed(() => {
-        const activeTab = userDialog.value.activeTab;
-        return userDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.user.info.header');
     });
     const infoTabRef = ref(null);
     const activityTabRef = ref(null);
@@ -237,15 +223,6 @@
         (visible) => {
             if (visible && !userDialog.value.loading) {
                 loadLastActiveTab();
-            }
-        }
-    );
-
-    watch(
-        () => userDialog.value.activeTab,
-        (activeTab) => {
-            if (activeTab === 'Activity' && userDialog.value.visible && !userDialog.value.loading) {
-                activityTabRef.value?.loadOnlineFrequency(userDialog.value.id);
             }
         }
     );
