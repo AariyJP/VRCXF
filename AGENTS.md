@@ -311,6 +311,10 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - `build-scripts/build-all.ps1` may terminate when invoking `7z` (e.g. if 7-Zip is not in PATH); treat that as acceptable if .NET build, frontend build, license generation, and junction creation already completed successfully — the `7z` failure can be ignored
 - Recent project direction includes coordinator extraction, Vue Query adoption, CSS tokenization, and upstream sync merges
 
+## GitHub情報取得
+
+- GitHubから情報を取得する際は、CLI (`gh` コマンド)、API (`curl`) の優先順位で使用すること
+
 ## 🚨 Git Operation Restrictions
 
 - **Commit and Push**: `git commit` and `git push` are generally performed by the user. Agents MUST NOT perform these operations without explicit permission.
