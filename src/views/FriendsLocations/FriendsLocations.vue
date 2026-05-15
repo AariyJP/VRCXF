@@ -10,11 +10,13 @@
                     </TabsTrigger>
                 </TabsList>
             </Tabs>
-            <NativeSelect v-model="activeSegment" class="min-[721px]:hidden">
-                <NativeSelectOption v-for="option in segmentedOptions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                </NativeSelectOption>
-            </NativeSelect>
+            <div class="min-[721px]:hidden w-full [&_[data-slot=native-select-wrapper]]:w-full">
+                <NativeSelect v-model="activeSegment" class="w-full">
+                    <NativeSelectOption v-for="option in segmentedOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
+            </div>
             <div class="friend-view__actions max-[720px]:w-full">
                 <InputGroupSearch
                     v-model="searchTerm"
