@@ -39,9 +39,7 @@ export const useAuthStore = defineStore('Auth', () => {
     const activityStore = useActivityStore();
 
     const { t } = useI18n();
-    const state = reactive({
-        autoLoginAttempts: new Set()
-    });
+    const autoLoginAttempts = ref(new Set());
 
     const loginForm = ref({
         loading: false,
@@ -1003,6 +1001,12 @@ export const useAuthStore = defineStore('Auth', () => {
      *
      */
     async function loginComplete() {
+        if (!userStore.currentUser?.id) {
+            console.error(
+                'No current user after login complete, aborting post-login flow.'
+            );
+            return;
+        }
         await database.initUserTables(userStore.currentUser.id);
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
@@ -1026,8 +1030,7 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     return {
-        state,
-
+        autoLoginAttempts,
         loginForm,
         enablePrimaryPasswordDialog,
         credentialsToSave,
