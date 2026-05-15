@@ -11,7 +11,6 @@ import { AppDebug } from '../services/appConfig';
 import { authRequest } from '../api';
 import { database } from '../services/database';
 import { links } from '../shared/constants/link';
-import { initWebsocket } from '../services/websocket';
 import { request } from '../services/request';
 import { runHandleAutoLoginFlow } from '../coordinators/authAutoLoginCoordinator';
 import { getCurrentUser } from '../coordinators/userCoordinator';
@@ -40,9 +39,7 @@ export const useAuthStore = defineStore('Auth', () => {
     const activityStore = useActivityStore();
 
     const { t } = useI18n();
-    const state = reactive({
-        autoLoginAttempts: new Set()
-    });
+    const autoLoginAttempts = ref(new Set());
 
     const loginForm = ref({
         loading: false,
@@ -103,7 +100,6 @@ export const useAuthStore = defineStore('Auth', () => {
         () => watchState.isFriendsLoaded,
         (isFriendsLoaded) => {
             if (isFriendsLoaded) {
-                initWebsocket();
                 AppApi.IPCAnnounceStart();
             }
         },
@@ -652,6 +648,10 @@ export const useAuthStore = defineStore('Auth', () => {
     async function deleteSavedLogin(userId) {
         const savedCredentials = await getAllSavedCredentials();
         delete savedCredentials[userId];
+        if (loginForm.value.lastUserLoggedIn === userId) {
+            loginForm.value.lastUserLoggedIn = '';
+            await configRepository.remove('lastUserLoggedIn');
+        }
         // Disable primary password when no account is available.
         if (Object.keys(savedCredentials).length === 0) {
             advancedSettingsStore.setEnablePrimaryPassword(false);
@@ -1001,6 +1001,12 @@ export const useAuthStore = defineStore('Auth', () => {
      *
      */
     async function loginComplete() {
+        if (!userStore.currentUser?.id) {
+            console.error(
+                'No current user after login complete, aborting post-login flow.'
+            );
+            return;
+        }
         await database.initUserTables(userStore.currentUser.id);
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
@@ -1024,8 +1030,7 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     return {
-        state,
-
+        autoLoginAttempts,
         loginForm,
         enablePrimaryPasswordDialog,
         credentialsToSave,

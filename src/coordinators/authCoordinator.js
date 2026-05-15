@@ -2,7 +2,7 @@ import { i18n } from '../plugins/i18n';
 
 import Noty from 'noty';
 
-import { closeWebSocket, initWebsocket } from '../services/websocket';
+import { closeWebSocket } from '../services/websocket';
 import { escapeTag } from '../shared/utils';
 import { queryClient } from '../queries';
 import { useAuthStore } from '../stores/auth';
@@ -39,11 +39,11 @@ export async function runLogoutFlow() {
     watchState.isFavoritesLoaded = false;
     notificationStore.setNotificationInitStatus(false);
     await authStore.updateStoredUser(userStore.currentUser);
-    webApiService.clearCookies();
+    await webApiService.clearCookies();
     authStore.loginForm.lastUserLoggedIn = '';
     await configRepository.remove('lastUserLoggedIn');
     authStore.setAttemptingAutoLogin(false);
-    authStore.state.autoLoginAttempts.clear();
+    authStore.autoLoginAttempts.clear();
     closeWebSocket();
     queryClient.clear();
 }
@@ -57,5 +57,4 @@ export function runLoginSuccessFlow(json) {
 
     updateLoopStore.setNextCurrentUserRefresh(420); // 7mins
     applyCurrentUser(json);
-    initWebsocket();
 }

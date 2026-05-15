@@ -8,6 +8,7 @@ import { runUpdateIsGameRunningFlow } from '../coordinators/gameCoordinator';
 import { addGameLogEvent } from '../coordinators/gameLogCoordinator';
 import { runRefreshPlayerModerationsFlow } from '../coordinators/moderationCoordinator';
 import { clearVRCXCache } from '../coordinators/vrcxCoordinator';
+import { isWebSocketConnected } from '../services/websocket';
 import { useAuthStore } from './auth';
 import { useDiscordPresenceSettingsStore } from './settings/discordPresence';
 import { useFriendStore } from './friend';
@@ -50,8 +51,18 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         () => watchState.isLoggedIn,
         () => {
             state.nextCurrentUserRefresh = 300;
-            state.nextFriendsRefresh = 3600;
+            state.nextFriendsRefresh = 60;
             state.nextGroupInstanceRefresh = 0;
+        },
+        { flush: 'sync' }
+    );
+
+    watch(
+        () => isWebSocketConnected.value,
+        (connected) => {
+            if (watchState.isLoggedIn) {
+                state.nextFriendsRefresh = connected ? 3600 : 60;
+            }
         },
         { flush: 'sync' }
     );
@@ -75,7 +86,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                     getCurrentUser();
                 }
                 if (--state.nextFriendsRefresh <= 0) {
-                    state.nextFriendsRefresh = 3600; // 1hour
+                    state.nextFriendsRefresh = isWebSocketConnected.value ? 3600 : 60;
                     runRefreshFriendsListFlow();
                     authStore.updateStoredUser(userStore.currentUser);
                     if (

@@ -30,7 +30,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.notifications.notifications.desktop_notifications.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.notifications.notifications.desktop_notifications.header')">
             <SettingsItem :label="t('view.settings.notifications.notifications.desktop_notifications.when_to_display')">
                 <ToggleGroup
                     type="single"
@@ -71,7 +71,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.notifications.notifications.text_to_speech.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.notifications.notifications.text_to_speech.header')">
             <SettingsItem :label="t('view.settings.notifications.notifications.text_to_speech.when_to_play')">
                 <ToggleGroup
                     type="single"

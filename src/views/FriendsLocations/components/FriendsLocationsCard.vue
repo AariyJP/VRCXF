@@ -22,7 +22,6 @@
                     class="friend-card__name font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap ml-2"
                     :style="{ color: friend.ref?.$userColour }"
                     :title="friend.name">
-                    <Spinner v-if="isFriendTraveling" class="inline-block mr-1 text-muted-foreground" />
                     <Crown v-if="friend.isOwner" class="inline-block text-muted-foreground" />
                     {{ friend.name }}
                 </div>
@@ -55,7 +54,6 @@
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
     import { Crown, Pencil, User } from 'lucide-vue-next';
     import { Card } from '@/components/ui/card';
-    import { Spinner } from '@/components/ui/spinner';
     import { computed } from 'vue';
 
     import { statusClass } from '../../../shared/utils';
@@ -86,8 +84,6 @@
         }
     });
 
-    const isFriendTraveling = computed(() => props.friend.ref?.location === 'traveling');
-
     const avatarSize = computed(() => Math.max(36, 46 * props.cardScale));
 
     const imageUrl = computed(() => {
@@ -97,7 +93,6 @@
         }
         return url;
     });
-
 
     const cardStyle = computed(() => ({
         '--card-scale': props.cardScale,

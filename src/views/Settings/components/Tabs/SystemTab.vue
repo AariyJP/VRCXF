@@ -10,21 +10,6 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="checkForVRCXUpdate">
-                <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
-                        t('view.settings.general.general.latest_app_version')
-                    }}</span>
-                    <span
-                        v-if="latestAppVersion"
-                        class="block truncate text-xs text-muted-foreground"
-                        v-text="latestAppVersion"></span>
-                    <span v-else class="block truncate text-xs text-muted-foreground">{{
-                        t('view.settings.general.general.latest_app_version_refresh')
-                    }}</span>
-                </div>
-            </div>
-
             <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="openExternalLink(links.github)">
                 <div class="flex-1">
                     <span class="block truncate font-medium text-sm leading-[18px]">{{
@@ -44,7 +29,7 @@
             </div>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.general.vrcx_updater.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.vrcx_updater.header')">
             <div class="flex gap-2">
                 <Button size="sm" variant="outline" @click="showChangeLogDialog">{{
                     t('view.settings.general.vrcx_updater.change_log')
@@ -79,7 +64,7 @@
             </div>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.general.application.header')">
+        <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.application.header')">
             <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.startup')">
                 <Switch :model-value="isStartAtWindowsStartup" @update:modelValue="setIsStartAtWindowsStartup" />
             </SettingsItem>
@@ -193,8 +178,8 @@
         promptProxySettings
     } = generalSettingsStore;
 
-    const { appVersion, autoUpdateVRCX, latestAppVersion, noUpdater } = storeToRefs(vrcxUpdaterStore);
-    const { setAutoUpdateVRCX, checkForVRCXUpdate, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
+    const { appVersion, autoUpdateVRCX, noUpdater } = storeToRefs(vrcxUpdaterStore);
+    const { setAutoUpdateVRCX, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
 
     const ossDialog = ref(false);
     const isLinux = computed(() => LINUX);

@@ -1,89 +1,98 @@
 <template>
-    <div style="display: flex">
-        <div style="flex: none; height: 120px; width: 160px">
+    <div class="flex flex-col gap-4 md:flex-row">
+        <div class="relative h-[120px] w-full flex-none overflow-hidden rounded-xl md:w-[160px]">
             <img
                 v-if="
                     !userDialog.loading &&
                     !profileImageError &&
                     (userDialog.ref.profilePicOverrideThumbnail || userDialog.ref.profilePicOverride)
                 "
-                class="cursor-pointer"
+                class="absolute inset-0 block h-full w-full cursor-pointer object-cover object-center"
                 :src="userDialog.ref.profilePicOverrideThumbnail || userDialog.ref.profilePicOverride"
-                style="height: 120px; width: 213.33px; border-radius: var(--radius-xl); object-fit: cover"
                 @click="showFullscreenImageDialog(userDialog.ref.profilePicOverride)"
                 @error="profileImageError = true"
                 loading="lazy" />
             <img
                 v-else-if="!userDialog.loading && !profileImageError && userDialog.ref.currentAvatarThumbnailImageUrl"
-                class="cursor-pointer"
+                class="absolute inset-0 block h-full w-full cursor-pointer object-cover object-center"
                 :src="userDialog.ref.currentAvatarThumbnailImageUrl"
-                style="height: 120px; width: 160px; border-radius: var(--radius-xl); object-fit: cover"
                 @click="showFullscreenImageDialog(userDialog.ref.currentAvatarImageUrl)"
                 @error="profileImageError = true"
                 loading="lazy" />
             <div
                 v-else-if="!userDialog.loading"
-                class="flex items-center justify-center bg-muted"
-                style="height: 120px; width: 160px; border-radius: var(--radius-xl)">
+                class="flex h-full w-full items-center justify-center bg-muted">
                 <Image class="size-8 text-muted-foreground" />
             </div>
         </div>
-        <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
-            <div style="flex: 1">
-                <div>
-                    <TooltipWrapper v-if="userDialog.ref.status" side="top">
-                        <template #content>
-                            <span>{{ getUserStateText(userDialog.ref) }}</span>
-                        </template>
-                        <i class="x-user-status" :class="userStatusClass(userDialog.ref)"></i>
-                    </TooltipWrapper>
-                    <template v-if="userDialog.previousDisplayNames.length > 0">
-                        <TooltipWrapper side="bottom">
-                            <template #content>
-                                <span>{{ t('dialog.user.previous_display_names') }}</span>
-                                <div
-                                    v-for="data in userDialog.previousDisplayNames"
-                                    :key="data.displayName"
-                                    placement="top">
-                                    <span>{{ data.displayName }}</span>
-                                    <span v-if="data.updated_at">
-                                        &horbar; {{ formatDateFilter(data.updated_at, 'long') }}</span
-                                    >
-                                </div>
+        <div class="min-w-0 flex-1 md:ml-4 md:flex md:items-start md:justify-between md:gap-4">
+            <div class="min-w-0 flex-1">
+                <div class="min-w-0">
+                    <div class="mb-1 flex min-w-0 items-center gap-2">
+                        <img
+                            v-if="userDialog.ref.userIcon && !userIconError"
+                            class="h-8 w-8 flex-none cursor-pointer rounded-md object-cover"
+                            :src="userImage(userDialog.ref, true, '256', true)"
+                            @click="showFullscreenImageDialog(userDialog.ref.userIcon)"
+                            @error="userIconError = true"
+                            loading="lazy" />
+                        <div
+                            v-else-if="userDialog.ref.userIcon"
+                            class="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-muted">
+                            <Image class="size-4 text-muted-foreground" />
+                        </div>
+                        <div class="min-w-0 flex-1 whitespace-nowrap">
+                            <TooltipWrapper v-if="userDialog.ref.status" side="top">
+                                <template #content>
+                                    <span>{{ getUserStateText(userDialog.ref) }}</span>
+                                </template>
+                                <i class="x-user-status" :class="userStatusClass(userDialog.ref)"></i>
+                            </TooltipWrapper>
+                            <template v-if="userDialog.previousDisplayNames.length > 0">
+                                <TooltipWrapper side="bottom">
+                                    <template #content>
+                                        <span>{{ t('dialog.user.previous_display_names') }}</span>
+                                        <div
+                                            v-for="data in userDialog.previousDisplayNames"
+                                            :key="data.displayName"
+                                            placement="top">
+                                            <span>{{ data.displayName }}</span>
+                                            <span v-if="data.updated_at">
+                                                &horbar; {{ formatDateFilter(data.updated_at, 'long') }}</span
+                                            >
+                                        </div>
+                                    </template>
+                                    <ChevronDown class="inline-block" />
+                                </TooltipWrapper>
                             </template>
-                            <ChevronDown class="inline-block" />
-                        </TooltipWrapper>
-                    </template>
-                    <span
-                        class="font-bold"
-                        style="margin-left: 6px; margin-right: 6px; cursor: pointer"
-                        v-text="userDialog.ref.displayName"
-                        @click="copyUserDisplayName(userDialog.ref.displayName)"></span>
-                    <TooltipWrapper v-if="userDialog.ref.pronouns" side="top" :content="t('dialog.user.pronouns')">
-                        <span
-                            class="x-grey font-mono text-xs"
-                            style="margin-right: 6px"
-                            v-text="userDialog.ref.pronouns"></span>
-                    </TooltipWrapper>
-                    <TooltipWrapper v-for="item in userDialog.ref.$languages" :key="item.key" side="top">
-                        <template #content>
-                            <span>{{ item.value }} ({{ item.key }})</span>
-                        </template>
-                        <span
-                            class="flags"
-                            :class="languageClass(item.key)"
-                            style="display: inline-block; margin-right: 6px"></span>
-                    </TooltipWrapper>
-                    <template v-if="userDialog.ref.id === currentUser.id">
-                        <br />
-                        <span
-                            class="x-grey font-mono text-xs"
-                            style="margin-right: 8px; cursor: pointer"
-                            v-text="currentUser.username"
-                            @click="copyUserDisplayName(currentUser.username)"></span>
-                    </template>
+                            <span
+                                class="mx-1 inline-block max-w-full cursor-pointer truncate align-middle font-bold"
+                                v-text="userDialog.ref.displayName"
+                                @click="copyUserDisplayName(userDialog.ref.displayName)"></span>
+                            <TooltipWrapper v-if="userDialog.ref.pronouns" side="top" :content="t('dialog.user.pronouns')">
+                                <span
+                                    class="x-grey mr-1 inline-block max-w-full truncate align-middle font-mono text-xs"
+                                    v-text="userDialog.ref.pronouns"></span>
+                            </TooltipWrapper>
+                            <TooltipWrapper v-for="item in userDialog.ref.$languages" :key="item.key" side="top">
+                                <template #content>
+                                    <span>{{ item.value }} ({{ item.key }})</span>
+                                </template>
+                                <span
+                                    class="flags mr-1 inline-block align-middle"
+                                    :class="languageClass(item.key)"
+                                    ></span>
+                            </TooltipWrapper>
+                            <template v-if="userDialog.ref.id === currentUser.id">
+                                <span
+                                    class="x-grey mt-1 block cursor-pointer truncate font-mono text-xs"
+                                    v-text="currentUser.username"
+                                    @click="copyUserDisplayName(currentUser.username)"></span>
+                            </template>
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-2 flex items-center gap-1" v-show="!userDialog.loading">
+                <div class="mt-2 flex flex-wrap items-center gap-1" v-show="!userDialog.loading">
                     <TooltipWrapper side="top" :content="t('dialog.user.tags.trust_level')">
                         <Badge variant="outline" class="name" :class="userDialog.ref.$trustClass">
                             <Shield class="h-4 w-4" /> {{ userDialog.ref.$trustLevel }}
@@ -164,7 +173,7 @@
                     <Badge
                         v-if="userDialog.ref.$customTag"
                         variant="outline"
-                        class="name"
+                        class="name max-w-full break-words"
                         :style="{
                             color: userDialog.ref.$customTagColour,
                             'border-color': userDialog.ref.$customTagColour
@@ -172,27 +181,19 @@
                         >{{ userDialog.ref.$customTag }}</Badge
                     >
                 </div>
-                <div class="mt-1">
+                <div class="mt-1 flex flex-wrap items-start gap-1">
                     <TooltipWrapper v-for="badge in userDialog.ref.badges" :key="badge.badgeId" side="top">
                         <template #content>
                             <span>{{ badge.badgeName }}</span>
                             <span v-if="badge.hidden">&nbsp;(Hidden)</span>
                         </template>
-                        <div style="display: inline-block">
+                        <div class="inline-block">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <img
                                         class="cursor-pointer hover:grayscale-0"
                                         :src="badge.badgeImageUrl"
-                                        style="
-                                            flex: none;
-                                            height: 32px;
-                                            width: 32px;
-                                            border-radius: var(--radius-sm);
-                                            object-fit: cover;
-                                            margin-top: 6px;
-                                            margin-right: 6px;
-                                        "
+                                        style="flex: none; height: 32px; width: 32px; border-radius: var(--radius-sm); object-fit: cover; margin-top: 6px; margin-right: 6px;"
                                         :class="{ grayscale: badge.hidden }"
                                         loading="lazy" />
                                 </PopoverTrigger>
@@ -239,24 +240,9 @@
                 </div>
             </div>
 
-            <div v-if="userDialog.ref.userIcon" style="flex: none; margin-right: 8px">
-                <img
-                    v-if="!userIconError"
-                    class="cursor-pointer"
-                    :src="userImage(userDialog.ref, true, '256', true)"
-                    style="flex: none; width: 120px; height: 120px; border-radius: var(--radius-xl); object-fit: cover"
-                    @click="showFullscreenImageDialog(userDialog.ref.userIcon)"
-                    @error="userIconError = true"
-                    loading="lazy" />
-                <div
-                    v-else
-                    class="flex items-center justify-center bg-muted"
-                    style="width: 120px; height: 120px; border-radius: var(--radius-xl)">
-                    <Image class="size-8 text-muted-foreground" />
-                </div>
+            <div class="mt-2 flex items-start gap-2 md:mt-0 md:flex-none">
+                <UserActionDropdown class="mt-2 self-start md:mt-0 md:self-start" :user-dialog-command="userDialogCommand" />
             </div>
-
-            <UserActionDropdown class="ml-2 mt-12" :user-dialog-command="userDialogCommand" />
         </div>
     </div>
 </template>

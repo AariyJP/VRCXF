@@ -56,6 +56,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     const updateToastRelease = ref('');
 
     async function initVRCXUpdaterSettings() {
+        if (BROWSER) noUpdater.value = true;
         if (LINUX) {
             arch.value = await window.electron.getArch();
             noUpdater.value = await window.electron.getNoUpdater();
@@ -280,6 +281,9 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         return { downloadUrl, hashString, size };
     }
     async function checkForVRCXUpdate() {
+        if (BROWSER) {
+            return false;
+        }
         if (
             !currentVersion.value ||
             currentVersion.value === 'VRCX Nightly Build' ||

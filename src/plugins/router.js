@@ -23,6 +23,40 @@ import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
 
+const toolRoutes = BROWSER
+    ? [
+          {
+              path: 'tools',
+              name: 'tools',
+              redirect: { name: 'feed' }
+          },
+          {
+              path: 'tools/gallery',
+              name: 'gallery',
+              redirect: { name: 'feed' }
+          },
+          {
+              path: 'tools/screenshot-metadata',
+              name: 'screenshot-metadata',
+              redirect: { name: 'feed' }
+          }
+      ]
+    : [
+          { path: 'tools', name: 'tools', component: Tools },
+          {
+              path: 'tools/gallery',
+              name: 'gallery',
+              component: Gallery,
+              meta: { navKeys: ['tool-gallery', 'tools'] }
+          },
+          {
+              path: 'tools/screenshot-metadata',
+              name: 'screenshot-metadata',
+              component: ScreenshotMetadata,
+              meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
+          }
+      ];
+
 const routes = [
     {
         path: '/login',
@@ -95,39 +129,31 @@ const routes = [
             {
                 path: 'charts',
                 name: 'charts',
-                redirect: { name: 'charts-instance' }
+                redirect: { name: 'charts-instance' },
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/instance',
                 name: 'charts-instance',
                 component: () =>
-                    import('./../views/Charts/components/InstanceActivity.vue')
+                    import('./../views/Charts/components/InstanceActivity.vue'),
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/mutual',
                 name: 'charts-mutual',
                 component: () =>
-                    import('./../views/Charts/components/MutualFriends.vue')
+                    import('./../views/Charts/components/MutualFriends.vue'),
+                meta: { browserDisabled: true }
             },
             {
                 path: 'charts/hot-worlds',
                 name: 'charts-hot-worlds',
                 component: () =>
-                    import('./../views/Charts/components/HotWorlds.vue')
+                    import('./../views/Charts/components/HotWorlds.vue'),
+                meta: { browserDisabled: true }
             },
-            { path: 'tools', name: 'tools', component: Tools },
-            {
-                path: 'tools/gallery',
-                name: 'gallery',
-                component: Gallery,
-                meta: { navKeys: ['tool-gallery', 'tools'] }
-            },
-            {
-                path: 'tools/screenshot-metadata',
-                name: 'screenshot-metadata',
-                component: ScreenshotMetadata,
-                meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
-            },
+            ...toolRoutes,
             {
                 path: 'settings',
                 name: 'settings',
@@ -151,6 +177,10 @@ export function initRouter(app) {
 router.beforeEach((to) => {
     if (to.path === '/social') {
         return false;
+    }
+
+    if (BROWSER && to.matched.some((record) => record.meta?.browserDisabled)) {
+        return { name: 'feed' };
     }
 
     if (to.name === 'login' && watchState.isLoggedIn) {

@@ -207,6 +207,7 @@ export const useUserStore = defineStore('User', () => {
         },
         avatarSorting: 'update',
         avatarReleaseStatus: 'all',
+        activityPeriodDays: '30',
         memo: '',
         $avatarInfo: {
             ownerId: '',
@@ -707,6 +708,13 @@ export const useUserStore = defineStore('User', () => {
     /**
      * @param {string} value
      */
+    function setUserDialogActiveTab(value) {
+        userDialog.value.activeTab = value;
+    }
+
+    /**
+     * @param {string} value
+     */
     function setCurrentUserColour(value) {
         currentUser.value.$userColour = value;
     }
@@ -830,6 +838,7 @@ export const useUserStore = defineStore('User', () => {
         setUserDialogMemo,
         setUserDialogVisible,
         setUserDialogIsFavorite,
+        setUserDialogActiveTab,
         setCurrentUserColour,
         setCurrentUserLocationState,
         setCurrentUserTravelingToTime,

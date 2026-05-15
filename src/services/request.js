@@ -35,12 +35,21 @@ export function buildRequestInit(endpoint, options) {
     if (init.method === 'GET') {
         // transform body to url
         if (params === Object(params)) {
-            const url = new URL(init.url);
+            const url = new URL(
+                init.url,
+                typeof window !== 'undefined'
+                    ? window.location.origin
+                    : AppDebug.endpointDomainVrchat
+            );
             const { searchParams } = url;
             for (const key in params) {
                 searchParams.set(key, params[key]);
             }
-            init.url = url.toString();
+            init.url =
+                typeof window !== 'undefined' &&
+                url.origin === window.location.origin
+                    ? `${url.pathname}${url.search}${url.hash}`
+                    : url.toString();
         }
     } else if (
         init.uploadImage ||
