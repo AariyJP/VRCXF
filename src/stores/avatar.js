@@ -82,6 +82,13 @@ export const useAvatarStore = defineStore('Avatar', () => {
     }
 
     /**
+     * @param {string} value
+     */
+    function setAvatarDialogActiveTab(value) {
+        avatarDialog.value.activeTab = value;
+    }
+
+    /**
      *
      * @param {string} avatarId
      * @returns {Promise<string[]>}
@@ -218,6 +225,7 @@ export const useAvatarStore = defineStore('Avatar', () => {
         setLoadingToastId,
         setAvatarDialogVisible,
         setAvatarDialogIsFavorite,
+        setAvatarDialogActiveTab,
         setAvatarDialogLoading
     };
 });

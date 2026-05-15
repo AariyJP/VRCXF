@@ -1,5 +1,5 @@
 <template>
-    <div class="w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ avatarDialog.ref?.name || t('dialog.avatar.info.header') }}</DialogTitle>
             <DialogDescription>
@@ -7,7 +7,7 @@
             </DialogDescription>
         </DialogHeader>
         <div class="flex-1 min-h-0 flex flex-col">
-            <div class="flex flex-shrink-0">
+            <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
                 <div style="flex: none; width: 160px; height: 120px">
                     <img
                         v-if="!imageError"
@@ -24,8 +24,8 @@
                         <Image class="size-8 text-muted-foreground" />
                     </div>
                 </div>
-                <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
-                    <div style="flex: 1">
+                <div class="min-w-0 sm:ml-4 sm:flex sm:flex-1 sm:items-start sm:gap-4">
+                    <div class="min-w-0 flex-1">
                         <div>
                             <span
                                 class="font-bold mr-1.5"
@@ -181,7 +181,7 @@
                                 v-text="avatarDialog.ref.description"></span>
                         </div>
                     </div>
-                    <div class="ml-2 mt-12">
+                    <div class="mt-1 shrink-0 self-start sm:ml-2 sm:mt-12">
                         <TooltipWrapper
                             v-if="avatarDialog.inCache"
                             side="top"
@@ -328,22 +328,15 @@
                 </div>
             </div>
 
-            <div class="sm:hidden">
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
-                            {{ activeAvatarDialogTabLabel }}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" class="w-44">
-                        <DropdownMenuItem
-                            v-for="tab in avatarDialogTabs"
-                            :key="tab.value"
-                            @click="avatarDialogTabClick(tab.value)">
-                            {{ tab.label }}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
+                <NativeSelect
+                    :model-value="avatarDialog.activeTab"
+                    class="w-full"
+                    @update:modelValue="selectAvatarDialogTab">
+                    <NativeSelectOption v-for="tab in avatarDialogTabs" :key="tab.value" :value="tab.value">
+                        {{ tab.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
             </div>
             <TabsUnderline
                 v-model="avatarDialog.activeTab"
@@ -356,7 +349,7 @@
                     <div class="flex flex-wrap items-start px-2.5" style="max-height: unset">
                         <div
                             v-if="avatarDialog.galleryImages.length || avatarDialog.ref.authorId === currentUser.id"
-                            style="width: 100%">
+                            class="w-full">
                             <span class="block truncate font-medium leading-[18px]">{{
                                 t('dialog.avatar.info.gallery')
                             }}</span>
@@ -376,7 +369,7 @@
                                 <Upload />
                                 {{ t('dialog.screenshot_metadata.upload') }}
                             </Button>
-                            <div class="mt-2 w-[80%] ml-20">
+                            <div class="mt-2 w-full md:w-[80%] md:ml-20">
                                 <Carousel v-if="avatarDialog.galleryImages.length" class="w-full">
                                     <CarouselContent class="h-50">
                                         <CarouselItem v-for="imageUrl in avatarDialog.galleryImages" :key="imageUrl">
@@ -479,7 +472,7 @@
                                 >
                             </div>
                         </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-full md:w-[167px]">
                             <div class="flex-1 overflow-hidden">
                                 <span class="block truncate font-medium leading-[18px]">{{
                                     t('dialog.avatar.info.created_at')
@@ -489,7 +482,7 @@
                                 }}</span>
                             </div>
                         </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-full md:w-[167px]">
                             <div class="flex-1 overflow-hidden">
                                 <span class="block font-medium leading-[18px]" style="display: inline">{{
                                     t('dialog.avatar.info.last_updated')
@@ -515,7 +508,7 @@
                                 }}</span>
                             </div>
                         </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-full md:w-[167px]">
                             <div class="flex-1 overflow-hidden">
                                 <span class="block truncate font-medium leading-[18px]">{{
                                     t('dialog.avatar.info.version')
@@ -527,7 +520,7 @@
                                 <span v-else class="block truncate text-xs">-</span>
                             </div>
                         </div>
-                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-[167px]">
+                        <div class="box-border flex items-center p-1.5 text-[13px] cursor-default w-full md:w-[167px]">
                             <div class="flex-1 overflow-hidden">
                                 <span class="block truncate font-medium leading-[18px]">{{
                                     t('dialog.avatar.info.time_spent')
@@ -609,6 +602,7 @@
     import { computed, nextTick, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
+    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
@@ -666,7 +660,7 @@
     const avatarStore = useAvatarStore();
     const { cachedAvatarModerations, cachedAvatars } = avatarStore;
     const { avatarDialog } = storeToRefs(avatarStore);
-    const { getAvatarGallery, applyAvatarModeration } = avatarStore;
+    const { getAvatarGallery, applyAvatarModeration, setAvatarDialogActiveTab } = avatarStore;
     const { showFavoriteDialog } = useFavoriteStore();
     const { isGameRunning } = storeToRefs(useGameStore());
     const { showFullscreenImageDialog } = useGalleryStore();
@@ -704,11 +698,6 @@
         { value: 'Info', label: t('dialog.avatar.info.header') },
         { value: 'JSON', label: t('dialog.avatar.json.header') }
     ]);
-    const activeAvatarDialogTabLabel = computed(() => {
-        const activeTab = avatarDialog.value.activeTab;
-        return avatarDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.avatar.info.header');
-    });
-
     const treeData = ref({});
     const memo = ref('');
     const imageError = ref(false);
@@ -835,6 +824,11 @@
             return;
         }
         handleAvatarDialogTab(tabName);
+    }
+
+    function selectAvatarDialogTab(tabName) {
+        setAvatarDialogActiveTab(tabName);
+        avatarDialogTabClick(tabName);
     }
 
     /**
