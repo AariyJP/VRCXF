@@ -11,6 +11,7 @@ import { AppDebug } from '../services/appConfig';
 import { authRequest } from '../api';
 import { database } from '../services/database';
 import { links } from '../shared/constants/link';
+import { initWebsocket } from '../services/websocket';
 import { request } from '../services/request';
 import { runHandleAutoLoginFlow } from '../coordinators/authAutoLoginCoordinator';
 import { getCurrentUser } from '../coordinators/userCoordinator';
@@ -100,6 +101,7 @@ export const useAuthStore = defineStore('Auth', () => {
         () => watchState.isFriendsLoaded,
         (isFriendsLoaded) => {
             if (isFriendsLoaded) {
+                initWebsocket();
                 AppApi.IPCAnnounceStart();
             }
         },

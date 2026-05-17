@@ -3,6 +3,7 @@ import { toast } from 'vue-sonner';
 import { AppDebug } from '../services/appConfig';
 import { migrateMemos } from './memoCoordinator';
 import { syncFriendSearchIndex } from './searchIndexCoordinator';
+import { reconnectWebSocket } from '../services/websocket';
 import { useAuthStore } from '../stores/auth';
 import { useFriendStore } from '../stores/friend';
 import { useUpdateLoopStore } from '../stores/updateLoop';
@@ -24,6 +25,7 @@ export async function runRefreshFriendsListFlow() {
         await getCurrentUser();
     }
     await friendStore.refreshFriends();
+    reconnectWebSocket();
 }
 
 /**

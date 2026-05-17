@@ -8,6 +8,7 @@ const mockWatchState = {
 
 const mocks = vi.hoisted(() => ({
     closeWebSocket: vi.fn(),
+    initWebsocket: vi.fn(),
     configRepository: {
         remove: vi.fn().mockResolvedValue(undefined)
     },
@@ -34,6 +35,7 @@ const mocks = vi.hoisted(() => ({
             lastUserLoggedIn: 'usr_me'
         },
         setAttemptingAutoLogin: vi.fn(),
+        autoLoginAttempts: new Set(['usr_me']),
         state: {
             autoLoginAttempts: new Set(['usr_me'])
         }
@@ -70,7 +72,8 @@ vi.mock('../../services/webapi', () => ({
 }));
 
 vi.mock('../../services/websocket', () => ({
-    closeWebSocket: mocks.closeWebSocket
+    closeWebSocket: mocks.closeWebSocket,
+    initWebsocket: mocks.initWebsocket
 }));
 
 vi.mock('../../shared/utils', () => ({
@@ -116,6 +119,7 @@ describe('runLogoutFlow', () => {
         mockWatchState.isFriendsLoaded = false;
         mockWatchState.isFavoritesLoaded = false;
         mocks.authStore.loginForm.lastUserLoggedIn = 'usr_me';
+        mocks.authStore.autoLoginAttempts = new Set(['usr_me']);
         mocks.authStore.state.autoLoginAttempts = new Set(['usr_me']);
     });
 
