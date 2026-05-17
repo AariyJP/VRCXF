@@ -344,10 +344,8 @@ export const useDiscordPresenceSettingsStore = defineStore(
             }
             let buttonText = 'Join';
             let buttonUrl = state.lastLocationDetails.joinUrl;
-            if (!buttonUrl) {
-                buttonText = `${userStore.currentUser.displayName} on VRChat`;
-                buttonUrl = `https://vrchat.com/home/user/${userStore.currentUser.id}`;
-            }
+            buttonText = `${userStore.currentUser.displayName} on VRChat`;
+            buttonUrl = `https://vrchat.com/home/user/${userStore.currentUser.id}`;
             if (!discordJoinButton.value) {
                 buttonText = '';
                 buttonUrl = '';
