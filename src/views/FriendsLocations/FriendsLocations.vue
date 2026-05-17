@@ -1,14 +1,23 @@
 <template>
     <div class="friend-view x-container">
-        <div v-if="settingsReady" class="friend-view__toolbar">
-            <Tabs v-model="activeSegment" class="friend-view__tabs">
+        <div
+            v-if="settingsReady"
+            class="friend-view__toolbar max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:gap-3">
+            <Tabs v-model="activeSegment" class="friend-view__tabs max-[720px]:hidden">
                 <TabsList>
                     <TabsTrigger v-for="option in segmentedOptions" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </TabsTrigger>
                 </TabsList>
             </Tabs>
-            <div class="friend-view__actions">
+            <div class="min-[721px]:hidden w-full [&_[data-slot=native-select-wrapper]]:w-full">
+                <NativeSelect v-model="activeSegment" class="w-full">
+                    <NativeSelectOption v-for="option in segmentedOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
+            </div>
+            <div class="friend-view__actions max-[720px]:w-full">
                 <InputGroupSearch
                     v-model="searchTerm"
                     class="friend-view__search"
@@ -143,6 +152,7 @@
     import { computed, nextTick, onBeforeMount, onMounted, reactive, ref, watch } from 'vue';
     import { ChevronDown, Loader2, Settings } from 'lucide-vue-next';
     import { Field, FieldContent, FieldLabel } from '@/components/ui/field';
+    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
     import { Button } from '@/components/ui/button';
     import { DataTableEmpty } from '@/components/ui/data-table';

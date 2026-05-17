@@ -1,5 +1,5 @@
 <template>
-    <div class="w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ worldDialog.ref?.name || t('dialog.world.info.header') }}</DialogTitle>
             <DialogDescription>
@@ -7,7 +7,7 @@
             </DialogDescription>
         </DialogHeader>
         <div class="flex-1 min-h-0 flex flex-col">
-            <div class="flex-shrink-0" style="display: flex">
+            <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
                 <div style="flex: none; width: 160px; height: 120px">
                     <img
                         v-if="!worldDialog.loading && !imageError"
@@ -24,8 +24,8 @@
                         <Image class="size-8 text-muted-foreground" />
                     </div>
                 </div>
-                <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
-                    <div style="flex: 1">
+                <div class="min-w-0 sm:ml-4 sm:flex sm:flex-1 sm:items-start sm:gap-4">
+                    <div class="min-w-0 flex-1">
                         <div>
                             <span class="font-bold mr-1.5" style="cursor: pointer" @click="copyWorldName">
                                 <Home
@@ -133,11 +133,10 @@
                                 </Badge>
                             </template>
                         </div>
-                        <div style="margin-top: 6px; display: flex; align-items: center">
+                        <div class="mt-1.5 flex items-center">
                             <span
                                 v-show="worldDialog.ref.name !== worldDialog.ref.description"
-                                class="text-xs"
-                                style="flex: 1; margin-right: 0.5em"
+                                class="min-w-0 flex-1 break-words pr-2 text-xs"
                                 >{{ translatedDescription || worldDialog.ref.description }}</span
                             >
                             <Button
@@ -155,7 +154,7 @@
                             </Button>
                         </div>
                     </div>
-                    <div class="ml-2 mt-12">
+                    <div class="mt-1 shrink-0 self-start sm:ml-2 sm:mt-12">
                         <TooltipWrapper
                             v-if="worldDialog.inCache"
                             side="top"
@@ -309,22 +308,15 @@
                     </div>
                 </div>
             </div>
-            <div class="sm:hidden">
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
-                            {{ activeWorldDialogTabLabel }}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" class="w-44">
-                        <DropdownMenuItem
-                            v-for="tab in worldDialogTabs"
-                            :key="tab.value"
-                            @click="worldDialogTabClick(tab.value)">
-                            {{ tab.label }}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
+                <NativeSelect
+                    :model-value="worldDialog.activeTab"
+                    class="w-full"
+                    @update:modelValue="selectWorldDialogTab">
+                    <NativeSelectOption v-for="tab in worldDialogTabs" :key="tab.value" :value="tab.value">
+                        {{ tab.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
             </div>
             <TabsUnderline
                 v-model="worldDialog.activeTab"
@@ -403,6 +395,7 @@
     import { computed, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
+    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { Spinner } from '@/components/ui/spinner';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
@@ -446,8 +439,9 @@
     import WorldAllowedDomainsDialog from './WorldAllowedDomainsDialog.vue';
 
     const { currentUser, userDialog } = storeToRefs(useUserStore());
-    const { worldDialog } = storeToRefs(useWorldStore());
-    const { cachedWorlds } = useWorldStore();
+    const worldStore = useWorldStore();
+    const { worldDialog } = storeToRefs(worldStore);
+    const { cachedWorlds, setWorldDialogActiveTab } = worldStore;
     const { lastLocation } = storeToRefs(useLocationStore());
     const { canOpenInstanceInGame } = useInviteStore();
     const { showFavoriteDialog } = useFavoriteStore();
@@ -502,10 +496,6 @@
         { value: 'Info', label: t('dialog.world.info.header') },
         { value: 'JSON', label: t('dialog.world.json.header') }
     ]);
-    const activeWorldDialogTabLabel = computed(() => {
-        const activeTab = worldDialog.value.activeTab;
-        return worldDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.world.instances.header');
-    });
 
     const treeData = ref({});
     const translatedDescription = ref('');
@@ -568,6 +558,11 @@
             return;
         }
         handleWorldDialogTab(tabName);
+    }
+
+    function selectWorldDialogTab(tabName) {
+        setWorldDialogActiveTab(tabName);
+        worldDialogTabClick(tabName);
     }
 
     /**

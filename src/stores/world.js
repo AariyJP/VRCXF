@@ -68,6 +68,10 @@ export const useWorldStore = defineStore('World', () => {
         worldDialog.isFavorite = value;
     }
 
+    function setWorldDialogActiveTab(value) {
+        worldDialog.activeTab = value;
+    }
+
     /**
      *
      */
@@ -94,6 +98,7 @@ export const useWorldStore = defineStore('World', () => {
         cachedWorlds,
         setWorldDialogVisible,
         setWorldDialogIsFavorite,
+        setWorldDialogActiveTab,
         setWorldDialogLoading,
         updateVRChatWorldCache
     };
