@@ -120,7 +120,6 @@
             case 'previous-instances-group':
                 return 'x-dialog translate-y-0 sm:max-w-250';
             case 'user':
-                return 'x-dialog sm:max-w-235 translate-y-0 overflow-hidden flex flex-col max-sm:!top-4 max-sm:!max-h-[calc(100dvh-2rem)]';
             default:
                 return 'x-dialog sm:max-w-235 translate-y-0 overflow-hidden flex flex-col';
         }

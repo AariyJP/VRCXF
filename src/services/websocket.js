@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue';
+import { reactive } from 'vue';
 import { toast } from 'vue-sonner';
 
 import {
@@ -47,32 +47,10 @@ export const wsState = reactive({
     bytesReceived: 0
 });
 
-// Reactive WebSocket connection state
-export const isWebSocketConnected = ref(false);
-
-let isWebSocketEnabled = false;
-
 /**
- * Enable WebSocket connections and attempt to connect
+ *
  */
-export function enableWebSocket() {
-    isWebSocketEnabled = true;
-    initWebsocket();
-}
-
-/**
- * Disable WebSocket connections and close existing connection
- */
-export function disableWebSocket() {
-    isWebSocketEnabled = false;
-    closeWebSocket();
-}
-
 export function initWebsocket() {
-    // Only connect if user has enabled WebSocket
-    if (!isWebSocketEnabled) {
-        return;
-    }
     if (!watchState.isFriendsLoaded || webSocket !== null) {
         return;
     }
@@ -104,14 +82,12 @@ function connectWebSocket(token) {
     const socket = new WebSocket(`${AppDebug.websocketDomain}/?auth=${token}`);
     socket.onopen = () => {
         wsState.connected = true;
-        isWebSocketConnected.value = true;
         if (AppDebug.debugWebSocket) {
             console.log('WebSocket connected');
         }
     };
     socket.onclose = () => {
         wsState.connected = false;
-        isWebSocketConnected.value = false;
         if (webSocket === socket) {
             webSocket = null;
         }
@@ -188,8 +164,6 @@ export function closeWebSocket() {
         return;
     }
     webSocket = null;
-    wsState.connected = false;
-    isWebSocketConnected.value = false;
     try {
         socket.close();
     } catch (err) {

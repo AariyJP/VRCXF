@@ -309,14 +309,14 @@
     const showLastJoinIndicator = computed(() => props.showLastJoin && lastJoin.value);
     const hasInstanceMetadata = computed(() => {
         return !!(
-            props.instance.value?.queueSize ||
+            props.instance?.queueSize ||
             instanceInfoState.isAgeGated ||
-            (props.instance.minimumAvatarPerformance && props.instance.minimumAvatarPerformance !== 'None')
+            (props.instance?.minimumAvatarPerformance && props.instance.minimumAvatarPerformance !== 'None')
         );
     });
 
     const performanceIcon = computed(() => {
-        const rank = props.instance.minimumAvatarPerformance?.toLowerCase();
+        const rank = props.instance?.minimumAvatarPerformance?.toLowerCase();
         if (!rank || rank === 'none') return null;
         return `/images/performance_ranks/${rank}.png`;
     });

@@ -2,7 +2,7 @@ import { i18n } from '../plugins/i18n';
 
 import Noty from 'noty';
 
-import { closeWebSocket } from '../services/websocket';
+import { closeWebSocket, initWebsocket } from '../services/websocket';
 import { escapeTag } from '../shared/utils';
 import { queryClient } from '../queries';
 import { useAuthStore } from '../stores/auth';
@@ -57,4 +57,5 @@ export function runLoginSuccessFlow(json) {
 
     updateLoopStore.setNextCurrentUserRefresh(420); // 7mins
     applyCurrentUser(json);
+    initWebsocket();
 }

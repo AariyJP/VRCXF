@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
+import Noty from 'noty';
+
 import {
     runLoginSuccessFlow,
     runLogoutFlow
@@ -10,7 +12,9 @@ import {
 import { AppDebug } from '../services/appConfig';
 import { authRequest } from '../api';
 import { database } from '../services/database';
+import { escapeTag } from '../shared/utils';
 import { links } from '../shared/constants/link';
+import { initWebsocket } from '../services/websocket';
 import { request } from '../services/request';
 import { runHandleAutoLoginFlow } from '../coordinators/authAutoLoginCoordinator';
 import { getCurrentUser } from '../coordinators/userCoordinator';
@@ -86,6 +90,12 @@ export const useAuthStore = defineStore('Auth', () => {
             if (isLoggedIn) {
                 resetLoginNetworkIssueHintState();
                 updateStoredUser(currentUser);
+                new Noty({
+                    type: 'success',
+                    text: t('message.auth.login_greeting', {
+                        name: `<strong>${escapeTag(currentUser.displayName)}</strong>`
+                    })
+                }).show();
             }
         },
         { flush: 'sync' }
@@ -100,6 +110,7 @@ export const useAuthStore = defineStore('Auth', () => {
         () => watchState.isFriendsLoaded,
         (isFriendsLoaded) => {
             if (isFriendsLoaded) {
+                initWebsocket();
                 AppApi.IPCAnnounceStart();
             }
         },
@@ -648,10 +659,6 @@ export const useAuthStore = defineStore('Auth', () => {
     async function deleteSavedLogin(userId) {
         const savedCredentials = await getAllSavedCredentials();
         delete savedCredentials[userId];
-        if (loginForm.value.lastUserLoggedIn === userId) {
-            loginForm.value.lastUserLoggedIn = '';
-            await configRepository.remove('lastUserLoggedIn');
-        }
         // Disable primary password when no account is available.
         if (Object.keys(savedCredentials).length === 0) {
             advancedSettingsStore.setEnablePrimaryPassword(false);

@@ -1,5 +1,5 @@
 <template>
-    <div class="w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ groupDialog.ref?.name || t('dialog.group.info.header') }}</DialogTitle>
             <DialogDescription>
@@ -7,8 +7,8 @@
             </DialogDescription>
         </DialogHeader>
         <div class="flex-1 min-h-0 flex flex-col">
-            <div class="flex-shrink-0" style="display: flex">
-                <div style="flex: none; width: 120px; height: 120px">
+            <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                <div class="shrink-0 self-start" style="width: 120px; height: 120px">
                     <img
                         v-if="!groupDialog.loading && !imageError"
                         :src="groupDialog.ref.iconUrl"
@@ -24,29 +24,31 @@
                         <Image class="size-8 text-muted-foreground" />
                     </div>
                 </div>
-                <div class="ml-4" style="flex: 1; display: flex; align-items: flex-start">
-                    <div class="group-header" style="flex: 1">
-                        <span class="mr-1.5" v-if="groupDialog.ref.ownerId === currentUser.id">👑</span>
-                        <span
-                            class="font-bold mr-1.5"
-                            style="cursor: pointer"
-                            v-text="groupDialog.ref.name"
-                            @click="copyToClipboard(groupDialog.ref.name)"></span>
-                        <span class="group-discriminator x-grey mr-1.5 font-mono text-xs">
-                            {{ groupDialog.ref.shortCode }}.{{ groupDialog.ref.discriminator }}
-                        </span>
-                        <TooltipWrapper v-for="item in groupDialog.ref.$languages" :key="item.key" side="top">
-                            <template #content>
-                                <span>{{ item.value }} ({{ item.key }})</span>
-                            </template>
+                <div class="min-w-0 sm:ml-4 flex flex-col items-start sm:flex-1 sm:flex-row">
+                    <div class="group-header min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                            <span v-if="groupDialog.ref.ownerId === currentUser.id">👑</span>
                             <span
-                                class="flags"
-                                :class="languageClass(item.key)"
-                                style="display: inline-block; margin-right: 6px"></span>
-                        </TooltipWrapper>
+                                class="break-all font-bold"
+                                style="cursor: pointer"
+                                v-text="groupDialog.ref.name"
+                                @click="copyToClipboard(groupDialog.ref.name)"></span>
+                            <span class="group-discriminator x-grey break-all font-mono text-xs">
+                                {{ groupDialog.ref.shortCode }}.{{ groupDialog.ref.discriminator }}
+                            </span>
+                            <TooltipWrapper v-for="item in groupDialog.ref.$languages" :key="item.key" side="top">
+                                <template #content>
+                                    <span>{{ item.value }} ({{ item.key }})</span>
+                                </template>
+                                <span
+                                    class="flags"
+                                    :class="languageClass(item.key)"
+                                    style="display: inline-block; margin-right: 6px"></span>
+                            </TooltipWrapper>
+                        </div>
                         <div style="margin-top: 6px">
                             <span
-                                class="cursor-pointer x-grey font-mono"
+                                class="cursor-pointer x-grey break-all font-mono"
                                 @click="showUserDialog(groupDialog.ref.ownerId)"
                                 v-text="groupDialog.ownerDisplayName"></span>
                         </div>
@@ -96,12 +98,12 @@
                         <div style="margin-top: 6px">
                             <pre
                                 v-show="groupDialog.ref.name !== groupDialog.ref.description"
-                                class="text-xs font-[inherit]"
+                                class="text-xs font-[inherit] break-words"
                                 style="white-space: pre-wrap; max-height: 40vh; overflow-y: auto"
                                 v-text="groupDialog.ref.description"></pre>
                         </div>
                     </div>
-                    <div class="ml-2 mt-12">
+                    <div class="mt-1 shrink-0 self-start sm:ml-2 sm:mt-12">
                         <template v-if="groupDialog.inGroup && groupDialog.ref?.myMember">
                             <TooltipWrapper
                                 v-if="groupDialog.ref.myMember?.isRepresenting"
@@ -298,22 +300,15 @@
                     </div>
                 </div>
             </div>
-            <div class="sm:hidden">
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                        <Button variant="outline" size="sm" class="mt-2 mb-2 w-full justify-start self-stretch">
-                            {{ activeGroupDialogTabLabel }}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" class="w-44">
-                        <DropdownMenuItem
-                            v-for="tab in groupDialogTabs"
-                            :key="tab.value"
-                            @click="groupDialogTabClick(tab.value)">
-                            {{ tab.label }}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <div class="sm:hidden mt-2 mb-2 min-w-0 w-full [&_[data-slot=native-select-wrapper]]:w-full">
+                <NativeSelect
+                    :model-value="groupDialog.activeTab"
+                    class="w-full min-w-0"
+                    @update:modelValue="groupDialogTabClick">
+                    <NativeSelectOption v-for="tab in groupDialogTabs" :key="tab.value" :value="tab.value">
+                        {{ tab.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
             </div>
             <TabsUnderline
                 v-model="groupDialog.activeTab"
@@ -375,6 +370,7 @@
     import { computed, reactive, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
+    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -424,11 +420,6 @@
         { value: 'Photos', label: t('dialog.group.gallery.header') },
         { value: 'JSON', label: t('dialog.group.json.header') }
     ]);
-    const activeGroupDialogTabLabel = computed(() => {
-        const activeTab = groupDialog.value.activeTab;
-        return groupDialogTabs.value.find((tab) => tab.value === activeTab)?.label || t('dialog.group.info.header');
-    });
-
     const modalStore = useModalStore();
 
     const { currentUser } = storeToRefs(useUserStore());
@@ -667,6 +658,7 @@
             }
             return;
         }
+        groupDialog.value.activeTab = tabName;
         handleGroupDialogTab(tabName);
         groupDialogTabCurrentName.value = tabName;
     }
