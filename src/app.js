@@ -15,8 +15,8 @@ import { queryClient } from './queries';
 import App from './App.vue';
 
 await initPlugins();
-await loadWebSocketAutoConnectPreference();
 await initPiniaPlugins();
+await loadWebSocketAutoConnectPreference();
 
 // #region | Hey look it's most of VRCX!
 
