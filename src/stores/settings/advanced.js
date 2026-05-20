@@ -14,6 +14,7 @@ import { useVrcxStore } from '../vrcx';
 import { watchState } from '../../services/watchState';
 
 import configRepository from '../../services/config';
+import { WEBSOCKET_AUTO_CONNECT_KEY } from '../../services/websocket';
 import webApiService from '../../services/webapi';
 
 export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
@@ -134,7 +135,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             configRepository.getBool('VRCX_vrcQuitFix', true),
             configRepository.getBool('VRCX_autoSweepVRChatCache', false),
             configRepository.getBool('VRCX_selfInviteOverride', false),
-            configRepository.getBool('VRCX_wsAutoConnect', false),
+            configRepository.getBool(WEBSOCKET_AUTO_CONNECT_KEY, false),
             configRepository.getBool('VRCX_saveInstancePrints', false),
             configRepository.getBool('VRCX_cropInstancePrints', false),
             configRepository.getBool('VRCX_saveInstanceStickers', false),
@@ -283,7 +284,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     }
     function setWebSocketAutoConnectEnabled(value) {
         webSocketAutoConnectEnabled.value = value;
-        configRepository.setBool('VRCX_wsAutoConnect', value);
+        configRepository.setBool(WEBSOCKET_AUTO_CONNECT_KEY, value);
     }
     function setSaveInstancePrints() {
         saveInstancePrints.value = !saveInstancePrints.value;
@@ -1210,7 +1211,6 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         setVrcRegistryAskRestore,
         setSentryErrorReporting,
         checkSentryConsent,
-        initAdvancedSettings,
         askDeleteAllScreenshotMetadata
     };
 });

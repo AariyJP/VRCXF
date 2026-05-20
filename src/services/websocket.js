@@ -36,7 +36,7 @@ import * as workerTimers from 'worker-timers';
 
 let webSocket = null;
 let lastWebSocketMessage = '';
-const WEBSOCKET_AUTO_CONNECT_KEY = 'VRCX_wsAutoConnect';
+export const WEBSOCKET_AUTO_CONNECT_KEY = 'VRCX_wsAutoConnect';
 
 /**
  * Reactive WebSocket state for status bar telemetry.
@@ -86,8 +86,7 @@ watch(
         if (enabled && friendsLoaded) {
             initWebsocket();
         }
-    },
-    { flush: 'sync' }
+    }
 );
 
 export function initWebsocket() {
