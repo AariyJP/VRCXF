@@ -1,0 +1,3 @@
+# GitHub gh token usage
+
+For this VRCXF project, when using `gh` commands that require `GH_TOKEN`, do not persist `GH_TOKEN` to User or Machine environment variables. `~/ghs_token.ps1` writes the GitHub App token to stdout, so use that output directly as a temporary process-scoped token for each command invocation. In PowerShell, prefer patterns like `$env:GH_TOKEN = & "$HOME/ghs_token.ps1"; gh ...; Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue` within the same command scope. After the command, ensure no persistent environment variable is written.
