@@ -92,7 +92,9 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location class="text-xs" :location="getRowInstanceId(row)" />
+                                <Location
+                                    class="friend-view__instance-location text-xs"
+                                    :location="getRowInstanceId(row)" />
                                 <InstanceActionBar
                                     class="text-sm"
                                     :location="getRowInstanceId(row)"
@@ -1081,11 +1083,21 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
+        min-width: 0;
         padding: 4px 2px;
         font-weight: 600;
         font-size: 13px;
+    }
+
+    .friend-view__instance-location {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .friend-view__instance-location :deep(.x-location) {
+        max-width: 100%;
     }
 
     .friend-view__divider {
