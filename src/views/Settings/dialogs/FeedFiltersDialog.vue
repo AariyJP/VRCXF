@@ -1,6 +1,6 @@
 <template>
     <Dialog :open="!!feedFiltersDialogMode" @update:open="(open) => !open && handleDialogClose()">
-        <DialogContent class="sm:max-w-140">
+        <DialogContent class="sm:max-w-180">
             <DialogHeader>
                 <DialogTitle>{{ dialogTitle }}</DialogTitle>
             </DialogHeader>
@@ -27,7 +27,7 @@
                             }
                         ">
                         <ToggleGroupItem v-for="option in setting.options" :key="option.label" :value="option.label">
-                            {{ t(option.textKey) }}
+                            {{ option.textKey ? t(option.textKey) : option.label }}
                         </ToggleGroupItem>
                     </ToggleGroup>
                 </div>

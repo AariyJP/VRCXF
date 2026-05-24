@@ -5,7 +5,8 @@ import { watch } from 'vue';
 import {
     compareByCreatedAt,
     getGroupName,
-    getWorldName
+    getWorldName,
+    parseLocation
 } from '../shared/utils';
 import { database } from '../services/database';
 import { useFriendStore } from './friend';
@@ -328,10 +329,17 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             });
         }
 
+        const parsedLocation = parseLocation(locationStore.lastLocation.location);
+        const isPublicInstance =
+            parsedLocation.accessType === 'public' ||
+            (parsedLocation.accessType === 'group' &&
+                parsedLocation.groupAccessType === 'public');
         if (
             wristFilter[ctx.type] &&
             (wristFilter[ctx.type] === 'On' ||
                 wristFilter[ctx.type] === 'Everyone' ||
+                (wristFilter[ctx.type] === 'Everyone w/o Public' &&
+                    (!isPublicInstance || isFriend)) ||
                 (wristFilter[ctx.type] === 'Friends' && isFriend) ||
                 (wristFilter[ctx.type] === 'VIP' && isFavorite))
         ) {
