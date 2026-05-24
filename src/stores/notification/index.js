@@ -1094,10 +1094,15 @@ export const useNotificationStore = defineStore('Notification', () => {
             }
         }
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;
+        const isPublicInstance =
+            parseLocation(locationStore.lastLocation.location).accessType ===
+            'public';
         if (
             notyFilter[noty.type] &&
             (notyFilter[noty.type] === 'On' ||
                 notyFilter[noty.type] === 'Everyone' ||
+                (notyFilter[noty.type] === 'EveryoneNoPublic' &&
+                    (!isPublicInstance || noty.isFriend)) ||
                 (notyFilter[noty.type] === 'Friends' && noty.isFriend) ||
                 (notyFilter[noty.type] === 'VIP' && noty.isFavorite))
         ) {
