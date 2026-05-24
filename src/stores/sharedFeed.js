@@ -336,7 +336,7 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             wristFilter[ctx.type] &&
             (wristFilter[ctx.type] === 'On' ||
                 wristFilter[ctx.type] === 'Everyone' ||
-                (wristFilter[ctx.type] === 'EveryoneNoPublic' &&
+                (wristFilter[ctx.type] === 'Everyone w/o Public' &&
                     (!isPublicInstance || isFriend)) ||
                 (wristFilter[ctx.type] === 'Friends' && isFriend) ||
                 (wristFilter[ctx.type] === 'VIP' && isFavorite))

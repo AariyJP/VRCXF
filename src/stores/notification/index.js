@@ -1101,7 +1101,7 @@ export const useNotificationStore = defineStore('Notification', () => {
             notyFilter[noty.type] &&
             (notyFilter[noty.type] === 'On' ||
                 notyFilter[noty.type] === 'Everyone' ||
-                (notyFilter[noty.type] === 'EveryoneNoPublic' &&
+                (notyFilter[noty.type] === 'Everyone w/o Public' &&
                     (!isPublicInstance || noty.isFriend)) ||
                 (notyFilter[noty.type] === 'Friends' && noty.isFriend) ||
                 (notyFilter[noty.type] === 'VIP' && noty.isFavorite))
