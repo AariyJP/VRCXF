@@ -329,9 +329,11 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             });
         }
 
+        const parsedLocation = parseLocation(locationStore.lastLocation.location);
         const isPublicInstance =
-            parseLocation(locationStore.lastLocation.location).accessType ===
-            'public';
+            parsedLocation.accessType === 'public' ||
+            (parsedLocation.accessType === 'group' &&
+                parsedLocation.groupAccessType === 'public');
         if (
             wristFilter[ctx.type] &&
             (wristFilter[ctx.type] === 'On' ||
