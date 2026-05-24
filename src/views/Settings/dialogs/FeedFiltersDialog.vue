@@ -27,7 +27,7 @@
                             }
                         ">
                         <ToggleGroupItem v-for="option in setting.options" :key="option.label" :value="option.label">
-                            {{ t(option.textKey) }}
+                            {{ option.textKey ? t(option.textKey) : option.label }}
                         </ToggleGroupItem>
                     </ToggleGroup>
                 </div>

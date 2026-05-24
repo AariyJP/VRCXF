@@ -14,9 +14,8 @@ const getOptions = (optionTypes) => {
             label: 'Everyone',
             textKey: 'dialog.shared_feed_filters.everyone'
         },
-        EveryoneNoPublic: {
-            label: 'Everyone w/o Public',
-            textKey: 'dialog.shared_feed_filters.everyone_no_public'
+        'Everyone w/o Public': {
+            label: 'Everyone w/o Public'
         }
     };
     return optionTypes.map((type) => optionMap[type]);
@@ -36,7 +35,7 @@ function feedFiltersOptions() {
                 'Off',
                 'VIP',
                 'Friends',
-                'EveryoneNoPublic',
+                'Everyone w/o Public',
                 'Everyone'
             ])
         },
@@ -47,7 +46,7 @@ function feedFiltersOptions() {
                 'Off',
                 'VIP',
                 'Friends',
-                'EveryoneNoPublic',
+                'Everyone w/o Public',
                 'Everyone'
             ])
         },
