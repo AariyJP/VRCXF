@@ -561,7 +561,11 @@ async function buildRequest(options) {
 
     return {
         body,
-        credentials: isVrchatApi ? 'include' : 'omit',
+        credentials: isVrchatApi
+            ? 'include'
+            : isLocalApi
+              ? 'same-origin'
+              : 'omit',
         headers,
         method,
         mode: 'cors'
