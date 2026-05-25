@@ -9,9 +9,15 @@ export async function onRequest({
     const url = new URL(request.url);
     const authToken = url.searchParams.get('authToken') ?? '';
 
+    const upstreamHeaders: Record<string, string> = { Upgrade: 'websocket' };
+    const cookie = request.headers.get('cookie');
+    if (cookie) {
+        upstreamHeaders.cookie = cookie;
+    }
+
     const upstreamResp = await fetch(
         `https://pipeline.vrchat.cloud/?authToken=${encodeURIComponent(authToken)}`,
-        { headers: { Upgrade: 'websocket' } }
+        { headers: upstreamHeaders }
     );
 
     const upstream = (upstreamResp as unknown as { webSocket: WebSocket | null })
