@@ -79,7 +79,7 @@ function connectWebSocket(token) {
     if (webSocket !== null) {
         return;
     }
-    const socket = new WebSocket(`${AppDebug.websocketDomain}/?authToken=${token}`);
+    const socket = new WebSocket(`${AppDebug.websocketDomain}/?auth=${token}`);
     socket.onopen = () => {
         wsState.connected = true;
         if (AppDebug.debugWebSocket) {
