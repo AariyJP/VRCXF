@@ -7,7 +7,7 @@ export async function onRequest({
     }
 
     const url = new URL(request.url);
-    const authToken = url.searchParams.get('authToken') ?? '';
+    const auth = url.searchParams.get('auth') ?? '';
 
     const upstreamHeaders: Record<string, string> = { Upgrade: 'websocket' };
     const cookie = request.headers.get('cookie');
@@ -16,7 +16,7 @@ export async function onRequest({
     }
 
     const upstreamResp = await fetch(
-        `https://pipeline.vrchat.cloud/?authToken=${encodeURIComponent(authToken)}`,
+        `https://pipeline.vrchat.cloud/?auth=${encodeURIComponent(auth)}`,
         { headers: upstreamHeaders }
     );
 
