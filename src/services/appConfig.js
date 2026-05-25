@@ -24,7 +24,9 @@ const AppDebug = reactive({
     websocketDomain: BROWSER
         ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
         : 'wss://pipeline.vrchat.cloud',
-    websocketDomainVrchat: 'wss://pipeline.vrchat.cloud'
+    websocketDomainVrchat: BROWSER
+        ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
+        : 'wss://pipeline.vrchat.cloud'
 });
 
 window.$debug = AppDebug;
