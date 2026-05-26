@@ -14,6 +14,10 @@ export async function onRequest({
     if (cookie) {
         upstreamHeaders.cookie = cookie;
     }
+    const userAgent = request.headers.get('user-agent');
+    if (userAgent) {
+        upstreamHeaders['user-agent'] = userAgent;
+    }
 
     const upstreamResp = await fetch(
         `https://pipeline.vrchat.cloud/?auth=${encodeURIComponent(auth)}`,
