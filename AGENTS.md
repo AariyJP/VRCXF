@@ -1,152 +1,152 @@
 # VRCXF
 
 > [!NOTE]
-> This project uses `AGENTS.md` as the single source of truth for agent instructions.
-> `CLAUDE.md`, `.clinerules/CLINE.md`, and `.gemini/GEMINI.md` are symbolic links to this file.
+> このプロジェクトでは `AGENTS.md` をエージェント向け指示の単一の正本として扱う。
+> `CLAUDE.md`、`.clinerules/CLINE.md`、`.gemini/GEMINI.md` は本ファイルへの symbolic link。
 
-**All responses to the user MUST be in Japanese (日本語).**
+**ユーザーへの回答はすべて日本語で行うこと。**
 
-VRChat friend management desktop app. Fork of [vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) maintained as VRCXF by AariyJP. MIT license.
+VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) のフォークで、AariyJP が VRCXF として保守している。MIT ライセンス。
 
-## 🔧 Serena MCP Integration
+## 🔧 Serena MCP 連携
 
-**When Serena MCP server is available, you MUST maximize its usage for all code-related tasks.**
+**Serena MCP サーバーが利用可能なときは、コード関連タスクで必ず最大限活用すること。**
 
-Always prefer Serena tools over manual file reads when possible:
+可能なかぎり手動のファイル読込より Serena ツールを優先する:
 
-- **Code structure**: `mcp_serena_get_symbols_overview`, `mcp_serena_find_symbol`
-- **Search**: `mcp_serena_search_for_pattern`, `mcp_serena_find_referencing_symbols`
-- **Edits**: `mcp_serena_replace_symbol_body`, `mcp_serena_replace_content`, `mcp_serena_insert_before_symbol`, `mcp_serena_insert_after_symbol`
-- **Refactors**: `mcp_serena_rename_symbol`
-- **Context**: `mcp_serena_list_memories`, `mcp_serena_read_memory`
+- **コード構造**: `mcp_serena_get_symbols_overview`、`mcp_serena_find_symbol`
+- **検索**: `mcp_serena_search_for_pattern`、`mcp_serena_find_referencing_symbols`
+- **編集**: `mcp_serena_replace_symbol_body`、`mcp_serena_replace_content`、`mcp_serena_insert_before_symbol`、`mcp_serena_insert_after_symbol`
+- **リファクタ**: `mcp_serena_rename_symbol`
+- **コンテキスト**: `mcp_serena_list_memories`、`mcp_serena_read_memory`
 
-Before starting a code task:
+コードタスクを始める前に:
 
-1. Check `mcp_serena_check_onboarding_performed`
-2. Review relevant memories with `mcp_serena_list_memories`
-3. Use symbol-aware exploration/editing whenever feasible
+1. `mcp_serena_check_onboarding_performed` を確認
+2. `mcp_serena_list_memories` で関連メモリを確認
+3. 可能なときは常にシンボル単位の探索/編集を使う
 
-## ⚠ Required: Cross-Platform Implementation
+## ⚠ 必須: クロスプラットフォーム実装
 
-**All tasks MUST be implemented with cross-platform compatibility in mind.**
+**全タスクはクロスプラットフォーム互換を意識して実装すること。**
 
-Platform configuration:
+プラットフォーム構成:
 
-- **Windows**: CEF (CefSharp) — `Dotnet/Cef/`, `Dotnet/AppApi/Cef/`, `Dotnet/Overlay/Cef/`, `Dotnet/VRCX-Cef.csproj`
-- **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`, `Dotnet/AppApi/Electron/`, `Dotnet/Overlay/Electron/`, `Dotnet/VRCX-Electron.csproj`
+- **Windows**: CEF (CefSharp) — `Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`、`Dotnet/VRCX-Cef.csproj`
+- **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`、`Dotnet/VRCX-Electron.csproj`
 
-Branching patterns:
+分岐パターン:
 
-- **Frontend JS**: branch with `WINDOWS` / `LINUX`
-- **Native API calls**: Windows = direct globals via `CefSharp.BindObjectAsync`, macOS/Linux = proxy via `window.interopApi.callDotNetMethod`
-- **Interop bootstrap**: `src/plugins/interopApi.js` initializes globals, `src/ipc-electron/interopApi.js` exposes the Electron-side proxy helper
-- **WebApi execution**: `src/services/webapi.js` branches to `WebApi.Execute()` on Windows and `WebApi.ExecuteJson()` on macOS/Linux
-- **.NET side**: shared logic in `Dotnet/AppApi/Common/`, platform-specific code in `Dotnet/AppApi/Cef/` and `Dotnet/AppApi/Electron/`
-- **Electron-only APIs**: `window.electron.*` exists only on macOS/Linux
+- **Frontend JS**: `WINDOWS` / `LINUX` で分岐
+- **ネイティブ API 呼び出し**: Windows は `CefSharp.BindObjectAsync` 経由のグローバル直接呼び出し、macOS/Linux は `window.interopApi.callDotNetMethod` 経由のプロキシ
+- **Interop ブートストラップ**: `src/plugins/interopApi.js` がグローバルを初期化、`src/ipc-electron/interopApi.js` が Electron 側プロキシヘルパーを公開
+- **WebApi 実行**: `src/services/webapi.js` が Windows では `WebApi.Execute()`、macOS/Linux では `WebApi.ExecuteJson()` に分岐
+- **.NET 側**: 共通ロジックは `Dotnet/AppApi/Common/`、プラットフォーム固有コードは `Dotnet/AppApi/Cef/` と `Dotnet/AppApi/Electron/`
+- **Electron 専用 API**: `window.electron.*` は macOS/Linux のみ存在
 
-Implementation checklist:
+実装チェックリスト:
 
-1. When adding a new native API used by the frontend, implement it in a shared surface or in both platform backends
-2. For frontend platform branching, follow existing patterns in `src/plugins/interopApi.js` and `src/services/webapi.js`
-3. If using `window.electron.*`, provide a Windows-compatible path when required
-4. When modifying .NET code, keep both `Dotnet/VRCX-Cef.csproj` and `Dotnet/VRCX-Electron.csproj` buildable
+1. フロントエンドが使う新規ネイティブ API を追加する場合は、共通サーフェスまたは両プラットフォームバックエンドで実装する
+2. フロントエンドのプラットフォーム分岐は `src/plugins/interopApi.js` と `src/services/webapi.js` の既存パターンに従う
+3. `window.electron.*` を使う場合は、必要に応じて Windows 互換パスを提供する
+4. .NET コードを変更したら `Dotnet/VRCX-Cef.csproj` と `Dotnet/VRCX-Electron.csproj` の両方がビルド可能な状態を保つ
 
-## Stack
+## 技術スタック
 
-- **Frontend**: Vue 3, Pinia, Vue Router, Vite 7, TailwindCSS 4, shadcn-vue, reka-ui, LightningCSS, vue-i18n, Vitest, Vue Query, ECharts, Graphology + Sigma, vue-sonner
-- **Backend**: C# / .NET 10 (Windows) / .NET 9 (macOS/Linux), SQLite, OpenVR, node-api-dotnet
-- **Desktop**: Electron 39 (macOS/Linux), CEF/CefSharp 144 (Windows), electron-builder
-- **Platform**: Windows / Linux / macOS, x64 + arm64
+- **Frontend**: Vue 3、Pinia、Vue Router、Vite 8、TailwindCSS 4、shadcn-vue、reka-ui、LightningCSS、vue-i18n、Vitest、Vue Query、ECharts、Graphology + Sigma、vue-sonner
+- **Backend**: C# / .NET 10 (Windows) / .NET 9 (macOS/Linux)、SQLite、OpenVR、node-api-dotnet
+- **Desktop**: Electron 40 (macOS/Linux)、CEF/CefSharp 148 (Windows)、electron-builder
+- **対応プラットフォーム**: Windows / Linux / macOS、x64 + arm64
 
-## Architecture
+## アーキテクチャ
 
-Renderer (`src/`) → native bridge (`src/plugins/interopApi.js`, `src/ipc-electron/interopApi.js`) → .NET runtime (`Dotnet/`) → VRChat REST/WebSocket, SQLite, OS integration
+レンダラ (`src/`) → ネイティブブリッジ (`src/plugins/interopApi.js`、`src/ipc-electron/interopApi.js`) → .NET ランタイム (`Dotnet/`) → VRChat REST/WebSocket、SQLite、OS 連携
 
-Current frontend shape:
+現在のフロントエンド構成:
 
-- Vue SPA with Pinia stores and Vue Query
-- Plugin bootstrap in `src/plugins/`
-- API wrappers in `src/api/`
-- request / websocket / database / config services in `src/services/`
-- shared utilities/constants in `src/shared/`
-- route views in `src/views/`
+- Pinia ストアと Vue Query を使う Vue SPA
+- プラグインブートストラップは `src/plugins/`
+- API ラッパーは `src/api/`
+- request / websocket / database / config サービスは `src/services/`
+- 共通ユーティリティ・定数は `src/shared/`
+- ルートビューは `src/views/`
 
-Recent structural patterns now in active use:
+最近積極的に採用されている構造パターン:
 
-- **Coordinator pattern** in `src/coordinators/`
-- **Query layer** in `src/queries/`
-- **Electron IPC helper surface** in `src/ipc-electron/`
-- **Public static assets** in `src/public/`
-- **App shell CSS split** across `src/styles/globals.css` and `src/app.css`
+- **Coordinator パターン** (`src/coordinators/`)
+- **Query レイヤ** (`src/queries/`)
+- **Electron IPC ヘルパー** (`src/ipc-electron/`)
+- **公開静的アセット** (`src/public/`)
+- **アプリシェル CSS の分割**: `src/styles/globals.css` と `src/app.css`
 
-## Directory Structure
+## ディレクトリ構成
 
 ```text
 src/
   app.js                  # initPlugins -> initPiniaPlugins -> createApp -> pinia/i18n/VueQuery -> initComponents -> initRouter -> initSentry -> mount
-  App.vue                 # Root shell: TooltipProvider, MacOSTitleBar, RouterView, Toaster, dialog modals, updater dialog
-  app.css                 # Layout/app-shell CSS
-  index.html              # Main entry
-  vr.html                 # VR overlay entry
-  vite.config.js          # Vite config (port 9000, outDir ../build/html, target chrome144)
-  api/                    # VRChat API wrappers
-  components/             # Shared components and dialogs
+  App.vue                 # ルートシェル: TooltipProvider, MacOSTitleBar, RouterView, Toaster, ダイアログモーダル, アップデータ
+  app.css                 # レイアウト/アプリシェル用 CSS
+  index.html              # メインエントリ
+  vr.html                 # VR オーバーレイエントリ
+  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、target chrome145)
+  api/                    # VRChat API ラッパー
+  components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
-  ipc-electron/           # Electron interop helpers for renderer
-  lib/                    # Shared library helpers
-  localization/           # i18n JSON files
-  plugins/                # Bootstrap plugins (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
-  public/                 # Static assets copied by Vite
-  queries/                # Vue Query client, keys, cache helpers, entity query utilities
-  services/               # Services (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
+  ipc-electron/           # レンダラ向け Electron interop ヘルパー
+  lib/                    # 共通ライブラリヘルパー
+  localization/           # i18n JSON ファイル
+  plugins/                # ブートストラッププラグイン (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
+  public/                 # Vite がコピーする静的アセット
+  queries/                # Vue Query クライアント、key、キャッシュヘルパー、エンティティクエリ
+  services/               # サービス類 (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
   shared/
-    constants/            # Shared constants
-    utils/                # Shared utility modules and tests
-  coordinators/           # Coordinator layer for auth/friend/game/user flows
+    constants/            # 共通定数
+    utils/                # 共通ユーティリティとそのテスト
+  coordinators/           # auth/friend/game/user フロー用 coordinator レイヤ
   stores/
-    gameLog/              # Game log submodules
-    notification/         # Notification submodules
-    settings/             # Settings stores
-    __tests__/            # Store tests
-    index.js              # createGlobalStores() + pinia plugin registration
-    activity.js           # Activity store
-    quickSearch.js        # Quick search store
+    gameLog/              # Game log サブモジュール
+    notification/         # Notification サブモジュール
+    settings/             # Settings ストア
+    __tests__/            # ストアテスト
+    index.js              # createGlobalStores() + Pinia プラグイン登録
+    activity.js           # Activity ストア
+    quickSearch.js        # Quick search ストア
   styles/
-    globals.css           # Tailwind/base CSS variables
-    themes/               # Theme CSS
-  types/                  # Type definitions
+    globals.css           # Tailwind / ベース CSS 変数
+    themes/               # テーマ用 CSS
+  types/                  # 型定義
   views/
-    MyAvatars/            # My Avatars page
-    Sidebar/              # Sidebar UI and tests
-    ...                   # Feed, FriendsLocations, GameLog, Search, Favorites, Charts, Notifications, Tools, Settings, etc.
-  vr/                     # VR overlay UI
+    MyAvatars/            # My Avatars ページ
+    Sidebar/              # サイドバー UI とテスト
+    ...                   # Feed, FriendsLocations, GameLog, Search, Favorites, Charts, Notifications, Tools, Settings 他
+  vr/                     # VR オーバーレイ UI
 src-electron/
-  main.js                 # Electron main process
-  preload.js              # preload bridge
-  InteropApi.js           # .NET interop entry
+  main.js                 # Electron メインプロセス
+  preload.js              # preload ブリッジ
+  InteropApi.js           # .NET interop エントリ
   download-dotnet-runtime.js
   patch-node-api-dotnet.js
   patch-package-version.js
   rename-builds.js
 Dotnet/
-  AppApi/Common/          # Shared native API surface
-  AppApi/Cef/             # Windows-only API layer
-  AppApi/Electron/        # Electron/macOS/Linux API layer
-  Overlay/                # VR overlay implementations
-  IPC/                    # IPC infrastructure
-  ScreenshotMetadata/     # Screenshot metadata support
-  VRCX-Cef.csproj         # Windows build (.NET 10)
-  VRCX-Electron.csproj    # Electron x64 build (.NET 9)
+  AppApi/Common/          # 共通ネイティブ API サーフェス
+  AppApi/Cef/             # Windows 専用 API レイヤ
+  AppApi/Electron/        # Electron/macOS/Linux API レイヤ
+  Overlay/                # VR オーバーレイ実装
+  IPC/                    # IPC 基盤
+  ScreenshotMetadata/     # スクリーンショットメタデータ対応
+  VRCX-Cef.csproj         # Windows ビルド (.NET 10)
+  VRCX-Electron.csproj    # Electron x64 ビルド (.NET 9)
   VRCX-Electron-arm64.csproj
 ```
 
-## Routes
+## ルート
 
-Defined in `src/plugins/router.js`.
+`src/plugins/router.js` で定義。
 
-- Public: `/login`
-- Authenticated shell: `/`
-- Children:
+- 公開: `/login`
+- 認証済みシェル: `/`
+- 子ルート:
   - `/feed`
   - `/friends-locations`
   - `/game-log`
@@ -160,24 +160,24 @@ Defined in `src/plugins/router.js`.
   - `/social/friend-list`
   - `/my-avatars`
   - `/notification`
+  - `/dashboard/:id`
   - `/charts/instance`
   - `/charts/mutual`
+  - `/charts/hot-worlds`
   - `/tools`
   - `/tools/gallery`
   - `/tools/screenshot-metadata`
   - `/settings`
 
-Router notes:
+ルーター仕様:
 
-- Auth guard uses return-based navigation in `router.beforeEach`
-- `/social` itself is blocked
-- Unauthenticated access redirects to `/login`, preserving `redirect` query when relevant
+- 認証ガードは `router.beforeEach` で return ベースのナビゲーションを使用
+- `/social` 自体はブロック
+- 未認証アクセスは `/login` にリダイレクト、必要に応じて `redirect` クエリを保持
 
-## Global Objects
+## グローバルオブジェクト
 
-Window globals are typed in `src/types/globals.d.ts`.
-
-Primary globals:
+`src/types/globals.d.ts` で型定義されている `window` グローバル:
 
 - `AppApi`
 - `AppApiVr`
@@ -192,26 +192,26 @@ Primary globals:
 - `window.electron`
 - `window.$pinia`
 
-## Query / Data Fetching
+## Query / データ取得
 
-- Vue Query client lives in `src/queries/client.js`
-- App bootstrap installs `VueQueryPlugin` in `src/app.js`
-- Default query options: retry once, no refetch on window focus, refetch on reconnect
-- `request()` in `src/service/request.js` still handles direct REST access and request deduplication
+- Vue Query クライアントは `src/queries/client.js`
+- アプリ起動時に `src/app.js` で `VueQueryPlugin` を install
+- デフォルトオプション: retry 1 回、ウィンドウフォーカスでは refetch しない、reconnect 時は refetch
+- 直接 REST アクセスとリクエスト重複排除は引き続き `src/service/request.js` の `request()` が担当
 
-## Store Patterns
+## ストアパターン
 
-- Stores are still created in `createGlobalStores()`
-- Cross-store workflow orchestration lives in `src/coordinators/`
-- Tests for coordinators live under `src/coordinators/__tests__/`
-- ESLint now enforces a **store boundary rule** that disallows direct `xxxStore.foo = ...` and `xxxStore.foo++/--` mutations across store boundaries
+- ストアは引き続き `createGlobalStores()` で生成
+- ストア横断のワークフロー調整は `src/coordinators/`
+- coordinator のテストは `src/coordinators/__tests__/`
+- ESLint が **ストア境界ルール**を強制: 他ストア境界を越えた `xxxStore.foo = ...` および `xxxStore.foo++/--` を禁止
 
-## Settings Persistence
+## 設定の永続化
 
-- `src/services/config.js`: SQLite-backed config repository using `config:`-prefixed keys
-- `VRCXStorage`: file-backed native storage
+- `src/services/config.js`: `config:` プレフィックスキーの SQLite ベース config repository
+- `VRCXStorage`: ファイル基盤のネイティブストレージ
 
-Representative config keys:
+代表的な config キー:
 
 - `VRCX_appLanguage`
 - `VRCX_ThemeMode`
@@ -223,17 +223,17 @@ Representative config keys:
 
 ## VRChat API
 
-- REST endpoint base: `https://api.vrchat.cloud/api/1`
-- WebSocket base: `wss://pipeline.vrchat.cloud`
-- Request path: `src/services/request.js` → `src/services/webapi.js` → native `WebApi`
-- GET dedup window: 10s
-- 404/403 suppression window: 15min
+- REST エンドポイントベース: `https://api.vrchat.cloud/api/1`
+- WebSocket ベース: `wss://pipeline.vrchat.cloud`
+- リクエスト経路: `src/services/request.js` → `src/services/webapi.js` → ネイティブ `WebApi`
+- GET 重複排除ウィンドウ: 10 秒
+- 404/403 抑制ウィンドウ: 15 分
 
-## DB Schema
+## DB スキーマ
 
-Current database version: **15** (stored as `VRCX_databaseVersion` config key, managed in `src/stores/vrcx.js`)
+現在のデータベースバージョン: **16** (`VRCX_databaseVersion` config キーに保存、`src/stores/vrcx.js` で管理)
 
-`src/services/database/` currently includes:
+`src/services/database/` に含まれる現行モジュール:
 
 - `feed`
 - `gameLog`
@@ -247,20 +247,20 @@ Current database version: **15** (stored as `VRCX_databaseVersion` config key, m
 - `friendFavorites`
 - `worldFavorites`
 - `mutualGraph`
-- `activityCache`
+- `activityV2`
 - `tableAlter`
 - `tableFixes`
 - `tableSize`
 
-## Styling
+## スタイリング
 
-- TailwindCSS 4 + CSS variables
-- Base theme/styles in `src/styles/globals.css`
-- Layout shell rules in `src/app.css`
-- Theme files in `src/styles/themes/`
-- Current theme set: `blue`, `green`, `midnight`, `orange`, `red`, `rednight`, `rose`, `violet`, `yellow`
+- TailwindCSS 4 + CSS 変数
+- ベーステーマ/スタイルは `src/styles/globals.css`
+- レイアウトシェル規則は `src/app.css`
+- テーマファイルは `src/styles/themes/`
+- 現行テーマ一覧: `blue`、`green`、`midnight`、`orange`、`red`、`rednight`、`rose`、`violet`、`yellow`
 
-## Dev Commands
+## 開発コマンド
 
 ```bash
 npm run dev
@@ -281,7 +281,7 @@ npm run lint:oxlint
 npm run typecheck:js
 ```
 
-## .NET Build
+## .NET ビルド
 
 ```bash
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
@@ -289,32 +289,38 @@ dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x6
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
 
-## Tooling / Conventions
+## ツール / 規約
 
-- **Prettier**: `printWidth: 80`, `tabWidth: 4`, `semi: true`, `singleQuote: true`, `trailingComma: none`, Vue `printWidth: 120`
-- **ESLint**: flat config, `vue/essential`, `eslint-plugin-prettier`, `eslint-plugin-jsdoc`, `pretty-import`
-- **oxlint**: `.oxlintrc.json`, run via `npm run lint:oxlint`
-- **TypeScript config**: `allowJs`, `checkJs`, `strict: false`, `moduleResolution: bundler`, `noEmit`
-- **Vitest**: `jsdom`, `src/**/*.{test,spec}.js`, setup via `vitest.setup.js`
-- **Path alias**: `@/*` → `./src/*`
-- **Do not modify i18n JSON files unless explicitly instructed**
-- **No generated code comments**: do not add new explanatory comments in code changes
+- **Prettier**: `printWidth: 80`、`tabWidth: 4`、`semi: true`、`singleQuote: true`、`trailingComma: none`、Vue は `printWidth: 120`
+- **ESLint**: flat config、`vue/essential`、`eslint-plugin-prettier`、`eslint-plugin-jsdoc`、`pretty-import`
+- **oxlint**: `.oxlintrc.json`、`npm run lint:oxlint` で実行
+- **TypeScript 設定**: `allowJs`、`checkJs`、`strict: false`、`moduleResolution: bundler`、`noEmit`
+- **Vitest**: `jsdom`、`src/**/*.{test,spec}.js`、setup は `vitest.setup.js`
+- **パスエイリアス**: `@/*` → `./src/*`
+- **i18n JSON ファイルは明示的に指示されない限り変更しない**
+- **生成コードへのコメント禁止**: コード変更で新規の説明コメントを追加しない
 
-## Key Notes
+## 🧪 テストポリシー
 
-- `src/vite.config.js` uses `chrome144` targets and LightningCSS
-- `src/public/` is copied into build output by Vite
-- `NIGHTLY` is true in development or when version suffix is a 7-char hash
-- `window.electron` is macOS/Linux only
-- VR overlay remains split between Windows CEF and Electron/shared-memory flows
-- `build-scripts/build-all.ps1` must be run **from the `build-scripts/` directory** (it starts with `cd ..` to navigate to the repo root); invoke via `Set-Location build-scripts; .\build-all.ps1` or equivalent
-- `build-scripts/build-all.ps1` may terminate when invoking `7z` (e.g. if 7-Zip is not in PATH); treat that as acceptable if .NET build, frontend build, license generation, and junction creation already completed successfully — the `7z` failure can be ignored
-- Recent project direction includes coordinator extraction, Vue Query adoption, CSS tokenization, and upstream sync merges
+- **テストはエージェントのスコープ外**。ユーザーが明示的に依頼しない限り、テストファイル (`**/__tests__/**`、`**/*.test.js`、`**/*.spec.js`) は実行・作成・編集しない。
+- 検証ステップにテスト実行を含めない。型チェック、Lint、ビルドで十分。
+- リファクタの副作用で既存テストが壊れた場合、自分で直そうとせずそのまま残し、事実だけユーザーに報告する。
 
-## GitHub情報取得
+## 重要な注意点
 
-- GitHubから情報を取得する際は、CLI (`gh` コマンド)、API (`curl`) の優先順位で使用すること
+- `src/vite.config.js` は `chrome145` ターゲットと LightningCSS を使用
+- `src/public/` は Vite によってビルド出力にコピーされる
+- `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
+- `window.electron` は macOS/Linux のみ
+- VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
+- `build-scripts/build-all.ps1` は **`build-scripts/` ディレクトリから**実行する必要がある（スクリプトの先頭が `cd ..` でリポジトリルートに移動する）。`Set-Location build-scripts; .\build-all.ps1` のように呼び出す。
+- `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
+- 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、upstream 同期マージ
 
-## 🚨 Git Operation Restrictions
+## GitHub 情報取得
 
-- **Commit and Push**: `git commit` and `git push` are generally performed by the user. Agents MUST NOT perform these operations without explicit permission.
+- GitHub から情報を取得する際は、CLI (`gh` コマンド)、API (`curl`) の優先順位で使用すること
+
+## 🚨 Git 操作の制限
+
+- **commit と push**: `git commit` と `git push` は基本的にユーザーが行う。エージェントはユーザーの明示的な許可なくこれらの操作を行ってはならない。

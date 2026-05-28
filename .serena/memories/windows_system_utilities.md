@@ -1,12 +1,12 @@
-# Windows System Utilities
+# Windows システムユーティリティ
 
-This memory is only a lightweight fallback reference. Prefer Serena and other native tools first.
+このメモリは Shell に頼らざるを得ない場合の最低限のフォールバック参考。基本的に Serena や他の純正ツールを優先する。
 
-## Preferred Shell Style
+## 推奨 Shell スタイル
 
-Use PowerShell when shell access is necessary.
+Shell が必要な場面では PowerShell を使う。
 
-Common read-only commands:
+よく使う読み取り専用コマンド:
 
 ```powershell
 Get-ChildItem
@@ -15,7 +15,7 @@ Get-Content path\to\file
 Select-String -Path *.js -Pattern "text"
 ```
 
-## Safe Git Inspection
+## 安全な Git の参照操作
 
 ```powershell
 git status
@@ -23,8 +23,8 @@ git diff
 git log --oneline -n 20
 ```
 
-## Avoid by Default
+## 既定で避ける
 
-- destructive git commands
-- commit / push commands unless explicitly requested
-- broad shell usage when Serena can inspect/edit more precisely
+- 破壊的な Git コマンド
+- 明示の依頼がない限り commit / push 系のコマンド
+- Serena でより精密に検査・編集できる箇所での広範な Shell 利用

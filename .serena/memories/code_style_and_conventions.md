@@ -1,8 +1,8 @@
-# Code Style and Conventions
+# コーディングスタイルと規約
 
-## Formatting
+## フォーマット
 
-`.prettierrc.json` currently defines:
+`.prettierrc.json` の現行設定:
 
 - `printWidth: 80`
 - `tabWidth: 4`
@@ -11,12 +11,12 @@
 - `quoteProps: as-needed`
 - `trailingComma: none`
 - `arrowParens: always`
-- Vue override: `printWidth: 120`, `bracketSameLine: true`, `vueIndentScriptAndStyle: true`
-- JS override: parser `meriyah`
+- Vue オーバーライド: `printWidth: 120`、`bracketSameLine: true`、`vueIndentScriptAndStyle: true`
+- JS オーバーライド: パーサーに `meriyah` を使用
 
 ## ESLint
 
-`eslint.config.mjs` currently uses:
+`eslint.config.mjs` で使用しているプラグイン:
 
 - `@eslint/js`
 - `eslint-plugin-vue`
@@ -24,7 +24,7 @@
 - `eslint-plugin-jsdoc`
 - `@kamiya4047/eslint-plugin-pretty-import`
 
-Important rules/conventions:
+主なルール:
 
 - `no-unused-vars: warn`
 - `no-case-declarations: off`
@@ -33,34 +33,35 @@ Important rules/conventions:
 - `vue/multi-word-component-names: off`
 - `vue/no-v-text-v-html-on-component: off`
 - `vue/no-use-v-if-with-v-for: warn`
-- `pretty-import/*` rules enabled
-- `no-restricted-syntax` forbids direct cross-store mutation via `xxxStore.foo = ...` and `xxxStore.foo++/--`
+- `pretty-import/*` 系を有効化
+- `no-restricted-syntax` でストア境界を越えた `xxxStore.foo = ...` および `xxxStore.foo++/--` を禁止
 
 ## TypeScript / JS
 
-- Main app code is JS / Vue SFCs
-- Type definitions live in `.d.ts`
-- `tsconfig.app.json` uses `allowJs`, `checkJs`, `strict: false`, `moduleResolution: bundler`, `noEmit`
-- Vitest globals are included in TS types
+- 本体コードは JS / Vue SFC
+- 型定義は `.d.ts` に集約
+- `tsconfig.app.json` は `allowJs`、`checkJs`、`strict: false`、`moduleResolution: bundler`、`noEmit`
+- TS の型に Vitest グローバルを含む
 
-## Testing
+## テスト
 
-- Test runner: Vitest
-- Environment: `jsdom`
-- Include pattern: `src/**/*.{test,spec}.js`
-- Setup file: `vitest.setup.js`
-- Coordinator tests live in `src/stores/coordinators/__tests__/`
+- ランナー: Vitest
+- 環境: `jsdom`
+- include パターン: `src/**/*.{test,spec}.js`
+- セットアップ: `vitest.setup.js`
+- coordinator のテストは `src/stores/coordinators/__tests__/`
+- **エージェントはテストファイルを基本変更・実行しない**。詳細は `mem:testing_policy`。
 
-## Naming / Structure
+## 命名 / 構造
 
-- Vue components: PascalCase
-- Stores and helpers: camelCase filenames
-- Routes mostly use kebab-case paths
-- Shared orchestration logic should prefer coordinator modules over bloating large stores further
-- Query/cache logic should live under `src/query/` when it belongs to fetch/cache coordination rather than view-local state
+- Vue コンポーネント: PascalCase
+- ストアとヘルパーのファイル名: camelCase
+- ルートは原則 kebab-case パス
+- ストア横断の調整ロジックは、巨大化したストアにさらに足すより coordinator モジュールに切り出す
+- 取得/キャッシュ調整に属する処理は、view ローカル状態ではなく `src/query/` 配下に置く
 
-## Comments Policy
+## コメントポリシー
 
-- Existing comments may remain
-- Agents should not add new explanatory code comments unless explicitly required
-- i18n JSON files should not be modified unless the task explicitly calls for translation changes
+- 既存コメントはそのまま残してよい
+- エージェントは明示的に必要とされない限り新規の説明コメントを追加しない
+- 翻訳作業を伴うタスクでない限り、i18n JSON ファイルは変更しない

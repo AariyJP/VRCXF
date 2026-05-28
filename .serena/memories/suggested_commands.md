@@ -1,6 +1,6 @@
-# Suggested Commands
+# 推奨コマンド集
 
-## Primary npm Scripts
+## 主要 npm スクリプト
 
 ```bash
 npm run dev
@@ -17,6 +17,8 @@ npm run dotnet-win
 npm run dotnet-arm64
 ```
 
+> **メモ**: `npm test` / `npm run test:coverage` はエージェントが自動的に走らせない。テストの実行・編集はユーザーから明示的な依頼があった場合のみ (`mem:testing_policy`)。
+
 ## Lint / Format
 
 ```bash
@@ -30,7 +32,7 @@ npx prettier --check .
 npx prettier --write .
 ```
 
-## .NET Build
+## .NET ビルド
 
 ```bash
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
@@ -38,7 +40,7 @@ dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x6
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
 
-## Utilities
+## その他ユーティリティ
 
 ```bash
 dotnet run --project Dotnet\DBMerger\DBMerger.csproj
@@ -46,9 +48,9 @@ npm ci
 npm install
 ```
 
-## Git Inspection Only
+## Git の参照のみ
 
-Use Git commands for inspection, not for committing/pushing on the user's behalf.
+Git コマンドは参照用にのみ使う。ユーザーの代わりに commit / push しない。
 
 ```bash
 git status
@@ -56,10 +58,10 @@ git diff
 git log --oneline --decorate -n 20
 ```
 
-## Notes
+## 補足
 
-- `npm run dev:test` does not exist in the current project
-- Prefer Serena/native tools over shell commands when possible
-- Do not rely on agent-side commit/push flows; the user handles those
-- `build-scripts/build-all.ps1` must be run **from the `build-scripts/` directory** (the script starts with `cd ..`); invoke as `Set-Location build-scripts; .\build-all.ps1` or `powershell -Command "Set-Location 'path\to\VRCX\build-scripts'; .\build-all.ps1"`
-- `build-scripts/build-all.ps1` may stop at the `7z` step (e.g. 7-Zip not in PATH); if .NET build, frontend build, license generation, and junction creation already succeeded, treat that outcome as acceptable — ignore the `7z` failure
+- 現プロジェクトに `npm run dev:test` は存在しない
+- 可能な限り Shell より Serena / 純正ツールを優先する
+- commit / push はユーザーが行うため、エージェント側で走らせない
+- `build-scripts/build-all.ps1` は **`build-scripts/` ディレクトリから**実行すること（スクリプトの先頭が `cd ..`）。`Set-Location build-scripts; .\build-all.ps1` または `powershell -Command "Set-Location 'path\to\VRCX\build-scripts'; .\build-all.ps1"` のように呼ぶ
+- `build-scripts/build-all.ps1` は `7z` ステップで停止することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい
