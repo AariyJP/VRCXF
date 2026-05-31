@@ -13,6 +13,9 @@ const getOptions = (optionTypes) => {
         Everyone: {
             label: 'Everyone',
             textKey: 'dialog.shared_feed_filters.everyone'
+        },
+        'Everyone w/o Public': {
+            label: 'Everyone w/o Public'
         }
     };
     return optionTypes.map((type) => optionMap[type]);
@@ -28,12 +31,24 @@ function feedFiltersOptions() {
         {
             key: 'OnPlayerJoined',
             name: 'OnPlayerJoined',
-            options: getOptions(['Off', 'VIP', 'Friends', 'Everyone'])
+            options: getOptions([
+                'Off',
+                'VIP',
+                'Friends',
+                'Everyone w/o Public',
+                'Everyone'
+            ])
         },
         {
             key: 'OnPlayerLeft',
             name: 'OnPlayerLeft',
-            options: getOptions(['Off', 'VIP', 'Friends', 'Everyone'])
+            options: getOptions([
+                'Off',
+                'VIP',
+                'Friends',
+                'Everyone w/o Public',
+                'Everyone'
+            ])
         },
         {
             key: 'Online',
