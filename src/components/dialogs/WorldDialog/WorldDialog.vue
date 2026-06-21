@@ -27,7 +27,7 @@
                 <div class="min-w-0 sm:ml-4 sm:flex sm:flex-1 sm:items-start sm:gap-4">
                     <div class="min-w-0 flex-1">
                         <div>
-                            <span class="font-bold mr-1.5" style="cursor: pointer" @click="copyWorldName">
+                            <span class="font-bold mr-1.5 break-all" style="cursor: pointer" @click="copyWorldName">
                                 <Home
                                     v-if="
                                         currentUser.$homeLocation &&
@@ -39,7 +39,7 @@
                         </div>
                         <div class="mt-1.5">
                             <span
-                                class="cursor-pointer x-grey font-mono"
+                                class="cursor-pointer x-grey font-mono break-all"
                                 @click="showUserDialog(worldDialog.ref.authorId)"
                                 v-text="worldDialog.ref.authorName" />
                         </div>
