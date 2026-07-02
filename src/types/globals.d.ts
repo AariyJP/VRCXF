@@ -30,6 +30,7 @@ declare global {
         gameLogService: any;
         crypto: any;
         sqliteService: any;
+        isVrOverlay: boolean;
         interopApi: {
             callDotNetMethod: (
                 className: any,
@@ -68,11 +69,11 @@ declare global {
             restartApp: () => Promise<void>;
             getOverlayWindow: () => Promise<boolean>;
             updateVr: (
-                active: bool,
-                hmdOverlay: bool,
-                wristOverlay: bool,
-                menuButton: bool,
-                overlayHand: int
+                active: boolean,
+                hmdOverlay: boolean,
+                wristOverlay: boolean,
+                menuButton: boolean,
+                overlayHand: number
             ) => Promise<void>;
             ipcRenderer: {
                 on(
