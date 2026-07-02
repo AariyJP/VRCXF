@@ -156,14 +156,14 @@ namespace VRCX
             _lock.EnterWriteLock();
             try
             {
-                // if (string.IsNullOrEmpty(largeKey) &&
-                //     string.IsNullOrEmpty(smallKey))
-                // {
-                //     _presence.Assets = null;
-                //     _presence.Party = null;
-                //     _presence.Timestamps = null;
-                //     return;
-                // }
+                if (string.IsNullOrEmpty(largeKey) &&
+                    string.IsNullOrEmpty(smallKey))
+                {
+                    _presence.Assets = null;
+                    _presence.Party = null;
+                    _presence.Timestamps = null;
+                    return;
+                }
 
                 _presence.Details = LimitByteLength(details, 127);
                 _presence.DetailsUrl = !string.IsNullOrEmpty(detailsUrl) ? detailsUrl : null;
