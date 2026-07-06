@@ -47,6 +47,7 @@ jobs:
               run: |
                   echo "${{ needs.set_version.outputs.version }}" > Version
                   echo "!define PRODUCT_VERSION_FROM_FILE \"${{ needs.set_version.outputs.date }}.0\"" > Installer/version_define.nsh
+                  sed -i "s/Version=\"0.0.0.0\"/Version=\"${{ needs.set_version.outputs.date }}.0\"/" build-scripts/msix/AppxManifest.xml
                   cat Version
             - uses: actions/cache@v5
               with:

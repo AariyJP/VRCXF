@@ -7,7 +7,7 @@
   <Identity
     Name="AariyJP.VRCXF"
     Publisher="CN=C459FDB3-77BE-4076-A66D-95166CA5E457"
-    Version="2026.5.31.0"
+    Version="0.0.0.0"
     ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>VRCXF</DisplayName>
