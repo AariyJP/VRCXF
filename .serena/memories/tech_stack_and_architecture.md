@@ -1,11 +1,11 @@
-# Tech Stack and Architecture
+# 技術スタックとアーキテクチャ
 
-## Frontend
+## フロントエンド
 
 - Vue 3
 - Pinia
 - Vue Router (hash history)
-- Vite 7
+- Vite 8
 - TailwindCSS 4
 - shadcn-vue / reka-ui
 - vue-i18n
@@ -15,49 +15,49 @@
 - Graphology + Sigma
 - vue-sonner
 
-## Backend / Desktop
+## バックエンド / デスクトップ
 
-- C# / .NET 10 for `Dotnet/VRCX-Cef.csproj`
-- C# / .NET 9 for `Dotnet/VRCX-Electron.csproj` and `Dotnet/VRCX-Electron-arm64.csproj`
-- Electron 39 on macOS/Linux
-- CEF/CefSharp 144 on Windows
+- C# / .NET 10: `Dotnet/VRCX-Cef.csproj`
+- C# / .NET 9: `Dotnet/VRCX-Electron.csproj` および `Dotnet/VRCX-Electron-arm64.csproj`
+- macOS/Linux で Electron 40
+- Windows で CEF/CefSharp 148
 - SQLite
 - node-api-dotnet
 
-## Key Directories
+## 主要ディレクトリ
 
-- `src/api/`: VRChat API wrappers
-- `src/components/`: shared components and dialogs
+- `src/api/`: VRChat API ラッパー
+- `src/components/`: 共通コンポーネントとダイアログ
 - `src/composables/`: Vue composables
-- `src/ipc-electron/`: Electron IPC helpers for renderer
-- `src/plugins/`: bootstrap plugins (`dayjs`, `i18n`, `interopApi`, `noty`, `router`, `sentry`, `ui`)
-- `src/public/`: static assets copied by Vite
-- `src/queries/`: Vue Query client, keys, cache, query helpers
-- `src/services/`: request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState
-- `src/shared/`: constants and shared utilities
-- `src/coordinators/`: flow orchestration layer
-- `src/stores/gameLog/`, `src/stores/notification/`: store submodules
-- `src/views/MyAvatars/`: My Avatars route
-- `src/styles/globals.css` + `src/app.css`: styling split
-- `src-electron/`: Electron main/preload/build helpers
-- `Dotnet/AppApi/Common|Cef|Electron/`: native API layers
+- `src/ipc-electron/`: レンダラ向け Electron IPC ヘルパー
+- `src/plugins/`: ブートストラッププラグイン (`dayjs`、`i18n`、`interopApi`、`noty`、`router`、`sentry`、`ui`)
+- `src/public/`: Vite がコピーする静的アセット
+- `src/queries/`: Vue Query クライアント、key、cache、query ヘルパー
+- `src/services/`: request、websocket、webapi、database、config、sqlite、appConfig、jsonStorage、watchState
+- `src/shared/`: 定数と共通ユーティリティ
+- `src/coordinators/`: フロー調整層
+- `src/stores/gameLog/`、`src/stores/notification/`: ストアのサブモジュール
+- `src/views/MyAvatars/`: My Avatars ルート
+- `src/styles/globals.css` + `src/app.css`: スタイリングの分割
+- `src-electron/`: Electron メイン/プリロード/ビルドヘルパー
+- `Dotnet/AppApi/Common|Cef|Electron/`: ネイティブ API レイヤ
 
-## App Bootstrap
+## アプリ起動順序
 
-`src/app.js` currently initializes in this order:
+`src/app.js` の現状の初期化順:
 
 1. `initPlugins()`
 2. `initPiniaPlugins()`
 3. `createApp(App)`
-4. install `pinia`, `i18n`, `VueQueryPlugin`
+4. `pinia`、`i18n`、`VueQueryPlugin` を install
 5. `initComponents(app)`
 6. `initRouter(app)`
 7. `initSentry(app)`
 8. `app.mount('#root')`
 
-## Root App Shell
+## ルートアプリシェル
 
-`src/App.vue` includes:
+`src/App.vue` に含まれる要素:
 
 - `TooltipProvider`
 - `MacOSTitleBar`
@@ -69,9 +69,9 @@
 - `VRCXUpdateDialog`
 - `#x-dialog-portal`
 
-## Routes
+## ルート一覧
 
-Main authenticated routes currently include:
+主な認証済みルート:
 
 - `/feed`
 - `/friends-locations`
@@ -86,18 +86,20 @@ Main authenticated routes currently include:
 - `/social/friend-list`
 - `/my-avatars`
 - `/notification`
+- `/dashboard/:id`
 - `/charts/instance`
 - `/charts/mutual`
+- `/charts/hot-worlds`
 - `/tools`
 - `/tools/gallery`
 - `/tools/screenshot-metadata`
 - `/settings`
 
-Router uses return-based guards and blocks `/social` itself.
+ルーターは return ベースガードで、`/social` 自体をブロックする。
 
-## Globals
+## グローバル
 
-Typed in `src/types/globals.d.ts`:
+`src/types/globals.d.ts` で型定義されているグローバル:
 
 - `AppApi`
 - `AppApiVr`
@@ -112,16 +114,16 @@ Typed in `src/types/globals.d.ts`:
 - `window.electron`
 - `window.$pinia`
 
-## Persistence / Data
+## 永続化 / データ
 
-- Configs: `src/services/config.js`
-- Native KV storage: `VRCXStorage`
-- Current database version: **15** (config key `VRCX_databaseVersion`, managed in `src/stores/vrcx.js`)
-- DB schema modules: `feed`, `gameLog`, `notifications`, `moderation`, `friendLogHistory`, `friendLogCurrent`, `memos`, `avatarFavorites`, `avatarTags`, `friendFavorites`, `worldFavorites`, `mutualGraph`, `activityCache`, `tableAlter`, `tableFixes`, `tableSize`
+- 設定: `src/services/config.js`
+- ネイティブ KV ストレージ: `VRCXStorage`
+- 現在の DB バージョン: **16** (`VRCX_databaseVersion` config キー、`src/stores/vrcx.js` で管理)
+- DB スキーマモジュール: `feed`、`gameLog`、`notifications`、`moderation`、`friendLogHistory`、`friendLogCurrent`、`memos`、`avatarFavorites`、`avatarTags`、`friendFavorites`、`worldFavorites`、`mutualGraph`、`activityV2`、`tableAlter`、`tableFixes`、`tableSize`
 
-## Styling / Assets
+## スタイリング / アセット
 
-- TailwindCSS 4 + CSS variables
-- Themes in `src/styles/themes/`
-- Static assets in `src/public/`
-- Vite build target currently `chrome144`
+- TailwindCSS 4 + CSS 変数
+- テーマは `src/styles/themes/`
+- 静的アセットは `src/public/`
+- Vite ビルドターゲットは現状 `chrome145`

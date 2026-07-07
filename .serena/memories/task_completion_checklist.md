@@ -1,29 +1,30 @@
-# Task Completion Checklist
+# タスク完了チェックリスト
 
-## After Code Changes
+## コード変更後の流れ
 
-### Validate scope
+### スコープ確認
 
-- Confirm whether the change touched frontend only, .NET only, or both
-- If native/frontend boundaries changed, review both platform paths
-- If architecture changed materially, update `AGENTS.md`
+- フロントエンドのみ / .NET のみ / 両方のどれを触ったか整理する
+- ネイティブとフロントの境界に触れた場合は両プラットフォーム経路を確認する
+- アーキテクチャが大きく変わったら `AGENTS.md` を更新する
 
-### Quality checks
+### 品質チェック
 
-Run what is appropriate for the touched area:
+触った領域に応じて以下を実行する:
 
 ```bash
 npx eslint .
-npm test
 npm run prod
 npm run prod-linux
 ```
 
-Use targeted verification when the task is narrow, but do not claim checks you did not run.
+> **注意**: `npm test` は基本走らせない。テストの実行・修正・追加はユーザーから明示的に依頼された場合のみ (`mem:testing_policy`)。
 
-### Native verification
+タスクが狭いときは絞った検証で構わないが、実行していないチェックを実行したと報告しないこと。
 
-When .NET or interop code changed, use the relevant builds:
+### ネイティブの検証
+
+.NET / interop を変更した場合は対応するビルドを実行:
 
 ```bash
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
@@ -31,37 +32,37 @@ dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x6
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
 
-### Cross-platform verification
+### クロスプラットフォーム検証
 
-When adding/changing native APIs or shared UI behavior:
+ネイティブ API を追加・変更した、または共通 UI の挙動を変えた場合:
 
-- Check `WINDOWS` and `LINUX` branches
-- Confirm CEF and Electron paths still make sense
-- Verify `window.electron` usage is guarded where needed
-- Keep `src/plugin/interopApi.js`, `src/ipc-electron/interopApi.js`, and native surfaces aligned
+- `WINDOWS` / `LINUX` の分岐を確認
+- CEF / Electron 経路が両方つじつまの合う状態か確認
+- 必要箇所で `window.electron` がガードされているか確認
+- `src/plugin/interopApi.js`、`src/ipc-electron/interopApi.js` とネイティブサーフェスの整合を保つ
 
-### Data / schema verification
+### データ / スキーマ検証
 
-When changing database behavior:
+DB 挙動を変えた場合:
 
-- Update schema/migration modules under `src/service/database/` as needed
-- Consider both existing DB migration and fresh DB creation paths
+- 必要に応じて `src/service/database/` のスキーマ/マイグレーションモジュールを更新
+- 既存 DB のマイグレーション経路と新規 DB 作成経路の両方を考慮する
 
-### Query / cache verification
+### Query / キャッシュ検証
 
-When changing entity fetch/cache logic:
+エンティティ取得/キャッシュロジックを変えた場合:
 
-- Check whether the change belongs in `src/query/` rather than a store or component
-- Verify query invalidation / cache update paths if applicable
+- ストアやコンポーネントではなく `src/query/` に置くべきかを確認
+- 必要なら invalidation / キャッシュ更新経路もチェック
 
-### Docs / conventions
+### ドキュメント / 規約
 
-- Do not add new explanatory code comments unless explicitly required
-- Do not modify localization JSON files unless the task is about translations
-- Update `AGENTS.md` or Serena memories when project structure/patterns changed
+- 必須でない限り新規説明コメントは追加しない
+- 翻訳タスクでない限り i18n JSON は触らない
+- 構造やパターンが変わったら `AGENTS.md` または Serena メモリを更新する
 
-### Git / delivery
+### Git / 納品
 
-- Inspect with `git status` / `git diff` when useful
-- Do not commit or push unless the user explicitly asks
-- Report clearly which checks were run and which were not run
+- 必要に応じて `git status` / `git diff` で確認
+- ユーザーが明示しない限り commit / push しない
+- 実行したチェック・していないチェックを明確に報告する

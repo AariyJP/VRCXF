@@ -1,32 +1,32 @@
-# VRCXF Project Overview
+# VRCXF プロジェクト概要
 
-## Project Purpose
+## プロジェクトの目的
 
-VRCXF is a desktop application for VRChat friend management, presence tracking, logging, moderation support, favorites management, charts, tools, and VR overlay support. It is a maintained fork of vrcx-team/VRCX.
+VRCXF は VRChat のフレンド管理、プレゼンス追跡、ログ収集、モデレーション支援、お気に入り管理、チャート、ツール群、VR オーバーレイサポートを提供するデスクトップアプリ。vrcx-team/VRCX のフォークとして保守されている。
 
-## Current Product Shape
+## 現在のプロダクト形態
 
-- Branding in the codebase is primarily `VRCXF`
-- Windows uses CEF/CefSharp
-- macOS/Linux use Electron + node-api-dotnet
-- Frontend is a Vue 3 SPA with Pinia, Vue Router, TailwindCSS 4, shadcn-vue, vue-i18n, Vitest, and Vue Query
-- Backend is C# with .NET 10 on Windows and .NET 9 on Electron targets
+- コードベース上のブランディングは主に `VRCXF`
+- Windows は CEF/CefSharp
+- macOS/Linux は Electron + node-api-dotnet
+- フロントエンドは Vue 3 SPA、Pinia、Vue Router、TailwindCSS 4、shadcn-vue、vue-i18n、Vitest、Vue Query を使用
+- バックエンドは C#、Windows で .NET 10、Electron ターゲットで .NET 9
 
-## Active Architectural Direction
+## 進行中のアーキテクチャ方針
 
-Recent project evolution introduced and/or expanded these layers:
+最近のプロジェクト進化で導入・拡張されたレイヤ:
 
-- `src/queries/`: Vue Query client, cache helpers, entity query utilities
-- `src/coordinators/`: orchestration layer for auth, friend, game, and user flows
-- `src/ipc-electron/`: renderer-side Electron IPC helper surface
-- `src/public/`: Vite-managed public static assets
-- `src/app.css`: app shell layout styling separated from `src/styles/globals.css`
+- `src/queries/`: Vue Query クライアント、キャッシュヘルパー、エンティティクエリ
+- `src/coordinators/`: 認証、フレンド、ゲーム、ユーザーフローのオーケストレーション層
+- `src/ipc-electron/`: レンダラ側の Electron IPC ヘルパー
+- `src/public/`: Vite が管理する公開静的アセット
+- `src/app.css`: `src/styles/globals.css` から分離されたアプリシェルのレイアウト用 CSS
 
-## Key Runtime Flow
+## 主なランタイムフロー
 
-Renderer (`src/`) -> interop bootstrap (`src/plugins/interopApi.js`, `src/ipc-electron/interopApi.js`) -> .NET runtime (`Dotnet/`) -> VRChat API / WebSocket / SQLite / OS integration
+レンダラ (`src/`) → interop ブートストラップ (`src/plugins/interopApi.js`、`src/ipc-electron/interopApi.js`) → .NET ランタイム (`Dotnet/`) → VRChat API / WebSocket / SQLite / OS 連携
 
-## Important User-Facing Areas
+## ユーザー向け主要領域
 
 - Feed
 - Friends Locations
@@ -40,4 +40,4 @@ Renderer (`src/`) -> interop bootstrap (`src/plugins/interopApi.js`, `src/ipc-el
 - Tools
 - Settings
 - My Avatars
-- VR overlay
+- VR オーバーレイ
