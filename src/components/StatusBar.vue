@@ -158,10 +158,18 @@
                         </HoverCard>
 
                         <TooltipWrapper v-if="visibility.ws" :content="wsTooltip" side="top">
-                            <div class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border">
+                            <div
+                                class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
+                                @click="handleWebSocketToggle">
                                 <span
                                     class="inline-block size-2 rounded-full shrink-0"
-                                    :class="wsState.connected ? 'bg-status-online' : 'bg-status-offline-alt'" />
+                                    :class="
+                                        wsState.connected
+                                            ? 'bg-status-online'
+                                            : isWebSocketEnabled
+                                                ? 'bg-status-askme'
+                                                : 'bg-status-offline-alt'
+                                    " />
                                 <span class="text-foreground text-[11px]">WebSocket</span>
                                 <canvas ref="wsCanvasRef" class="shrink-0 rounded-sm" />
                                 <span class="text-[10px] text-foreground">{{
@@ -260,16 +268,13 @@
                                         :step="1"
                                         :format-options="{ maximumFractionDigits: 0 }"
                                         class="w-20"
-                                        @click.stop
-                                        @update:modelValue="setZoomLevel">
+                                        @click.stop>
                                         <NumberFieldContent>
                                             <NumberFieldDecrement />
                                             <NumberFieldInput
                                                 ref="zoomInputRef"
                                                 class="h-[18px] text-[11px] px-0.5 text-center"
-                                                @blur="zoomEditing = false"
-                                                @keydown.enter="zoomEditing = false"
-                                                @keydown.escape="zoomEditing = false" />
+                                                @blur="setZoomLevel" />
                                             <NumberFieldIncrement />
                                         </NumberFieldContent>
                                     </NumberField>
@@ -414,7 +419,7 @@
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import { useI18n } from 'vue-i18n';
     import { openExternalLink } from '@/shared/utils/appActions';
-    import { wsState } from '@/services/websocket';
+    import { disableWebSocket, enableWebSocket, isWebSocketEnabled, wsState } from '@/services/websocket';
 
     import dayjs from 'dayjs';
     import timezone from 'dayjs/plugin/timezone';
@@ -620,6 +625,14 @@
         return `WebSocket: ${state}`;
     });
 
+    function handleWebSocketToggle() {
+        if (wsState.connected || isWebSocketEnabled.value) {
+            disableWebSocket();
+            return;
+        }
+        enableWebSocket();
+    }
+
     const appUptimeText = computed(() => {
         const elapsedSeconds = Math.floor((now.value - vrcxStore.appStartAt) / 1000);
         return formatAppUptime(elapsedSeconds);
@@ -720,9 +733,19 @@
         drawSparkline();
     });
 
+    const zoomLevel = ref(100);
+    const zoomEditing = ref(false);
+    const zoomInputRef = ref(null);
+    let cleanupWheel = null;
+
     onBeforeUnmount(() => {
         clearTimeout(serversHoverTimer);
+        if (cleanupWheel) {
+            cleanupWheel();
+        }
     });
+
+    initGetZoomLevel();
 
     watch(
         () => visibility.ws,
@@ -735,45 +758,34 @@
         }
     );
 
-    const zoomLevel = ref(100);
-    const zoomEditing = ref(false);
-    const zoomInputRef = ref(null);
-
-    if (!isMacOS.value) {
-        initZoom();
+    async function initGetZoomLevel() {
+        const handleWheel = (event) => {
+            if (event.ctrlKey) {
+                getZoomLevel();
+            }
+        };
+        window.addEventListener('wheel', handleWheel);
+        cleanupWheel = () => {
+            window.removeEventListener('wheel', handleWheel);
+        };
+        getZoomLevel();
     }
 
-    /**
-     *
-     */
-    async function initZoom() {
-        try {
-            zoomLevel.value = ((await AppApi.GetZoom()) + 10) * 10;
-        } catch {
-            // AppApi not available
-        }
+    async function getZoomLevel() {
+        zoomLevel.value = Math.round(((await AppApi.GetZoom()) + 10) * 10);
     }
 
-    /**
-     *
-     */
     function setZoomLevel() {
-        try {
-            AppApi.SetZoom(zoomLevel.value / 10 - 10);
-        } catch {
-            // AppApi not available
-        }
+        zoomEditing.value = false;
+        AppApi.SetZoom(zoomLevel.value / 10 - 10);
     }
 
-    /**
-     *
-     */
     async function toggleZoomEdit() {
         if (zoomEditing.value) {
             zoomEditing.value = false;
             return;
         }
-        await initZoom();
+        await getZoomLevel();
         zoomEditing.value = true;
         await nextTick();
         zoomInputRef.value?.$el?.focus?.();

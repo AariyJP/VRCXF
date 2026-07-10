@@ -14,6 +14,7 @@ import { useVrcxStore } from '../vrcx';
 import { watchState } from '../../services/watchState';
 
 import configRepository from '../../services/config';
+import { WEBSOCKET_AUTO_CONNECT_KEY } from '../../services/websocket';
 import webApiService from '../../services/webapi';
 
 export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
@@ -35,6 +36,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
     const vrcQuitFix = ref(true);
     const autoSweepVRChatCache = ref(false);
     const selfInviteOverride = ref(false);
+    const webSocketAutoConnectEnabled = ref(false);
     const saveInstancePrints = ref(false);
     const cropInstancePrints = ref(false);
     const saveInstanceStickers = ref(false);
@@ -81,7 +83,13 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         { flush: 'sync' }
     );
 
+    let initAdvancedSettingsPromise;
+
     async function initAdvancedSettings() {
+        if (initAdvancedSettingsPromise) {
+            return initAdvancedSettingsPromise;
+        }
+        initAdvancedSettingsPromise = (async () => {
         const [
             enablePrimaryPasswordConfig,
             bioLanguageConfig,
@@ -89,6 +97,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             vrcQuitFixConfig,
             autoSweepVRChatCacheConfig,
             selfInviteOverrideConfig,
+            webSocketAutoConnectEnabledConfig,
             saveInstancePrintsConfig,
             cropInstancePrintsConfig,
             saveInstanceStickersConfig,
@@ -126,6 +135,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             configRepository.getBool('VRCX_vrcQuitFix', true),
             configRepository.getBool('VRCX_autoSweepVRChatCache', false),
             configRepository.getBool('VRCX_selfInviteOverride', false),
+            configRepository.getBool(WEBSOCKET_AUTO_CONNECT_KEY, false),
             configRepository.getBool('VRCX_saveInstancePrints', false),
             configRepository.getBool('VRCX_cropInstancePrints', false),
             configRepository.getBool('VRCX_saveInstanceStickers', false),
@@ -181,6 +191,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         vrcQuitFix.value = vrcQuitFixConfig;
         autoSweepVRChatCache.value = autoSweepVRChatCacheConfig;
         selfInviteOverride.value = selfInviteOverrideConfig;
+        webSocketAutoConnectEnabled.value = webSocketAutoConnectEnabledConfig;
         saveInstancePrints.value = saveInstancePrintsConfig;
         cropInstancePrints.value = cropInstancePrintsConfig;
         saveInstanceStickers.value = saveInstanceStickersConfig;
@@ -226,6 +237,9 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
                 checkSentryConsent();
             }
         }, 2000);
+        })();
+
+        return initAdvancedSettingsPromise;
     }
 
     initAdvancedSettings();
@@ -267,6 +281,10 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             'VRCX_selfInviteOverride',
             selfInviteOverride.value
         );
+    }
+    function setWebSocketAutoConnectEnabled(value) {
+        webSocketAutoConnectEnabled.value = value;
+        configRepository.setBool(WEBSOCKET_AUTO_CONNECT_KEY, value);
     }
     function setSaveInstancePrints() {
         saveInstancePrints.value = !saveInstancePrints.value;
@@ -1104,6 +1122,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         vrcQuitFix,
         autoSweepVRChatCache,
         selfInviteOverride,
+        webSocketAutoConnectEnabled,
         saveInstancePrints,
         cropInstancePrints,
         saveInstanceStickers,
@@ -1146,6 +1165,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         setVrcQuitFix,
         setAutoSweepVRChatCache,
         setSelfInviteOverride,
+        setWebSocketAutoConnectEnabled,
         setSaveInstancePrints,
         setCropInstancePrints,
         setSaveInstanceStickers,

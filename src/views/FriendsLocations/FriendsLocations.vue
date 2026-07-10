@@ -26,7 +26,11 @@
                     <div>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button class="rounded-full mr-2" size="icon" variant="ghost">
+                                <Button
+                                    class="rounded-full mr-2"
+                                    size="icon"
+                                    variant="ghost"
+                                    :ariaLabel="t('view.charts.instance_activity.settings.header')">
                                     <Settings />
                                 </Button>
                             </PopoverTrigger>
@@ -92,7 +96,7 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location class="text-xs" :location="getRowInstanceId(row)" />
+                                <Location class="text-xs w-full min-w-0" :location="getRowInstanceId(row)" />
                                 <InstanceActionBar
                                     class="text-sm"
                                     :location="getRowInstanceId(row)"
@@ -1081,7 +1085,8 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
-        width: fit-content;
+        width: 100%;
+        min-width: 0;
         max-width: 100%;
         padding: 4px 2px;
         font-weight: 600;

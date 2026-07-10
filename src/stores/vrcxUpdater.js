@@ -65,6 +65,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         if (isMacOS.value) {
             noUpdater.value = true;
         }
+        noUpdater.value = true;
 
         const [VRCX_autoUpdateVRCX, VRCX_id] = await Promise.all([
             configRepository.getString('VRCX_autoUpdateVRCX', 'Auto Download'),
