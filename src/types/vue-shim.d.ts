@@ -10,6 +10,7 @@ declare module 'vue' {
         BROWSER: boolean;
         WINDOWS: boolean;
         LINUX: boolean;
+        TAURI: boolean;
         NIGHTLY: boolean;
         VERSION: string;
     }

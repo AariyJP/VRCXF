@@ -858,6 +858,7 @@
                 "AssetBundleManager": "readonly",
                 "WINDOWS": "readonly",
                 "LINUX": "readonly",
+                "TAURI": "readonly",
                 "VERSION": "readonly",
                 "NIGHTLY": "readonly",
                 "webApiService": "readonly",

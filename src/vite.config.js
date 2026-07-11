@@ -108,8 +108,14 @@ export default defineConfig(({ mode }) => {
     const nightly =
         mode === 'development' || version.split('-').at(-1).length === 7;
 
+    const isTauri = process.env.PLATFORM === 'tauri';
+
     return {
         base: '',
+        ...(isTauri && {
+            clearScreen: false,
+            envPrefix: ['VITE_', 'TAURI_ENV_']
+        }),
         plugins: [
             remixiconWoff2Only(),
             vue(),
@@ -167,12 +173,18 @@ export default defineConfig(({ mode }) => {
             BROWSER: JSON.stringify(process.env.PLATFORM === 'browser'),
             LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
             WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
+            TAURI: JSON.stringify(isTauri),
             VERSION: JSON.stringify(version),
             NIGHTLY: JSON.stringify(nightly)
         },
         server: {
             port: 9000,
             strictPort: true,
+            ...(isTauri && {
+                watch: {
+                    ignored: ['**/src-tauri/**']
+                }
+            }),
             proxy: {
                 '/api/1': {
                     target: 'http://127.0.0.1:8788',

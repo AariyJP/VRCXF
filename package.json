@@ -23,6 +23,7 @@
         "dev-browser": "concurrently -k -n vite,wrangler -c cyan,magenta \"npm run dev-browser:vite\" \"wrangler pages dev src --port 8788\"",
         "dev-browser:vite": "cross-env PLATFORM=browser vite serve src",
         "dev-linux": "cross-env PLATFORM=linux vite serve src",
+        "dev-tauri": "cross-env PLATFORM=tauri vite serve src",
         "localization": "node ./src/shared/utils/localizationHelperCLI.js",
         "format": "oxfmt src src-electron eslint.config.mjs vitest.config.js vitest.setup.js",
         "format:check": "oxfmt --check src src-electron eslint.config.mjs vitest.config.js vitest.setup.js",
@@ -37,6 +38,10 @@
         "prod-browser": "cross-env PLATFORM=browser vite build src && npm run build:licenses",
         "preview-cloudflare": "wrangler pages dev build/html",
         "prod-linux": "cross-env PLATFORM=linux vite build src && npm run build:licenses",
+        "prod-tauri": "cross-env PLATFORM=tauri vite build src && npm run build:licenses",
+        "tauri": "tauri",
+        "tauri:dev": "tauri dev",
+        "tauri:build": "tauri build",
         "build-electron": "node ./src-electron/download-dotnet-runtime.js --arch=x64 && node ./src-electron/patch-package-version.js && electron-builder --x64 --publish never",
         "build-electron-arm64": "node ./src-electron/download-dotnet-runtime.js --arch=arm64 && node ./src-electron/patch-package-version.js && electron-builder --arm64 --publish never",
         "postbuild-electron": "node ./src-electron/patch-node-api-dotnet.js --arch=x64 && node ./src-electron/rename-builds.js --arch=x64",
@@ -44,6 +49,8 @@
         "start-electron": "electron . --hot-reload"
     },
     "dependencies": {
+        "@tauri-apps/api": "^2.11.1",
+        "@tauri-apps/plugin-os": "^2.3.2",
         "hazardous": "^0.3.0",
         "node-api-dotnet": "^0.9.21"
     },
@@ -65,6 +72,7 @@
         "@tanstack/vue-query": "^5.100.14",
         "@tanstack/vue-table": "^8.21.3",
         "@tanstack/vue-virtual": "^3.13.26",
+        "@tauri-apps/cli": "^2.11.4",
         "@types/node": "^25.9.1",
         "@vee-validate/zod": "^4.15.1",
         "@vitejs/plugin-vue": "^6.0.7",

@@ -123,7 +123,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                     state.nextAutoStateChange = 3;
                     updateAutoStateChange();
                 }
-                if (LINUX && --state.nextGetLogCheck <= 0) {
+                if ((LINUX || TAURI) && --state.nextGetLogCheck <= 0) {
                     state.nextGetLogCheck = 0.5;
                     const logLines = await LogWatcher.GetLogLines();
                     if (logLines) {
@@ -132,7 +132,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                         });
                     }
                 }
-                if (LINUX && --state.nextGameRunningCheck <= 0) {
+                if ((LINUX || TAURI) && --state.nextGameRunningCheck <= 0) {
                     state.nextGameRunningCheck = 1;
                     await runUpdateIsGameRunningFlow(
                         await AppApi.IsGameRunning(),

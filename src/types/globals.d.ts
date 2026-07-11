@@ -8,6 +8,7 @@ declare global {
     const BROWSER: boolean;
     const WINDOWS: boolean;
     const LINUX: boolean;
+    const TAURI: boolean;
 
     interface Window {
         $pinia: any;

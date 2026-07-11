@@ -25,6 +25,7 @@ const app = createApp(App);
 app.config.globalProperties.BROWSER = BROWSER;
 app.config.globalProperties.WINDOWS = WINDOWS;
 app.config.globalProperties.LINUX = LINUX;
+app.config.globalProperties.TAURI = TAURI;
 
 app.use(pinia).use(i18n).use(VueQueryPlugin, { queryClient });
 initComponents(app);

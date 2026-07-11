@@ -50,8 +50,8 @@ class SQLiteService {
 
     async execute(callback, sql, args = null) {
         try {
-            if (LINUX) {
-                if (args) {
+            if (LINUX || TAURI) {
+                if (args && LINUX) {
                     args = new Map(Object.entries(args));
                 }
                 var json = await SQLite.ExecuteJson(sql, args);

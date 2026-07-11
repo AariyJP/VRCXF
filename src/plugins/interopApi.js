@@ -27,6 +27,32 @@ export async function initInteropApi(isVrOverlay = false) {
         return;
     }
 
+    if (TAURI) {
+        const { default: TauriInterop, createElectronShim } = await import(
+            '../ipc-tauri/interopApi.js'
+        );
+        if (isVrOverlay) {
+            window.AppApiVr = TauriInterop.AppApiVr;
+            return;
+        }
+
+        window.AppApi = TauriInterop.AppApi;
+        window.WebApi = TauriInterop.WebApi;
+        window.VRCXStorage = TauriInterop.VRCXStorage;
+        window.SQLite = TauriInterop.SQLite;
+        window.LogWatcher = TauriInterop.LogWatcher;
+        window.Discord = TauriInterop.Discord;
+        window.AssetBundleManager = TauriInterop.AssetBundleManager;
+        window.AppApiVr = TauriInterop.AppApiVr;
+        window.electron = createElectronShim();
+
+        await configRepository.init();
+        new vrcxJsonStorage(VRCXStorage);
+
+        AppApi.SetUserAgent();
+        return;
+    }
+
     if (isVrOverlay) {
         if (WINDOWS) {
             await CefSharp.BindObjectAsync('AppApiVr');

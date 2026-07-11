@@ -57,7 +57,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
 
     async function initVRCXUpdaterSettings() {
         if (BROWSER) noUpdater.value = true;
-        if (LINUX) {
+        if (LINUX || TAURI) {
             arch.value = await window.electron.getArch();
             noUpdater.value = await window.electron.getNoUpdater();
             console.log('Architecture:', arch.value);
@@ -517,7 +517,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         return checkForVRCXUpdate();
     }
     function restartVRCX(isUpgrade) {
-        if (!LINUX) {
+        if (!LINUX && !TAURI) {
             AppApi.RestartApplication(isUpgrade);
         } else {
             window.electron.restartApp();

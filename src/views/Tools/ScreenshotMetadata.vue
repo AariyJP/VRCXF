@@ -579,7 +579,7 @@
     async function getAndDisplayScreenshotFromFile() {
         let filePath = '';
 
-        if (LINUX) {
+        if (LINUX || TAURI) {
             filePath = await window.electron.openFileDialog();
         } else {
             filePath = await AppApi.OpenFileSelectorDialog(

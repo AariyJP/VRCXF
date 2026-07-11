@@ -96,7 +96,7 @@ export const useVrcxStore = defineStore('Vrcx', () => {
      */
     async function init() {
         try {
-            if (LINUX) {
+            if (LINUX || TAURI) {
                 try {
                     window.electron.ipcRenderer.on(
                         'launch-command',

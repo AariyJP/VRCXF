@@ -1,0 +1,51 @@
+[package]
+name = "vrcxf"
+version = "0.1.0"
+description = "VRCXF"
+authors = ["AariyJP"]
+edition = "2021"
+
+[lib]
+name = "vrcxf_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png", "devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-os = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-process = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "fs", "io-util", "sync"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["cookies", "json", "multipart", "rustls-tls", "gzip", "brotli", "deflate"] }
+reqwest_cookie_store = "0.8"
+cookie_store = "0.21"
+md-5 = "0.10"
+sha2 = "0.10"
+base64 = "0.22"
+chrono = "0.4"
+dirs = "5"
+open = "5"
+walkdir = "2"
+sysinfo = "0.33"
+uuid = { version = "1", features = ["v4"] }
+parking_lot = "0.12"
+url = "2"
+regex = "1"
+discord-rich-presence = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"
+
+[profile.release]
+lto = true
+codegen-units = 1
