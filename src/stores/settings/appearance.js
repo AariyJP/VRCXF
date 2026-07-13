@@ -117,6 +117,7 @@ export const useAppearanceSettingsStore = defineStore(
         const isDataTableStriped = ref(false);
         const accessibleStatusIndicators = ref(false);
         const showNewDashboardButton = ref(true);
+        const feedEnabled = ref(true);
         const tableLimitsDialog = ref({
             visible: false,
             maxTableSize: 500,
@@ -178,6 +179,7 @@ export const useAppearanceSettingsStore = defineStore(
                 dataTableStripedConfig,
                 accessibleStatusIndicatorsConfig,
                 showNewDashboardButtonConfig,
+                feedEnabledConfig,
                 appFontFamilyConfig,
                 customFontFamilyConfig,
                 appCjkFontPackConfig,
@@ -252,6 +254,7 @@ export const useAppearanceSettingsStore = defineStore(
                     false
                 ),
                 configRepository.getBool('VRCX_showNewDashboardButton', true),
+                configRepository.getBool('VRCX_feedEnabled', true),
                 configRepository.getString(
                     'VRCX_fontFamily',
                     APP_FONT_DEFAULT_KEY
@@ -371,6 +374,7 @@ export const useAppearanceSettingsStore = defineStore(
             isDataTableStriped.value = dataTableStripedConfig;
             accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
             showNewDashboardButton.value = showNewDashboardButtonConfig;
+            feedEnabled.value = feedEnabledConfig;
 
             applyAccessibleStatusClass();
 
@@ -964,6 +968,14 @@ export const useAppearanceSettingsStore = defineStore(
         }
 
         /**
+         *
+         */
+        function setFeedEnabled() {
+            feedEnabled.value = !feedEnabled.value;
+            configRepository.setBool('VRCX_feedEnabled', feedEnabled.value);
+        }
+
+        /**
          * @param {object} color
          */
         function setTrustColor(color) {
@@ -1199,6 +1211,7 @@ export const useAppearanceSettingsStore = defineStore(
             isDataTableStriped,
             accessibleStatusIndicators,
             showNewDashboardButton,
+            feedEnabled,
             tableLimitsDialog,
             TABLE_MAX_SIZE_MIN,
             TABLE_MAX_SIZE_MAX,
@@ -1235,6 +1248,7 @@ export const useAppearanceSettingsStore = defineStore(
             toggleStripedDataTable,
             toggleAccessibleStatusIndicators,
             setShowNewDashboardButton,
+            setFeedEnabled,
             setTableDensity,
             setTrustColor,
             tryInitUserColours,

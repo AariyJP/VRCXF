@@ -1,6 +1,10 @@
 <template>
     <div class="x-container feed x-container--auto-height" ref="feedRef">
+        <div v-if="!feedEnabled" class="flex h-full items-center justify-center text-muted-foreground">
+            現在、Feedは無効になっています。
+        </div>
         <DataTableLayout
+            v-else
             :table="table"
             :loading="feedTable.loading"
             auto-height
@@ -150,7 +154,7 @@
     const { feedTable, feedTableData } = storeToRefs(useFeedStore());
     const { feedTableLookup } = useFeedStore();
     const appearanceSettingsStore = useAppearanceSettingsStore();
-    const { weekStartsOn } = storeToRefs(appearanceSettingsStore);
+    const { weekStartsOn, feedEnabled } = storeToRefs(appearanceSettingsStore);
     const vrcxStore = useVrcxStore();
 
     const { t, locale } = useI18n();
