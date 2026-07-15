@@ -162,6 +162,12 @@
                     :ariaLabel="t('view.settings.interface.navigation.show_new_dashboard_button')"
                     @update:modelValue="setShowNewDashboardButton" />
             </SettingsItem>
+
+            <SettingsItem
+                label="Feedを有効にする"
+                description="無効にすると、Feedのデータベースへの保存を停止してディスク容量を節約します。">
+                <Switch :model-value="feedEnabled" ariaLabel="Feedを有効にする" @update:modelValue="setFeedEnabled" />
+            </SettingsItem>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.interface.lists_tables.header')">
@@ -466,7 +472,8 @@
         tablePageSizes,
         isDataTableStriped,
         accessibleStatusIndicators,
-        showNewDashboardButton
+        showNewDashboardButton,
+        feedEnabled
     } = storeToRefs(appearanceSettingsStore);
 
     const appLanguageDisplayName = computed(() => getLanguageName(String(appLanguage.value)));
@@ -491,6 +498,7 @@
         toggleStripedDataTable,
         toggleAccessibleStatusIndicators,
         setShowNewDashboardButton,
+        setFeedEnabled,
         setAppFontFamily,
         setCustomFontFamily,
         setAppCjkFontPack

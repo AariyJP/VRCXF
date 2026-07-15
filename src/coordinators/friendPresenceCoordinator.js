@@ -1,6 +1,7 @@
 import { getGroupName, getWorldName, isRealInstance } from '../shared/utils';
 import { AppDebug } from '../services/appConfig';
 import { database } from '../services/database';
+import { useAppearanceSettingsStore } from '../stores/settings/appearance';
 import { useFeedStore } from '../stores/feed';
 import { useFriendStore } from '../stores/friend';
 import { useNotificationStore } from '../stores/notification';
@@ -30,6 +31,7 @@ export async function runUpdateFriendDelayedCheckFlow(
     const feedStore = useFeedStore();
     const notificationStore = useNotificationStore();
     const sharedFeedStore = useSharedFeedStore();
+    const appearanceSettingsStore = useAppearanceSettingsStore();
     const { friends, localFavoriteFriends } = friendStore;
 
     let feed;
@@ -80,7 +82,9 @@ export async function runUpdateFriendDelayedCheckFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             feedStore.addFeedEntry(feed);
-            database.addOnlineOfflineToDatabase(feed);
+            if (appearanceSettingsStore.feedEnabled) {
+                database.addOnlineOfflineToDatabase(feed);
+            }
         } else if (
             newState === 'online' &&
             (ctx.state === 'offline' || ctx.state === 'active')
@@ -106,7 +110,9 @@ export async function runUpdateFriendDelayedCheckFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             feedStore.addFeedEntry(feed);
-            database.addOnlineOfflineToDatabase(feed);
+            if (appearanceSettingsStore.feedEnabled) {
+                database.addOnlineOfflineToDatabase(feed);
+            }
         }
         if (newState === 'active') {
             ctx.ref.$active_for = now();

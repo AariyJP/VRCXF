@@ -16,12 +16,12 @@ permissions:
 
 jobs:
     set_version:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         outputs:
             version: ${{ steps.version.outputs.version }}
             date: ${{ steps.version.outputs.date }}
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - id: version
               run: |
                   export TZ=Asia/Tokyo
@@ -38,7 +38,7 @@ jobs:
                 shell: bash
         needs: [set_version, build_node]
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - name: Setup .NET 10
               uses: actions/setup-dotnet@v5
               with:
@@ -47,7 +47,6 @@ jobs:
               run: |
                   echo "${{ needs.set_version.outputs.version }}" > Version
                   echo "!define PRODUCT_VERSION_FROM_FILE \"${{ needs.set_version.outputs.date }}.0\"" > Installer/version_define.nsh
-                  sed -i "s/Version=\"0.0.0.0\"/Version=\"${{ needs.set_version.outputs.date }}.0\"/" build-scripts/msix/AppxManifest.xml
                   cat Version
             - uses: actions/cache@v5
               with:
@@ -63,14 +62,14 @@ jobs:
                   echo "sign=${{ secrets.AZURE_CLIENT_ID != '' }}" >> $GITHUB_OUTPUT
             - name: Azure login
               if: steps.check_sign.outputs.sign == 'true'
-              uses: azure/login@v2
+              uses: azure/login@v3
               with:
                   client-id: ${{ secrets.AZURE_CLIENT_ID }}
                   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
                   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
             - name: Sign Dotnet executables
               if: steps.check_sign.outputs.sign == 'true'
-              uses: azure/trusted-signing-action@v0
+              uses: azure/trusted-signing-action@v1
               with:
                   azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
                   azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -104,17 +103,16 @@ jobs:
             - name: Install NSIS
               run: choco install nsis -y
             - name: Create NSIS installer
-              uses: joncloud/makensis-action@v4
+              uses: joncloud/makensis-action@v5.0
               with:
                   script-file: Installer/installer.nsi
                   additional-plugin-paths: Installer/Plugins
             - name: Rename setup
               run: |
-                  file_name="VRCX_${{ needs.set_version.outputs.version }}_Setup.exe"
-                  echo "Setup FileName: ${file_name}"
+                  file_name="VRCXF_Setup.exe"
                   mv Installer/VRCX_Setup.exe $file_name
             - name: Sign Cef setup
-              uses: azure/trusted-signing-action@v0
+              uses: azure/trusted-signing-action@v1
               if: steps.check_sign.outputs.sign == 'true'
               with:
                   azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -127,7 +125,7 @@ jobs:
                   timestamp-rfc3161: http://timestamp.acs.microsoft.com
                   timestamp-digest: SHA256
                   files: |
-                      ${{ github.workspace }}\VRCX_${{ needs.set_version.outputs.version }}_Setup.exe
+                      ${{ github.workspace }}\VRCXF_Setup.exe
 
             - name: Upload Cef dotnet artifacts
               uses: actions/upload-artifact@v7
@@ -138,13 +136,13 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: Cef-Setup
-                  path: VRCX_${{ needs.set_version.outputs.version }}_Setup.exe
+                  path: VRCXF_Setup.exe
 
     build_dotnet_linux:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         needs: set_version
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - name: Setup .NET 9
               uses: actions/setup-dotnet@v5
               with:
@@ -183,7 +181,7 @@ jobs:
         runs-on: macos-latest
         needs: set_version
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - name: Setup .NET 9
               uses: actions/setup-dotnet@v5
               with:
@@ -219,10 +217,10 @@ jobs:
                   path: build/Electron
 
     build_node:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         needs: [set_version, build_dotnet_linux]
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - name: Set version
               run: |
                   echo "${{ needs.set_version.outputs.version }}" > Version
@@ -288,7 +286,7 @@ jobs:
         runs-on: macos-latest
         needs: [set_version, build_dotnet_macos]
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - name: Set version
               run: |
                   echo "${{ needs.set_version.outputs.version }}" > Version
@@ -347,7 +345,7 @@ jobs:
                   path: 'build/VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg'
 
     create_setup:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-slim
         needs:
             [
                 set_version,
@@ -375,11 +373,10 @@ jobs:
 
             - name: Make zip
               run: |
-                  file_name="VRCX_${{ needs.set_version.outputs.version }}.zip"
+                  file_name="VRCXF.zip"
                   cd build/Cef
                   7z a -tzip ${file_name} * -mx=7 -xr0!*.log
                   mv ${file_name} ../../${file_name}
-                  echo "Zip FileName: ${file_name}"
 
             - name: Download x64 Electron AppImage artifacts
               uses: actions/download-artifact@v8
@@ -399,9 +396,16 @@ jobs:
               with:
                   name: Electron-MacDmg-arm64
 
+            - name: Rename Electron artifacts
+              run: |
+                  mv VRCX_*_x64.AppImage VRCXF_x64.AppImage
+                  mv VRCX_*_arm64.AppImage VRCXF_arm64.AppImage
+                  mv VRCX_*_x64.dmg VRCXF_x64.dmg
+                  mv VRCX_*_arm64.dmg VRCXF_arm64.dmg
+
             - name: Generate hashes
               run: |
-                  sha256sum "VRCX_${{ needs.set_version.outputs.version }}_Setup.exe" "VRCX_${{ needs.set_version.outputs.version }}_x64.AppImage" > "SHA256SUMS.txt"
+                  sha256sum "VRCXF_Setup.exe" "VRCXF_x64.AppImage" > "SHA256SUMS.txt"
             - name: Create Release
               id: create_release
               uses: softprops/action-gh-release@v2
@@ -409,10 +413,10 @@ jobs:
                   tag_name: '${{ needs.set_version.outputs.version }}'
                   name: 'VRCXF ${{ needs.set_version.outputs.version }}'
                   files: |
-                      VRCX_${{ needs.set_version.outputs.version }}_Setup.exe
-                      VRCX_${{ needs.set_version.outputs.version }}.zip
-                      VRCX_${{ needs.set_version.outputs.version }}_x64.AppImage
-                      VRCX_${{ needs.set_version.outputs.version }}_arm64.AppImage
-                      VRCX_${{ needs.set_version.outputs.version }}_x64.dmg
-                      VRCX_${{ needs.set_version.outputs.version }}_arm64.dmg
+                      VRCXF_Setup.exe
+                      VRCXF.zip
+                      VRCXF_x64.AppImage
+                      VRCXF_arm64.AppImage
+                      VRCXF_x64.dmg
+                      VRCXF_arm64.dmg
                   body: 'VRCXF ${{ needs.set_version.outputs.version }}'

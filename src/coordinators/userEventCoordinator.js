@@ -2,6 +2,7 @@ import { getGroupName, getWorldName, parseLocation } from '../shared/utils';
 import { AppDebug } from '../services/appConfig';
 import { database } from '../services/database';
 import { getAvatarName } from './avatarCoordinator';
+import { useAppearanceSettingsStore } from '../stores/settings/appearance';
 import { useFeedStore } from '../stores/feed';
 import { useFriendStore } from '../stores/friend';
 import { useGeneralSettingsStore } from '../stores/settings/general';
@@ -35,6 +36,7 @@ export async function runHandleUserUpdateFlow(
     const notificationStore = useNotificationStore();
     const sharedFeedStore = useSharedFeedStore();
     const generalSettingsStore = useGeneralSettingsStore();
+    const appearanceSettingsStore = useAppearanceSettingsStore();
 
     const { state, userDialog, applyUserDialogLocation, checkNote } = userStore;
 
@@ -145,7 +147,9 @@ export async function runHandleUserUpdateFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             feedStore.addFeedEntry(feed);
-            database.addGPSToDatabase(feed);
+            if (appearanceSettingsStore.feedEnabled) {
+                database.addGPSToDatabase(feed);
+            }
             // clear previousLocation after GPS
             ref.$previousLocation = '';
             ref.$travelingToTime = now();
@@ -255,7 +259,9 @@ export async function runHandleUserUpdateFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             feedStore.addFeedEntry(feed);
-            database.addAvatarToDatabase(feed);
+            if (appearanceSettingsStore.feedEnabled) {
+                database.addAvatarToDatabase(feed);
+            }
         }
     }
     // if status is offline, ignore status and statusDescription
@@ -304,7 +310,9 @@ export async function runHandleUserUpdateFlow(
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
         feedStore.addFeedEntry(feed);
-        database.addStatusToDatabase(feed);
+        if (appearanceSettingsStore.feedEnabled) {
+            database.addStatusToDatabase(feed);
+        }
     }
     if (props.bio && props.bio[0] && props.bio[1]) {
         let bio = '';
@@ -326,7 +334,9 @@ export async function runHandleUserUpdateFlow(
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
         feedStore.addFeedEntry(feed);
-        database.addBioToDatabase(feed);
+        if (appearanceSettingsStore.feedEnabled) {
+            database.addBioToDatabase(feed);
+        }
     }
     if (
         props.note &&
