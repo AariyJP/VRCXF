@@ -13,12 +13,15 @@
 
     !define PRODUCT_VERSION ${PRODUCT_VERSION_FROM_FILE}
     !define VERSION ${PRODUCT_VERSION_FROM_FILE}
+    !ifndef PRODUCT_DISPLAY_VERSION
+        !define PRODUCT_DISPLAY_VERSION ${PRODUCT_VERSION_FROM_FILE}
+    !endif
 
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
-    VIAddVersionKey "FileVersion" "${VERSION}"
+    VIAddVersionKey "FileVersion" "${PRODUCT_DISPLAY_VERSION}"
     VIAddVersionKey "ProductName" "VRCX"
-    VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
+    VIAddVersionKey "ProductVersion" "${PRODUCT_DISPLAY_VERSION}"
     VIAddVersionKey "LegalCopyright" "Copyright vrcx-team, pypy, natsumi"
     VIAddVersionKey "FileDescription" "Friendship management tool for VRChat"
 
@@ -173,7 +176,7 @@ Section "Install" SecInstall
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "VRCX"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "vrcx-team"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${VERSION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${PRODUCT_DISPLAY_VERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayArch" "x64"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "InstallLocation" "$INSTDIR"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
