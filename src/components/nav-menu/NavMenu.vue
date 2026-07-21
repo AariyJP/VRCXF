@@ -99,6 +99,17 @@
                                         @unpin-tool="handleUnpinToolItem"
                                         @open-custom-nav="handleOpenCustomNavDialog" />
                                 </template>
+
+                                <template v-if="BROWSER">
+                                    <SidebarSeparator class="mx-0" />
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton tooltip="アプリをダウンロード" @click="handleDownloadApp">
+                                            <i
+                                                class="ri-download-2-line inline-flex size-6 items-center justify-center text-lg"></i>
+                                            <span v-show="!isCollapsed">アプリをダウンロード</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </template>
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
@@ -186,7 +197,8 @@
         SidebarHeader,
         SidebarMenu,
         SidebarMenuButton,
-        SidebarMenuItem
+        SidebarMenuItem,
+        SidebarSeparator
     } from '@/components/ui/sidebar';
 
     import {
@@ -323,6 +335,10 @@
 
     const openGithub = () => {
         openExternalLink(links.github);
+    };
+
+    const handleDownloadApp = () => {
+        window.open(links.download, '_blank', 'noopener');
     };
 
     const handleSupportLink = (id) => {
