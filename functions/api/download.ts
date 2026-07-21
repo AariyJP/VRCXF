@@ -1,4 +1,5 @@
-const STORE_WEB_URL = 'https://apps.microsoft.com/detail/9NRR9B5Q60Z7';
+const STORE_WEB_URL =
+    'https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full';
 
 type Platform = 'windows' | 'macos' | 'ios' | 'android' | 'unknown';
 
