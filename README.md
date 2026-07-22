@@ -1,0 +1,48 @@
+# <img src="images/VRCX.png" width="64" height="64" alt="VRCXF"> VRCXF
+
+VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat クライアントより便利に管理できるアシスタントアプリ VRCX のフォークです。
+本家の機能をそのまま継承しつつ、フォーク独自の改良を加えて [AariyJP](https://github.com/AariyJP) が保守しています。
+
+## 📥 ダウンロード
+
+### Microsoft Store
+
+<https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full>  
+<a href="https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full" target="_blank" rel="noopener noreferrer">
+ <img src="https://get.microsoft.com/images/ja%20dark.svg" width="200" alt="Microsoft Store から入手"/>
+</a>
+
+### WinGet
+
+```bash
+winget install VRCXF.VRCXF
+```
+
+## ✨ フォーク独自の機能
+
+- 🏪 **Microsoft Store 配布** — インストール・更新を Microsoft Store で自動的に！
+- 📴 **WebSocket オフラインモード** — VRChat の WebSocket 接続を切った状態（オフライン表示のまま）でも利用可能！
+- 📃 **フィード無効化設定** — フィード収集とデータベース書き込みを丸ごとオフにして軽量化も可能！
+- 🔔 **通知フィルタ「Everyone w/o Public」** — Public インスタンスを除いた全員から通知を受信可能！
+- 🎮 **Discord Rich Presence の改良** — ボタンのリンクにプロフィール URL を表示！
+- 🇯🇵 **日本語ユーザー向けの細かな調整**
+
+## 🧰 主な機能（本家より継承）
+
+- 👪 フレンド・ワールド・アバターリストの管理（オンライン状況の監視、初回フレンド登録日・最終接触日の記録、一緒に過ごした時間の集計、名前変更履歴、メモ）
+- 🔍 アバター・ユーザー・ワールド・グループの検索
+- 🌏 ローカル無制限のワールドお気に入りリスト
+- 📷 撮影したスクリーンショットへのワールド情報の埋め込み
+- 🔔 通知の監視・返信（招待やフレンドリクエストの送受信）
+- 📊 現在のインスタンスの統計・プレイヤー一覧
+- 📺 現在のワールドで再生中の動画リンクの表示
+- 🎮 Discord Rich Presence 連携（ワールドサムネイル・インスタンス情報の表示、人気ワールドとの連携）
+- 🥽 VR オーバーレイ（対応イベント・通知のライブフィード）
+- 📤 Unity を使わないアバター・ワールド画像のアップロードと詳細編集
+- 💀 VRChat クラッシュ時の自動再起動と最終インスタンスへの再参加
+- 🔌 VRChat 起動時の外部アプリ自動起動
+- ↔️ お気に入りグループのエクスポート / インポート
+
+## ⚠️ 免責事項
+
+本家同様、VRCXF は VRChat 公式のツールではありません。VRCX と同様に VRChat API を利用していますが、VRChat の利用規約の範囲内で動作するよう設計されています。利用は自己責任でお願いします。
