@@ -83,6 +83,25 @@
                                     :class="languageClass(item.key)"
                                     ></span>
                             </TooltipWrapper>
+                            <Select
+                                v-if="userDialog.ref.id === currentUser.id && userDialog.ref.ageVerified"
+                                :model-value="userDialog.ref.ageVerificationStatus"
+                                @update:modelValue="changeAgeVerificationStatus">
+                                <SelectTrigger size="sm" class="mr-1 inline-flex align-middle">
+                                    <IdCard
+                                        class="h-4 w-4"
+                                        :class="userDialog.ref.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''" />
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="hidden">
+                                        <IdCard class="h-4 w-4" /> Hidden
+                                    </SelectItem>
+                                    <SelectItem value="18+">
+                                        <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <template v-if="userDialog.ref.id === currentUser.id">
                                 <span
                                     class="x-grey mt-1 block cursor-pointer truncate font-mono text-xs"
@@ -256,7 +275,9 @@
     import { formatDateFilter, languageClass, openDiscordProfile } from '../../../shared/utils';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
+    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
     import { useGalleryStore, useUserStore } from '../../../stores';
+    import { userRequest } from '../../../api';
     import { Badge } from '../../ui/badge';
     import { Checkbox } from '../../ui/checkbox';
 
@@ -309,4 +330,15 @@
     const toggleBadgeVisibility = props.toggleBadgeVisibility;
     const toggleBadgeShowcased = props.toggleBadgeShowcased;
     const userDialogCommand = props.userDialogCommand;
+
+    async function changeAgeVerificationStatus(value) {
+        if (!value || value === userDialog.value.ref.ageVerificationStatus) {
+            return;
+        }
+        const args = await userRequest.saveCurrentUser({
+            ageVerificationStatus: value
+        });
+        userDialog.value.ref.ageVerificationStatus =
+            args.json.ageVerificationStatus;
+    }
 </script>
