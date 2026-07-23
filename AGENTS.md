@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > このプロジェクトでは `AGENTS.md` をエージェント向け指示の単一の正本として扱う。
-> `CLAUDE.md`、`.clinerules/CLINE.md`、`.gemini/GEMINI.md` は本ファイルへの symbolic link。
+> `CLAUDE.md` は本ファイルへの symbolic link。
 
 **ユーザーへの回答はすべて日本語で行うこと。**
 
