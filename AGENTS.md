@@ -324,3 +324,4 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 ## 🚨 Git 操作の制限
 
 - **commit と push**: `git commit` と `git push` は基本的にユーザーが行う。エージェントはユーザーの明示的な許可なくこれらの操作を行ってはならない。
+- **`.serena/project.yml`**: 常にコミットに含めてよい。Serena による設定の自動移行で差分が出ても stash 退避や除外はせず、そのままステージする。
