@@ -1,0 +1,9 @@
+allowBuilds:
+  '@sentry/cli': true
+  core-js: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  sharp: true
+  vue-demi: true
+  workerd: true
