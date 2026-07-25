@@ -16,9 +16,9 @@ dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -
 
 Write-Host "Building Node.js..." -ForegroundColor Green
 Remove-Item -Path "node_modules" -Force -Recurse -ErrorAction SilentlyContinue
-npm ci --loglevel=error
+pnpm install --frozen-lockfile --loglevel=error
 $ErrorActionPreference = "Continue"
-npm run prod
+pnpm prod
 $ErrorActionPreference = "Stop"
 Remove-Item -Path "build\Cef\html" -Force -Recurse -ErrorAction SilentlyContinue
 New-Item -ItemType Junction -Path "build\Cef\html" -Target "build\html"

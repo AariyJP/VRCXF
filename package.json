@@ -18,7 +18,7 @@
     "main": "src-electron/main.js",
     "scripts": {
         "dotnet-arm64": "dotnet build Dotnet/VRCX-Electron-arm64.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=arm64 -p:PlatformTarget=arm64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a arm64",
-        "dotnet-win": "dotnet build Dotnet\\VRCX-Cef.csproj -p:Configuration=Debug -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a x64 -p:SelfContained=true",
+        "dotnet-win": "dotnet build Dotnet\\VRCX-Cef.csproj -p:Configuration=Debug -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:\"Restore;Clean;Build\" -m -a x64",
         "dev": "cross-env PLATFORM=windows vite serve src",
         "dev-browser": "concurrently -k -n vite,wrangler -c cyan,magenta \"npm run dev-browser:vite\" \"wrangler pages dev src --port 8788\"",
         "dev-browser:vite": "cross-env PLATFORM=browser vite serve src",
