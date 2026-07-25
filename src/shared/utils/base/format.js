@@ -22,9 +22,10 @@ function getTimeUnitLabel(unit) {
  *
  * @param {number} sec
  * @param {boolean} isNeedSeconds
+ * @param {boolean} exactSeconds
  * @returns {string}
  */
-function timeToText(sec, isNeedSeconds = false) {
+function timeToText(sec, isNeedSeconds = false, exactSeconds = false) {
     let n = Number(sec);
     if (isNaN(n)) {
         return escapeTag(sec);
@@ -51,8 +52,10 @@ function timeToText(sec, isNeedSeconds = false) {
         n %= 60;
     }
     if (isNeedSeconds || (arr.length === 0 && n < 60)) {
-        // round to 5 seconds
-        n = Math.floor((n + 2.5) / 5) * 5;
+        if (!exactSeconds) {
+            // round to 5 seconds
+            n = Math.floor((n + 2.5) / 5) * 5;
+        }
         arr.push(`${n}${getTimeUnitLabel('s')}`);
     }
     return arr.join(' ');

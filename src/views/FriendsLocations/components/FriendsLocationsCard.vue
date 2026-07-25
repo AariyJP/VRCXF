@@ -2,6 +2,7 @@
     <UserContextMenu :user-id="friend.id" :state="friend.state" :location="friend.ref?.location">
         <Card
             class="friend-card x-hover-card hover:bg-muted relative"
+            :class="{ 'friend-card--friend': friend.ref?.isFriend }"
             :style="cardStyle"
             @click="showUserDialog(friend.id)">
             <div class="friend-card__header grid items-center mb-1.75">
@@ -18,12 +19,27 @@
                 <span
                     class="friend-card__status-dot absolute rounded-full pointer-events-none"
                     :class="statusDotClass"></span>
-                <div
-                    class="friend-card__name font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap ml-2"
-                    :style="{ color: friend.ref?.$userColour }"
-                    :title="friend.name">
-                    <Crown v-if="friend.isOwner" class="inline-block text-muted-foreground" />
-                    {{ friend.name }}
+                <div class="friend-card__identity flex min-w-0 flex-col justify-center ml-2">
+                    <div
+                        class="friend-card__name font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap"
+                        :style="{ color: friend.ref?.$userColour }"
+                        :title="friend.name">
+                        <Crown v-if="friend.isOwner" class="inline-block text-muted-foreground" />
+                        {{ friend.name }}
+                    </div>
+                    <div
+                        v-if="epoch && !friend.isOwner"
+                        class="friend-card__elapsed flex items-center overflow-hidden whitespace-nowrap text-muted-foreground">
+                        <Spinner
+                            v-if="isFriendTraveling"
+                            class="shrink-0"
+                            :style="{
+                                width: `${Math.max(12, 14 * cardScale)}px`,
+                                height: `${Math.max(12, 14 * cardScale)}px`
+                            }" />
+                        <Clock v-else class="shrink-0" :size="Math.max(12, 14 * cardScale)" />
+                        <Timer :epoch="epoch" exact-seconds show-seconds />
+                    </div>
                 </div>
             </div>
             <div class="friend-card__body grid">
@@ -52,14 +68,16 @@
 
 <script setup>
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-    import { Crown, Pencil, User } from 'lucide-vue-next';
+    import { Clock, Crown, Pencil, User } from 'lucide-vue-next';
     import { Card } from '@/components/ui/card';
+    import { Spinner } from '@/components/ui/spinner';
     import { computed } from 'vue';
 
     import { statusClass } from '../../../shared/utils';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
 
     import Location from '../../../components/Location.vue';
+    import Timer from '../../../components/Timer.vue';
     import UserContextMenu from '../../../components/UserContextMenu.vue';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
 
@@ -85,6 +103,10 @@
     });
 
     const avatarSize = computed(() => Math.max(36, 46 * props.cardScale));
+    const isFriendTraveling = computed(() => props.friend.ref?.location === 'traveling');
+    const epoch = computed(() =>
+        isFriendTraveling.value ? props.friend.ref?.$travelingToTime : props.friend.ref?.$location_at
+    );
 
     const imageUrl = computed(() => {
         const url = userImage(props.friend.ref, true);
@@ -109,7 +131,12 @@
             status = {};
         }
 
-        if (props.friend.isOwner && (status.offline || !Object.keys(status).length) && props.friend.status) {
+        if (
+            props.friend.isOwner &&
+            !props.friend.isFriendOwner &&
+            (status.offline || !Object.keys(status).length) &&
+            props.friend.status
+        ) {
             status = statusClass(props.friend.status);
         }
 
@@ -156,6 +183,10 @@
         gap: calc(14px * var(--card-scale) * var(--card-spacing));
         max-width: var(--friend-card-target-width, 220px);
         min-width: var(--friend-card-min-width, 220px);
+    }
+
+    .friend-card--friend {
+        border-color: color-mix(in oklch, color-mix(in oklch, var(--color-yellow-400) 65%, white) 70%, black);
     }
 
     .friend-card__header {
@@ -228,6 +259,12 @@
 
     .friend-card__name {
         font-size: calc(13px * var(--card-scale));
+    }
+
+    .friend-card__elapsed {
+        gap: calc(3px * var(--card-scale));
+        font-size: calc(12px * var(--card-scale));
+        line-height: 1.3;
     }
 
     .friend-card__signature {
