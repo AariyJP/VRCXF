@@ -44,6 +44,8 @@ export const useUiStore = defineStore('Ui', () => {
     const shiftHeld = ref(false);
     const trayIconNotify = ref(false);
     const dialogCrumbs = ref([]);
+    const dialogFocusRequest = ref(0);
+    const popouts = ref([]);
 
     watch(ctrlR, (isPressed) => {
         if (isPressed) {
@@ -218,6 +220,7 @@ export const useUiStore = defineStore('Ui', () => {
      * @returns {boolean}
      */
     function openDialog(data) {
+        dialogFocusRequest.value += 1;
         const { type } = data;
         const userStore = useUserStore();
         const worldStore = useWorldStore();
@@ -357,10 +360,24 @@ export const useUiStore = defineStore('Ui', () => {
     }
     updateTrayIconNotify(true);
 
+    function addPopout(routeName, routeParams, title) {
+        const target = { name: routeName, params: routeParams };
+        const id = router.resolve(target).fullPath;
+        if (!popouts.value.some((popout) => popout.id === id)) {
+            popouts.value.push({ id, routeName, routeParams, title });
+        }
+    }
+
+    function removePopout(id) {
+        popouts.value = popouts.value.filter((p) => p.id !== id);
+    }
+
     return {
         notifiedMenus,
         shiftHeld,
         dialogCrumbs,
+        dialogFocusRequest,
+        popouts,
 
         notifyMenu,
         removeNotify,
@@ -374,6 +391,8 @@ export const useUiStore = defineStore('Ui', () => {
         closeMainDialog,
         openDialog,
         jumpBackDialogCrumb,
-        handleBreadcrumbClick
+        handleBreadcrumbClick,
+        addPopout,
+        removePopout
     };
 });

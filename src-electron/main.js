@@ -387,6 +387,37 @@ function createWindow() {
     });
     mainWindow.webContents.setVisualZoomLevelLimits(1, 5);
 
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        if (url !== 'about:blank') {
+            return { action: 'deny' };
+        }
+        return {
+            action: 'allow',
+            outlivesOpener: false,
+            overrideBrowserWindowOptions: {
+                icon: path.join(rootDir, 'images/VRCX.png'),
+                autoHideMenuBar: true,
+                webPreferences: {
+                    preload: path.join(__dirname, 'preload.js')
+                }
+            }
+        };
+    });
+
+    mainWindow.webContents.on('did-create-window', (popoutWindow) => {
+        popoutWindow.webContents.setZoomLevel(zoomLevel);
+        popoutWindow.webContents.on('before-input-event', (event, input) => {
+            if (
+                input.control &&
+                input.shift &&
+                input.key.toLowerCase() === 'i'
+            ) {
+                popoutWindow.webContents.openDevTools();
+                event.preventDefault();
+            }
+        });
+    });
+
     mainWindow.on('close', (event) => {
         if (getCloseToTray() && !appIsQuitting) {
             event.preventDefault();

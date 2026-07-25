@@ -12,7 +12,8 @@ namespace VRCX
         {
             if (Program.LaunchDebug ||
                 request.Url.StartsWith("file://vrcx/") ||
-                request.Url.StartsWith("chrome-extension://"))
+                request.Url.StartsWith("chrome-extension://") ||
+                request.Url.StartsWith("about:blank"))
                 return false;
 
             _logger.Error("Blocking navigation to: {Url}", request.Url);
@@ -26,8 +27,10 @@ namespace VRCX
         public bool OnOpenUrlFromTab(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl,
             WindowOpenDisposition targetDisposition, bool userGesture)
         {
-            _logger.Debug("Blocking OnOpenUrlFromTab: {TargetUrl}",
-                targetUrl);
+            if (targetUrl.StartsWith("about:blank"))
+                return false;
+
+            _logger.Debug("Blocking OnOpenUrlFromTab: {TargetUrl}", targetUrl);
 
             return true;
         }

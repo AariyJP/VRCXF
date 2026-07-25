@@ -88,18 +88,30 @@
         <WhatsNewDialog></WhatsNewDialog>
 
         <SpotlightDialog></SpotlightDialog>
+
+        <WindowTeleport
+            v-for="view in popoutViews"
+            :key="view.popout.id"
+            :open="true"
+            :title="view.popout.title"
+            @close="uiStore.removePopout(view.popout.id)">
+            <Suspense>
+                <component :is="view.component" v-bind="view.props" />
+            </Suspense>
+        </WindowTeleport>
     </template>
 </template>
 
 <script setup>
-    import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
+    import { computed, defineAsyncComponent, nextTick, onUnmounted, ref, watch } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useRouter } from 'vue-router';
 
     import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../components/ui/resizable';
     import { SidebarInset, SidebarProvider } from '../../components/ui/sidebar';
-    import { useAppearanceSettingsStore } from '../../stores';
+    import { useAppearanceSettingsStore } from '../../stores/settings/appearance';
     import { useMainLayoutResizable } from '../../composables/useMainLayoutResizable';
+    import { useUiStore } from '../../stores/ui';
     import { watchState } from '../../services/watchState';
 
     import AvatarImportDialog from '../Favorites/dialogs/AvatarImportDialog.vue';
@@ -108,7 +120,6 @@
     import FriendImportDialog from '../Favorites/dialogs/FriendImportDialog.vue';
     import FullscreenImagePreview from '../../components/FullscreenImagePreview.vue';
     import GlobalToolsDialogs from '../Tools/components/GlobalToolsDialogs.vue';
-    import GroupMemberModerationDialog from '../../components/dialogs/GroupDialog/GroupMemberModerationDialog.vue';
     import InviteGroupDialog from '../../components/dialogs/InviteGroupDialog.vue';
     import LaunchDialog from '../../components/dialogs/LaunchDialog.vue';
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';
@@ -119,11 +130,44 @@
     import Sidebar from '../Sidebar/Sidebar.vue';
     import StatusBar from '../../components/StatusBar.vue';
     import VRChatConfigDialog from '../Settings/dialogs/VRChatConfigDialog.vue';
+    import WindowTeleport from '../../components/ui/window-teleport/WindowTeleport.vue';
     import WorldImportDialog from '../Favorites/dialogs/WorldImportDialog.vue';
     import WhatsNewDialog from '../../components/onboarding/WhatsNewDialog.vue';
     import SpotlightDialog from '../../components/onboarding/SpotlightDialog.vue';
 
     const router = useRouter();
+    const uiStore = useUiStore();
+    const { popouts } = storeToRefs(uiStore);
+
+    const componentCache = new Map();
+
+    const resolvePopoutView = (popout) => {
+        const route = router.resolve({
+            name: popout.routeName,
+            params: popout.routeParams
+        });
+        const matched = route.matched.at(-1);
+
+        let component = matched?.components?.default || null;
+        if (typeof component === 'function') {
+            if (!componentCache.has(popout.routeName)) {
+                componentCache.set(popout.routeName, defineAsyncComponent(component));
+            }
+            component = componentCache.get(popout.routeName);
+        }
+
+        const routeProps = matched?.props?.default;
+        let props = routeProps || {};
+        if (routeProps === true) {
+            props = route.params;
+        } else if (typeof routeProps === 'function') {
+            props = routeProps(route);
+        }
+
+        return { popout, component, props };
+    };
+
+    const popoutViews = computed(() => popouts.value.map(resolvePopoutView));
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { navWidth, isNavCollapsed } = storeToRefs(appearanceSettingsStore);

@@ -2,6 +2,15 @@
     <SidebarFooter class="px-2 py-3">
         <SidebarMenu>
             <SidebarMenuItem>
+                <SidebarMenuButton tooltip="ポップアウト" @click="emit('popout-current')">
+                    <i class="ri-external-link-line inline-flex size-6 items-center justify-center text-lg" />
+                    <span v-show="!isCollapsed">ポップアウト</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarSeparator class="mx-0" />
+
+            <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
                         <SidebarMenuButton :tooltip="t('nav_tooltip.help_support')">
@@ -193,7 +202,13 @@
         DropdownMenuSubTrigger,
         DropdownMenuTrigger
     } from '@/components/ui/dropdown-menu';
-    import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+    import {
+        SidebarFooter,
+        SidebarMenu,
+        SidebarMenuButton,
+        SidebarMenuItem,
+        SidebarSeparator
+    } from '@/components/ui/sidebar';
 
     defineProps({
         isCollapsed: {
@@ -255,6 +270,7 @@
     });
 
     const emit = defineEmits([
+        'popout-current',
         'show-changelog',
         'support-link',
         'toggle-theme',
