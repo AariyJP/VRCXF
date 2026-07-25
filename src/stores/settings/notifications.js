@@ -123,7 +123,7 @@ export const useNotificationsSettingsStore = defineStore(
         const notificationTTSTest = ref('');
         const notificationPosition = ref('topCenter');
         const notificationTimeout = ref(3000);
-        const notificationLayout = ref('notification-center');
+        const notificationLayout = ref('table');
 
         async function initNotificationsSettings() {
             const [
@@ -167,7 +167,7 @@ export const useNotificationsSettingsStore = defineStore(
                 configRepository.getString('VRCX_notificationTimeout', '3000'),
                 configRepository.getString(
                     'VRCX_notificationLayout',
-                    'notification-center'
+                    'table'
                 )
             ]);
 
