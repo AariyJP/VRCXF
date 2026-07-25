@@ -28,7 +28,8 @@
                             <DropdownMenuItem
                                 v-for="entry in item.children"
                                 :key="entry.index"
-                                @select="(event) => emit('collapsed-submenu-select', event, entry)">
+                                @select="(event) => emit('collapsed-submenu-select', event, entry)"
+                                @mouseup.middle.prevent.stop="emit('middle-click', entry)">
                                 <i
                                     v-if="entry.icon"
                                     :class="entry.icon"
@@ -78,7 +79,8 @@
                                             <ContextMenuTrigger as-child>
                                                 <SidebarMenuSubButton
                                                     :is-active="activeMenuIndex === entry.index"
-                                                    @click="emit('submenu-click', entry)">
+                                                    @click="emit('submenu-click', entry)"
+                                                    @mouseup.middle.prevent.stop="emit('middle-click', entry)">
                                                     <i
                                                         v-if="entry.icon"
                                                         :class="entry.icon"
@@ -210,6 +212,7 @@
         'collapsed-dropdown-open-change',
         'collapsed-submenu-select',
         'submenu-click',
+        'middle-click',
         'clear-notifications',
         'edit-dashboard',
         'delete-dashboard',

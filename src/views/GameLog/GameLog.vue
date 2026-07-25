@@ -133,7 +133,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-    import { computed, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { Logs, Star, Table2 } from 'lucide-vue-next';
     import { Toggle } from '@/components/ui/toggle';
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -149,11 +149,21 @@
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
     import GameLogSessions from './components/GameLogSessions.vue';
 
-    const { gameLogTableLookup, setSessionsViewMode } = useGameLogStore();
-    const { gameLogTable, gameLogTableData, sessionsViewMode } = storeToRefs(useGameLogStore());
+    const { gameLogTableLookup, setSessionsViewMode, loadSessionsSegments } = useGameLogStore();
+    const { gameLogTable, gameLogTableData, sessionsViewMode, sessionsSegments } = storeToRefs(useGameLogStore());
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const vrcxStore = useVrcxStore();
     const modalStore = useModalStore();
+
+    onMounted(() => {
+        if (sessionsViewMode.value === 'sessions') {
+            if (sessionsSegments.value.length === 0) {
+                loadSessionsSegments();
+            }
+        } else if (gameLogTableData.value.length === 0) {
+            gameLogTableLookup();
+        }
+    });
 
     /**
      *

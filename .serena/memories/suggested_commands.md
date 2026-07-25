@@ -5,10 +5,13 @@
 ```bash
 npm run dev
 npm run dev-linux
+npm run dev-browser
 npm test
 npm run test:coverage
 npm run prod
 npm run prod-linux
+npm run prod-browser
+npm run preview-cloudflare
 npm run build-electron
 npm run build-electron-arm64
 npm run start-electron
@@ -60,6 +63,7 @@ git log --oneline --decorate -n 20
 
 ## 補足
 
+- `dev-browser` / `prod-browser` / `preview-cloudflare` は `PLATFORM=browser`(`BROWSER` フラグ) の開発/検証用ブラウザターゲット。配布物ではなく、`src/ipc-browser/` のモックでネイティブ API を代替する
 - 現プロジェクトに `npm run dev:test` は存在しない
 - 可能な限り Shell より Serena / 純正ツールを優先する
 - commit / push はユーザーが行うため、エージェント側で走らせない

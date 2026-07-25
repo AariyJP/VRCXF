@@ -27,6 +27,7 @@
     import { ArrowLeft } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
     import { TooltipWrapper } from '@/components/ui/tooltip';
+    import WindowTeleport from '@/components/ui/window-teleport/WindowTeleport.vue';
     import { computed, ref } from 'vue';
     import { storeToRefs } from 'pinia';
 
@@ -138,8 +139,30 @@
             }
         }
     });
+    const dialogContentComponent = BROWSER ? DialogContent : 'div';
+    const dialogContentProps = BROWSER ? { showCloseButton: false } : {};
 
-    const dialogClass = computed(() => {
+    const shouldShowBreadcrumbs = computed(() => dialogCrumbs.value.length > 1);
+    const shouldCollapseBreadcrumbs = computed(() => dialogCrumbs.value.length > 5);
+    const middleBreadcrumbs = computed(() => {
+        if (!shouldCollapseBreadcrumbs.value) {
+            return [];
+        }
+        return dialogCrumbs.value.slice(1, -2);
+    });
+    const backCrumbLabel = computed(() => {
+        if (dialogCrumbs.value.length < 2) {
+            return '';
+        }
+        const backCrumb = dialogCrumbs.value[dialogCrumbs.value.length - 2];
+        return backCrumb?.label || backCrumb?.id || '';
+    });
+    const windowTitle = computed(() => dialogCrumbs.value.at(-1)?.label);
+    const dialogContentClass = computed(() => {
+        if (!BROWSER) {
+            return 'flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
+        }
+
         switch (activeType.value) {
             case 'user':
             case 'group':
@@ -156,22 +179,6 @@
             default:
                 return 'x-dialog translate-y-0 sm:max-w-235 overflow-hidden flex flex-col';
         }
-    });
-
-    const shouldShowBreadcrumbs = computed(() => dialogCrumbs.value.length > 1);
-    const shouldCollapseBreadcrumbs = computed(() => dialogCrumbs.value.length > 5);
-    const middleBreadcrumbs = computed(() => {
-        if (!shouldCollapseBreadcrumbs.value) {
-            return [];
-        }
-        return dialogCrumbs.value.slice(1, -2);
-    });
-    const backCrumbLabel = computed(() => {
-        if (dialogCrumbs.value.length < 2) {
-            return '';
-        }
-        const backCrumb = dialogCrumbs.value[dialogCrumbs.value.length - 2];
-        return backCrumb?.label || backCrumb?.id || '';
     });
 
     function handleBreadcrumbClick(index) {
@@ -225,93 +232,44 @@
         }
         return userDialogBaseStyle;
     });
+
+    function handleDialogOpen(value) {
+        if (BROWSER && !value) {
+            uiStore.closeMainDialog();
+        }
+    }
 </script>
 
 <template>
-    <Dialog v-if="isOpen" v-model:open="isOpen">
-        <DialogContent :class="dialogClass" style="top: 10vh" :show-close-button="false" :style="dialogStyle">
-            <Breadcrumb
-                v-if="shouldShowBreadcrumbs"
-                class="mb-2 flex-shrink-0 rounded-xl bg-(--profile-card) w-fit pr-4">
-                <BreadcrumbList>
-                    <TooltipWrapper :content="backCrumbLabel" :disabled="!backCrumbLabel" :delayDuration="500">
-                        <Button variant="ghost" size="icon-sm" @click="handleBreadcrumbClick(dialogCrumbs.length - 2)">
-                            <ArrowLeft />
-                            <span class="sr-only">{{ backCrumbLabel }}</span>
-                        </Button>
-                    </TooltipWrapper>
-                    <template v-if="shouldCollapseBreadcrumbs">
-                        <BreadcrumbItem>
-                            <TooltipWrapper
-                                :content="dialogCrumbs[0]?.label || dialogCrumbs[0]?.id"
-                                :delayDuration="500">
-                                <BreadcrumbLink as-child>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="max-w-40 justify-start truncate text-left"
-                                        @click="handleBreadcrumbClick(0)">
-                                        {{ dialogCrumbs[0]?.label || dialogCrumbs[0]?.id }}
-                                    </Button>
-                                </BreadcrumbLink>
-                            </TooltipWrapper>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger class="flex items-center gap-1">
-                                    <BreadcrumbEllipsis class="h-4 w-4" />
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                    <DropdownMenuItem
-                                        v-for="(crumb, index) in middleBreadcrumbs"
-                                        :key="`${crumb.type}-${crumb.id}`"
-                                        @click="handleBreadcrumbClick(index + 1)">
-                                        {{ crumb.label || crumb.id }}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <TooltipWrapper
-                                :content="
-                                    dialogCrumbs[dialogCrumbs.length - 2]?.label ||
-                                    dialogCrumbs[dialogCrumbs.length - 2]?.id
-                                "
-                                :delayDuration="500">
-                                <BreadcrumbLink as-child>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="max-w-40 justify-start truncate text-left"
-                                        @click="handleBreadcrumbClick(dialogCrumbs.length - 2)">
-                                        {{
-                                            dialogCrumbs[dialogCrumbs.length - 2]?.label ||
-                                            dialogCrumbs[dialogCrumbs.length - 2]?.id
-                                        }}
-                                    </Button>
-                                </BreadcrumbLink>
-                            </TooltipWrapper>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage class="max-w-40 truncate">
-                                {{
-                                    dialogCrumbs[dialogCrumbs.length - 1]?.label ||
-                                    dialogCrumbs[dialogCrumbs.length - 1]?.id
-                                }}
-                            </BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </template>
-                    <template v-else>
-                        <template v-for="(crumb, index) in dialogCrumbs" :key="`${crumb.type}-${crumb.id}`">
+    <WindowTeleport
+        :open="isOpen"
+        :disabled="BROWSER"
+        :focus-key="uiStore.dialogFocusRequest"
+        :title="windowTitle"
+        @close="uiStore.closeMainDialog">
+        <Dialog v-if="isOpen" :open="isOpen" :modal="BROWSER" @update:open="handleDialogOpen">
+            <component
+                :is="dialogContentComponent"
+                v-bind="dialogContentProps"
+                :class="dialogContentClass"
+                :style="dialogStyle">
+                <Breadcrumb
+                    v-if="shouldShowBreadcrumbs"
+                    class="mb-2 flex-shrink-0 rounded-xl bg-(--profile-card) w-fit pr-4">
+                    <BreadcrumbList>
+                        <TooltipWrapper :content="backCrumbLabel" :disabled="!backCrumbLabel" :delayDuration="500">
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                @click="handleBreadcrumbClick(dialogCrumbs.length - 2)">
+                                <ArrowLeft />
+                                <span class="sr-only">{{ backCrumbLabel }}</span>
+                            </Button>
+                        </TooltipWrapper>
+                        <template v-if="shouldCollapseBreadcrumbs">
                             <BreadcrumbItem>
                                 <TooltipWrapper
-                                    v-if="index < dialogCrumbs.length - 1"
-                                    :content="crumb.label || crumb.id"
+                                    :content="dialogCrumbs[0]?.label || dialogCrumbs[0]?.id"
                                     :delayDuration="500">
                                     <BreadcrumbLink as-child>
                                         <Button
@@ -319,22 +277,96 @@
                                             variant="ghost"
                                             size="sm"
                                             class="max-w-40 justify-start truncate text-left"
-                                            @click="handleBreadcrumbClick(index)">
-                                            {{ crumb.label || crumb.id }}
+                                            @click="handleBreadcrumbClick(0)">
+                                            {{ dialogCrumbs[0]?.label || dialogCrumbs[0]?.id }}
                                         </Button>
                                     </BreadcrumbLink>
                                 </TooltipWrapper>
-                                <BreadcrumbPage v-else class="max-w-40 truncate">
-                                    {{ crumb.label || crumb.id }}
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger class="flex items-center gap-1">
+                                        <BreadcrumbEllipsis class="h-4 w-4" />
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start">
+                                        <DropdownMenuItem
+                                            v-for="(crumb, index) in middleBreadcrumbs"
+                                            :key="`${crumb.type}-${crumb.id}`"
+                                            @click="handleBreadcrumbClick(index + 1)">
+                                            {{ crumb.label || crumb.id }}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <TooltipWrapper
+                                    :content="
+                                        dialogCrumbs[dialogCrumbs.length - 2]?.label ||
+                                        dialogCrumbs[dialogCrumbs.length - 2]?.id
+                                    "
+                                    :delayDuration="500">
+                                    <BreadcrumbLink as-child>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            class="max-w-40 justify-start truncate text-left"
+                                            @click="handleBreadcrumbClick(dialogCrumbs.length - 2)">
+                                            {{
+                                                dialogCrumbs[dialogCrumbs.length - 2]?.label ||
+                                                dialogCrumbs[dialogCrumbs.length - 2]?.id
+                                            }}
+                                        </Button>
+                                    </BreadcrumbLink>
+                                </TooltipWrapper>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage class="max-w-40 truncate">
+                                    {{
+                                        dialogCrumbs[dialogCrumbs.length - 1]?.label ||
+                                        dialogCrumbs[dialogCrumbs.length - 1]?.id
+                                    }}
                                 </BreadcrumbPage>
                             </BreadcrumbItem>
-                            <BreadcrumbSeparator v-if="index < dialogCrumbs.length - 1" />
                         </template>
-                    </template>
-                </BreadcrumbList>
-            </Breadcrumb>
+                        <template v-else>
+                            <template v-for="(crumb, index) in dialogCrumbs" :key="`${crumb.type}-${crumb.id}`">
+                                <BreadcrumbItem>
+                                    <TooltipWrapper
+                                        v-if="index < dialogCrumbs.length - 1"
+                                        :content="crumb.label || crumb.id"
+                                        :delayDuration="500">
+                                        <BreadcrumbLink as-child>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                class="max-w-40 justify-start truncate text-left"
+                                                @click="handleBreadcrumbClick(index)">
+                                                {{ crumb.label || crumb.id }}
+                                            </Button>
+                                        </BreadcrumbLink>
+                                    </TooltipWrapper>
+                                    <BreadcrumbPage v-else class="max-w-40 truncate">
+                                        {{ crumb.label || crumb.id }}
+                                    </BreadcrumbPage>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator v-if="index < dialogCrumbs.length - 1" />
+                            </template>
+                        </template>
+                    </BreadcrumbList>
+                </Breadcrumb>
 
-            <component :is="activeComponent" v-if="activeComponent" v-bind="activeComponentProps" :key="activeType" />
-        </DialogContent>
-    </Dialog>
+                <component
+                    :is="activeComponent"
+                    v-if="activeComponent"
+                    v-bind="activeComponentProps"
+                    class="min-h-0 min-w-0 flex-1 w-full"
+                    :key="activeType" />
+            </component>
+        </Dialog>
+    </WindowTeleport>
 </template>

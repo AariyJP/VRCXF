@@ -431,6 +431,7 @@
     import { deleteVRChatCache, openFolderGeneric } from '../../../shared/utils';
     import { Badge } from '../../ui/badge';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
     import { runNewInstanceSelfInviteFlow as newInstanceSelfInvite } from '../../../coordinators/inviteCoordinator';
     import { useWorldDialogCommands } from './useWorldDialogCommands';
 
@@ -491,7 +492,7 @@
             showWorldAllowedDomainsDialog();
         },
         showChangeWorldImageDialog: () => {
-            document.getElementById('WorldImageUploadButton').click();
+            queryAcrossWindows('#WorldImageUploadButton')?.click();
         }
     });
 
