@@ -15,11 +15,6 @@
                 </button>
             </div>
             <div class="flex items-center mx-1 gap-1">
-                <TooltipWrapper side="bottom" :content="t('dialog.user.actions.edit_status')">
-                    <Button class="rounded-full" variant="ghost" size="icon-sm" @click="showSocialStatusDialog">
-                        <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
-                    </Button>
-                </TooltipWrapper>
                 <TooltipWrapper side="bottom" :content="t('side_panel.refresh_tooltip')">
                     <Button
                         class="rounded-full"
@@ -369,7 +364,6 @@
     import { runRefreshFriendsListFlow } from '../../coordinators/friendSyncCoordinator';
     import { normalizeFavoriteGroupsChange, resolveFavoriteGroups } from './sidebarSettingsUtils';
     import { useQuickSearchStore } from '../../stores/quickSearch';
-    import { useUserDisplay } from '../../composables/useUserDisplay';
     import FriendsSidebar from './components/FriendsSidebar.vue';
     import QuickSearchDialog from '../../components/QuickSearchDialog.vue';
     import FavoriteFriendGroupOrderDialog from './components/FavoriteFriendGroupOrderDialog.vue';
@@ -387,7 +381,6 @@
     const { notificationLayout } = storeToRefs(useNotificationsSettingsStore());
     const quickSearchStore = useQuickSearchStore();
     const { currentUser } = storeToRefs(useUserStore());
-    const { userStatusClass } = useUserDisplay();
     const { t } = useI18n();
 
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
