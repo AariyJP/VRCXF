@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > このプロジェクトでは `AGENTS.md` をエージェント向け指示の単一の正本として扱う。
-> `CLAUDE.md`、`.clinerules/CLINE.md`、`.gemini/GEMINI.md` は本ファイルへの symbolic link。
+> `CLAUDE.md` は本ファイルへの symbolic link。
 
 **ユーザーへの回答はすべて日本語で行うこと。**
 
@@ -306,6 +306,19 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - 検証ステップにテスト実行を含めない。型チェック、Lint、ビルドで十分。
 - リファクタの副作用で既存テストが壊れた場合、自分で直そうとせずそのまま残し、事実だけユーザーに報告する。
 
+## 🔍 コードレビューポリシー
+
+- **upstream 由来のコードは指摘しない**。レビュー対象は fork（VRCXF）が書いたコードのみ。upstream ([vrcx-team/VRCX](https://github.com/vrcx-team/VRCX)) から引き継いだままのコードは、たとえ問題があっても指摘対象外とする。
+- ファイル単位ではなく**変更行単位で判定する**。upstream に存在するファイルでも、fork が書き足した部分は指摘対象。逆にファイル内の upstream 由来部分は対象外。
+- 判定方法:
+
+  ```bash
+  git ls-tree --name-only upstream/master <path>   # upstream に存在するか
+  git diff upstream/master HEAD -- <path>          # fork が変更した行はどこか
+  ```
+
+- upstream リモート未登録の場合は `git remote add upstream https://github.com/vrcx-team/VRCX.git && git fetch upstream` で追加する。
+
 ## 重要な注意点
 
 - `src/vite.config.js` は `chrome145` ターゲットと LightningCSS を使用
@@ -324,3 +337,4 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 ## 🚨 Git 操作の制限
 
 - **commit と push**: `git commit` と `git push` は基本的にユーザーが行う。エージェントはユーザーの明示的な許可なくこれらの操作を行ってはならない。
+- **`.serena/project.yml`**: 常にコミットに含めてよい。Serena による設定の自動移行で差分が出ても stash 退避や除外はせず、そのままステージする。
