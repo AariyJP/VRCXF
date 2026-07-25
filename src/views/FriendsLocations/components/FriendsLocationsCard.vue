@@ -38,7 +38,7 @@
                                 height: `${Math.max(12, 14 * cardScale)}px`
                             }" />
                         <Clock v-else class="shrink-0" :size="Math.max(12, 14 * cardScale)" />
-                        <Timer :epoch="epoch" exact-seconds show-seconds />
+                        <Timer :epoch="epoch" />
                     </div>
                 </div>
             </div>
