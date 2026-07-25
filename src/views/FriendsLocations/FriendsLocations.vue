@@ -329,7 +329,6 @@
 
     const getEntryIdentity = (entry) => entry?.id ?? getFriendIdentity(entry?.friend);
 
-
     const fetchedOwners = new Set();
     const resolveInstanceOwnerOptionally = (instanceId) => {
         if (!instanceId || instanceId === 'private') return null;
@@ -347,13 +346,21 @@
         }
 
         if (ownerId && ownerId.startsWith('usr_')) {
+            const friend = friendStore.friends.get(ownerId);
+            if (friend) {
+                return {
+                    ...friend,
+                    isOwner: true
+                };
+            }
+
             const u = userStore.cachedUsers.get(ownerId);
             if (u) {
                 return {
                     id: ownerId,
                     name: u.displayName || ownerId,
                     status: u.status,
-                    ref: { ...u, isFriend: true },
+                    ref: { ...u },
                     isOwner: true
                 };
             } else {
@@ -364,7 +371,7 @@
                 return {
                     id: ownerId,
                     name: ownerId,
-                    ref: { id: ownerId, statusDescription: 'Instance Owner', isFriend: true },
+                    ref: { id: ownerId, statusDescription: 'Instance Owner' },
                     isOwner: true
                 };
             }
@@ -854,7 +861,6 @@
             ...vars
         };
     });
-
 
     const getRowItems = (row) => (row && Array.isArray(row.items) ? row.items : []);
     const getRowInstanceId = (row) => (row && row.type === 'header' ? row.instanceId : '');
