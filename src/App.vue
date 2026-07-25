@@ -33,6 +33,7 @@
     import { TooltipProvider } from './components/ui/tooltip';
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
+    import { registerActiveDocument } from './lib/activeWindowTracker';
 
     import AlertDialogModal from './components/ui/alert-dialog/AlertDialogModal.vue';
     import DatabaseUpgradeDialog from './components/dialogs/DatabaseUpgradeDialog.vue';
@@ -68,6 +69,8 @@
     });
 
     onMounted(async () => {
+        registerActiveDocument(document);
+
         if (await store.vrcx.waitForDatabaseInit()) {
             getGameLogTable();
             await store.auth.migrateStoredUsers();

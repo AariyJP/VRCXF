@@ -32,10 +32,11 @@
 
 ### クロスプラットフォームパターン
 
-- フロントエンドは `WINDOWS` / `LINUX` で分岐
-- CEF と Electron プロキシ経路でネイティブバインディングが異なる
+- フロントエンドは `WINDOWS` / `LINUX` / `BROWSER` で分岐
+- CEF と Electron プロキシ経路でネイティブバインディングが異なる。`BROWSER` は `src/ipc-browser/index.js` のブラウザ内モック（.NET ランタイムなし、開発/検証用で配布対象外）
 - 共通機能は可能な限り `Dotnet/AppApi/Common/` に置く
 - 共有 UI コードから `window.electron` 専用 API を使う場合は注意する
+- `src/services/webapi.js` は `LINUX` のときのみ `ExecuteJson()`、それ以外(Windows/Browser)は `Execute()`(`{Item1,Item2}`形式)に分岐。Browser モックもこの形式に合わせている
 
 ### スタイリングパターン
 

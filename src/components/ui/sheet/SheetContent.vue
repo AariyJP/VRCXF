@@ -1,10 +1,13 @@
 <script setup>
-    import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from 'reka-ui';
+    import { DialogClose, DialogContent, DialogPortal, useForwardProps } from 'reka-ui';
+    import { computed, inject, ref } from 'vue';
     import { X } from 'lucide-vue-next';
+    import { isUsableDocument, useGuardedOutsideEmit, usePortalDocument } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
     import SheetOverlay from './SheetOverlay.vue';
+    import { DIALOG_OPEN_INJECTION_KEY } from '../dialog/context';
 
     defineOptions({
         inheritAttrs: false
@@ -29,11 +32,16 @@
 
     const delegatedProps = reactiveOmit(props, 'class', 'side');
 
-    const forwarded = useForwardPropsEmits(delegatedProps, emits);
+    const forwarded = useForwardProps(delegatedProps);
+
+    const open = inject(DIALOG_OPEN_INJECTION_KEY, ref(true));
+    const portalDoc = usePortalDocument(open);
+    const emitOutside = useGuardedOutsideEmit(portalDoc, emits);
+    const portalTo = computed(() => (isUsableDocument(portalDoc.value) ? portalDoc.value.body : undefined));
 </script>
 
 <template>
-    <DialogPortal>
+    <DialogPortal :to="portalTo">
         <SheetOverlay />
         <DialogContent
             data-slot="sheet-content"
@@ -51,7 +59,13 @@
                     props.class
                 )
             "
-            v-bind="{ ...$attrs, ...forwarded }">
+            v-bind="{ ...$attrs, ...forwarded }"
+            @pointer-down-outside="emitOutside('pointerDownOutside', $event)"
+            @focus-outside="emitOutside('focusOutside', $event)"
+            @interact-outside="emitOutside('interactOutside', $event)"
+            @escape-key-down="emits('escapeKeyDown', $event)"
+            @open-auto-focus="emits('openAutoFocus', $event)"
+            @close-auto-focus="emits('closeAutoFocus', $event)">
             <slot />
 
             <DialogClose

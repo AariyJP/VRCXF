@@ -26,6 +26,8 @@ namespace VRCX
         /// </summary>
         private static int currentTheme = -1;
 
+        private static List<IntPtr> _popupHandles = new List<IntPtr>();
+
         /// <summary>
         ///     Sets the global theme of the app
         ///     Light = 0
@@ -80,6 +82,8 @@ namespace VRCX
                 //For each form, set the theme, then move focus onto it to force refresh
                 foreach (var form in forms)
                 {
+                    if (form.IsDisposed) continue;
+
                     //Set the theme of the window
                     SetThemeToGlobal(form.Handle);
 
@@ -87,14 +91,58 @@ namespace VRCX
                     form.Opacity = 0.99999;
                     form.Opacity = 1;
                 }
+
+                lock (_popupHandles)
+                {
+                    // Clean up dead handles (if any) and apply themes
+                    for (int i = _popupHandles.Count - 1; i >= 0; i--)
+                    {
+                        var handle = _popupHandles[i];
+                        if (!PInvoke.IsWindow(handle))
+                        {
+                            _popupHandles.RemoveAt(i);
+                            continue;
+                        }
+                        SetThemeToGlobal(handle);
+                        // Force redraw on native window frame
+                        PInvoke.SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, PInvoke.SWP_NOMOVE | PInvoke.SWP_NOSIZE | PInvoke.SWP_NOZORDER | PInvoke.SWP_FRAMECHANGED);
+                    }
+                }
             }));
+        }
+
+        public static void AddPopup(IntPtr handle)
+        {
+            lock (_popupHandles)
+            {
+                if (!_popupHandles.Contains(handle))
+                {
+                    _popupHandles.Add(handle);
+                }
+            }
+            SetThemeToGlobal(handle);
+
+            if (MainForm.Instance != null && MainForm.Instance.Icon != null)
+            {
+                IntPtr hIcon = MainForm.Instance.Icon.Handle;
+                PInvoke.SendMessage(handle, PInvoke.WM_SETICON, (IntPtr)PInvoke.ICON_SMALL, hIcon);
+                PInvoke.SendMessage(handle, PInvoke.WM_SETICON, (IntPtr)PInvoke.ICON_BIG, hIcon);
+            }
+        }
+
+        public static void RemovePopup(IntPtr handle)
+        {
+            lock (_popupHandles)
+            {
+                _popupHandles.Remove(handle);
+            }
         }
 
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
         private const int DWMWA_CAPTION_COLOR = 35;
 
-        private static void SetThemeToGlobal(IntPtr handle)
+        public static void SetThemeToGlobal(IntPtr handle)
         {
             var whiteColor = 0xFFFFFF;
             var blackColor = 0x000000;
@@ -178,6 +226,27 @@ namespace VRCX
             [DllImport("user32.dll")]
             [return: MarshalAs(UnmanagedType.Bool)]
             internal static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+
+            [DllImport("user32.dll")]
+            internal static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+            internal const uint GA_ROOT = 2;
+
+            [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool IsWindow(IntPtr hWnd);
+
+            [DllImport("user32.dll")]
+            internal static extern bool SetWindowPos(IntPtr hwnd, IntPtr hwndInsertAfter, int x, int y, int width, int height, uint flags);
+            internal const uint SWP_NOMOVE = 0x0002;
+            internal const uint SWP_NOSIZE = 0x0001;
+            internal const uint SWP_NOZORDER = 0x0004;
+            internal const uint SWP_FRAMECHANGED = 0x0020;
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+            internal const uint WM_SETICON = 0x0080;
+            internal const int ICON_SMALL = 0;
+            internal const int ICON_BIG = 1;
         }
 
         [StructLayout(LayoutKind.Sequential)]

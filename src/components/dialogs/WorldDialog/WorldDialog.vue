@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
+    <div class="w-full max-w-full min-w-0 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ worldDialog.ref?.name || t('dialog.world.info.header') }}</DialogTitle>
             <DialogDescription>
@@ -441,6 +441,7 @@
     import { deleteVRChatCache, openFolderGeneric } from '../../../shared/utils';
     import { Badge } from '../../ui/badge';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
     import { runNewInstanceSelfInviteFlow as newInstanceSelfInvite } from '../../../coordinators/inviteCoordinator';
     import { useWorldDialogCommands } from './useWorldDialogCommands';
 
@@ -503,7 +504,7 @@
             showWorldAllowedDomainsDialog();
         },
         showChangeWorldImageDialog: () => {
-            document.getElementById('WorldImageUploadButton').click();
+            queryAcrossWindows('#WorldImageUploadButton')?.click();
         }
     });
 

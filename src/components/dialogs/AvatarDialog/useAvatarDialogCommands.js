@@ -5,6 +5,7 @@ import {
     avatarRequest,
     favoriteRequest
 } from '../../../api';
+import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
 import { removeAvatarFromCache } from '../../../coordinators/avatarCoordinator';
 import {
     copyToClipboard,
@@ -70,7 +71,7 @@ export function useAvatarDialogCommands(
      *
      */
     function showChangeAvatarImageDialog() {
-        document.getElementById('AvatarImageUploadButton').click();
+        queryAcrossWindows('#AvatarImageUploadButton')?.click();
     }
 
     /**

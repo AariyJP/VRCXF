@@ -1,6 +1,5 @@
 import { computed, reactive, ref, shallowRef, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useRouter } from 'vue-router';
 
 import { i18n } from '../plugins/i18n';
 import {
@@ -31,7 +30,6 @@ import { useGeneralSettingsStore } from './settings/general';
 import { useGroupStore } from './group';
 import { useLocationStore } from './location';
 import { useUserStore } from './user';
-import { useDashboardStore } from './dashboard';
 import { watchState } from '../services/watchState';
 
 import configRepository from '../services/config';
@@ -44,9 +42,7 @@ export const useFriendStore = defineStore('Friend', () => {
     const userStore = useUserStore();
     const groupStore = useGroupStore();
     const locationStore = useLocationStore();
-    const dashboardStore = useDashboardStore();
 
-    const router = useRouter();
     const t = i18n.global.t;
 
     const state = reactive({
@@ -292,21 +288,6 @@ export const useFriendStore = defineStore('Friend', () => {
         loading: false
     });
 
-    watch(
-        [router.currentRoute, () => dashboardStore.dashboards],
-        ([value]) => {
-            const isDashboardPanel =
-                value.name === 'dashboard' &&
-                dashboardStore.getDashboard(value.params.id, 'friend-log');
-            if (value.name === 'friend-log' || isDashboardPanel) {
-                initFriendLogHistoryTable();
-            } else {
-                friendLogTable.value.data = [];
-            }
-        },
-        { immediate: true, deep: true }
-    );
-
     const vipFriends = computed(() => {
         const result = sortedFriends.value.filter(
             (f) => f.state === 'online' && f.isVIP
@@ -431,6 +412,7 @@ export const useFriendStore = defineStore('Friend', () => {
         (isFriendsLoaded) => {
             if (isFriendsLoaded) {
                 updateOnlineFriendCounter();
+                initFriendLogHistoryTable();
             }
         },
         { flush: 'sync' }

@@ -17,6 +17,7 @@ import {
 } from '../api';
 import { AppDebug } from '../services/appConfig';
 import { handleImageUploadInput } from '../coordinators/imageUploadCoordinator';
+import { queryAllAcrossWindows } from '../lib/activeWindowTracker';
 import { router } from '../plugins/router';
 import { useAdvancedSettingsStore } from './settings/advanced';
 import { useModalStore } from './modal';
@@ -218,9 +219,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
      *
      */
     function clearInviteImageUpload() {
-        const buttonList = document.querySelectorAll(
-            '.inviteImageUploadButton'
-        );
+        const buttonList = queryAllAcrossWindows('.inviteImageUploadButton');
         buttonList.forEach((button) => (button.value = ''));
         uploadImage.value = '';
     }

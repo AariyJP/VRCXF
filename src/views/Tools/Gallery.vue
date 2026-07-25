@@ -633,6 +633,7 @@
     import { handleImageUploadInput } from '../../coordinators/imageUploadCoordinator';
     import { emojiAnimationStyleList, emojiAnimationStyleUrl } from '../../shared/constants';
     import { AppDebug } from '../../services/appConfig';
+    import { queryAcrossWindows } from '../../lib/activeWindowTracker';
 
     import Emoji from '../../components/Emoji.vue';
     import ImageCropDialog from '../../components/dialogs/ImageCropDialog.vue';
@@ -765,7 +766,7 @@
      * @param {string} id
      */
     function triggerFileInput(id) {
-        document.getElementById(id)?.click();
+        queryAcrossWindows(`#${id}`)?.click();
     }
 
     /**

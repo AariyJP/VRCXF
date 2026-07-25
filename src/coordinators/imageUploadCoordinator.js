@@ -4,6 +4,7 @@ import { $throw } from '../services/request';
 import { AppDebug } from '../services/appConfig.js';
 import { extractFileId } from '../shared/utils';
 import { imageRequest } from '../api';
+import { queryAcrossWindows } from '../lib/activeWindowTracker';
 
 function resolveMessage(message) {
     if (typeof message === 'function') {
@@ -20,7 +21,7 @@ function getInputElement(selector) {
         return selector();
     }
     if (typeof selector === 'string') {
-        return document.querySelector(selector);
+        return queryAcrossWindows(selector);
     }
     return selector;
 }

@@ -1,5 +1,6 @@
 <script setup>
     import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -31,10 +32,12 @@
 
     const delegatedProps = reactiveOmit(props, 'class');
     const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <TooltipPortal>
+    <TooltipPortal :to="portalTo">
         <TooltipContent
             data-slot="tooltip-content"
             v-bind="{ ...forwarded, ...$attrs }"

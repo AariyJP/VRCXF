@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
+    <div class="w-full max-w-full min-w-0 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ avatarDialog.ref?.name || t('dialog.avatar.info.header') }}</DialogTitle>
             <DialogDescription>
@@ -637,6 +637,7 @@
     import { avatarRequest } from '../../../api';
     import { database } from '../../../services/database';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
     import { handleImageUploadInput } from '../../../coordinators/imageUploadCoordinator';
     import { runDeleteVRChatCacheFlow as deleteVRChatCache } from '../../../coordinators/gameCoordinator';
     import {
@@ -996,7 +997,7 @@
      *
      */
     function displayAvatarGalleryUpload() {
-        document.getElementById('AvatarGalleryUploadButton').click();
+        queryAcrossWindows('#AvatarGalleryUploadButton')?.click();
     }
 
     /**
