@@ -73,6 +73,17 @@
                                                     :link="false" />
                                                 <span v-else class="extra block truncate text-xs"></span>
                                             </div>
+                                            <TooltipWrapper
+                                                side="bottom"
+                                                :content="t('dialog.user.actions.edit_status')">
+                                                <Button
+                                                    class="rounded-full flex-none ml-1"
+                                                    variant="outline"
+                                                    size="icon-sm"
+                                                    @click.stop="emit('show-social-status-dialog')">
+                                                    <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
+                                                </Button>
+                                            </TooltipWrapper>
                                         </div>
                                     </ContextMenuTrigger>
                                     <ContextMenuContent>
@@ -251,10 +262,13 @@
     import Location from '../../../components/Location.vue';
     import configRepository from '../../../services/config';
     import { useStatusPresets } from '../../../components/dialogs/UserDialog/composables/useStatusPresets';
+    import { Button } from '../../../components/ui/button';
+    import { TooltipWrapper } from '../../../components/ui/tooltip';
 
     import '@/styles/status-icon.css';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
     const { t } = useI18n();
+    const emit = defineEmits(['show-social-status-dialog']);
 
     const friendStore = useFriendStore();
     const {
