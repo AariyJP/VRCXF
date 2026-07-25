@@ -56,7 +56,7 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-nuget-
             - name: Build Cef .NET Application
-              run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -p:GenerateAssemblyInfo=true -p:AssemblyVersion=${{ needs.set_version.outputs.date }}.0 -p:FileVersion=${{ needs.set_version.outputs.date }}.0 -p:InformationalVersion=${{ needs.set_version.outputs.version }} -p:IncludeSourceRevisionInInformationalVersion=false -t:"Restore;Clean;Build" -m -a x64 --self-contained
+              run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -p:GenerateAssemblyInfo=true -p:AssemblyVersion=${{ needs.set_version.outputs.date }}.0 -p:FileVersion=${{ needs.set_version.outputs.date }}.0 -p:InformationalVersion=${{ needs.set_version.outputs.version }} -p:IncludeSourceRevisionInInformationalVersion=false -t:"Restore;Clean;Build" -m -a x64
             - name: Check if we want to sign
               id: check_sign
               run: |
