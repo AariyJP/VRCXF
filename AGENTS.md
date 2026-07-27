@@ -262,29 +262,31 @@ Dotnet/
 
 ## 開発コマンド
 
+ローカル開発では `pnpm`、CI では `npm` を使用する。
+
 ```bash
-npm run dev
-npm run dev-linux
-npm test
-npm run test:coverage
-npm run prod
-npm run prod-linux
-npm run build-electron
-npm run build-electron-arm64
-npm run start-electron
-npm run localization
-npm run dotnet-win
-npm run dotnet-arm64
-npm run lint
-npm run lint:eslint
-npm run lint:oxlint
-npm run typecheck:js
+pnpm dev
+pnpm dev-linux
+pnpm test
+pnpm test:coverage
+pnpm prod
+pnpm prod-linux
+pnpm build-electron
+pnpm build-electron-arm64
+pnpm start-electron
+pnpm localization
+pnpm dotnet-win
+pnpm dotnet-arm64
+pnpm lint
+pnpm lint:eslint
+pnpm lint:oxlint
+pnpm typecheck:js
 ```
 
 ## .NET ビルド
 
 ```bash
-dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
+dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
@@ -326,7 +328,9 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
+- Windows CEF 版は framework-dependent としてビルドし、.NET ランタイムを配布物へ同梱しない。`--self-contained` を付けないこと。
 - `build-scripts/build-all.ps1` は **`build-scripts/` ディレクトリから**実行する必要がある（スクリプトの先頭が `cd ..` でリポジトリルートに移動する）。`Set-Location build-scripts; .\build-all.ps1` のように呼び出す。
+- framework-dependent への切り替え後などに古い成果物が混在して.NETランタイム要求ダイアログが表示される場合は、リポジトリ直下の `build/` を全削除してから `build-scripts/build-all.ps1` を再実行する。
 - `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
 - 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、upstream 同期マージ
 
