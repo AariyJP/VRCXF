@@ -30,48 +30,50 @@
                             <template v-else-if="item.row.type === 'me-item'">
                                 <ContextMenu>
                                     <ContextMenuTrigger as-child>
-                                        <div
-                                            class="friend-row box-border flex items-center p-1.5 text-[13px] cursor-pointer hover:bg-muted/50 hover:rounded-lg"
-                                            @click="showUserDialog(currentUser.id)">
+                                        <div class="box-border flex items-center">
                                             <div
-                                                class="relative inline-block flex-none size-9 mr-2.5"
-                                                :class="userStatusClass(currentUser)">
-                                                <Avatar class="size-full rounded-full">
-                                                    <AvatarImage :src="userImage(currentUser)" class="object-cover" />
-                                                    <AvatarFallback>
-                                                        <User class="size-5 text-muted-foreground" />
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                            </div>
-                                            <div class="flex-1 overflow-hidden h-9 flex flex-col justify-between">
-                                                <div class="flex items-center">
-                                                    <span
-                                                        class="block truncate font-medium leading-[18px]"
-                                                        :style="{ color: currentUser.$userColour }"
-                                                        >{{ currentUser.displayName }}</span
-                                                    >
-                                                    <span
-                                                        v-if="currentUser.statusDescription"
-                                                        class="block truncate text-[11px] text-muted-foreground"
-                                                        >{{ '・' + currentUser.statusDescription }}</span
-                                                    >
+                                                class="friend-row flex flex-1 min-w-0 items-center p-1.5 text-[13px] cursor-pointer hover:bg-muted/50 hover:rounded-lg"
+                                                @click="showUserDialog(currentUser.id)">
+                                                <div
+                                                    class="relative inline-block flex-none size-9 mr-2.5"
+                                                    :class="userStatusClass(currentUser)">
+                                                    <Avatar class="size-full rounded-full">
+                                                        <AvatarImage :src="userImage(currentUser)" class="object-cover" />
+                                                        <AvatarFallback>
+                                                            <User class="size-5 text-muted-foreground" />
+                                                        </AvatarFallback>
+                                                    </Avatar>
                                                 </div>
-                                                <Location
-                                                    v-if="isGameRunning && !gameLogDisabled"
-                                                    class="extra block truncate text-xs"
-                                                    :location="lastLocation.location"
-                                                    :traveling="lastLocationDestination"
-                                                    :link="false" />
-                                                <Location
-                                                    v-else-if="
-                                                        isRealInstance(currentUser.$locationTag) ||
-                                                        isRealInstance(currentUser.$travelingToLocation)
-                                                    "
-                                                    class="extra block truncate text-xs"
-                                                    :location="currentUser.$locationTag"
-                                                    :traveling="currentUser.$travelingToLocation"
-                                                    :link="false" />
-                                                <span v-else class="extra block truncate text-xs"></span>
+                                                <div class="flex-1 overflow-hidden h-9 flex flex-col justify-between">
+                                                    <div class="flex items-center">
+                                                        <span
+                                                            class="block truncate font-medium leading-[18px]"
+                                                            :style="{ color: currentUser.$userColour }"
+                                                            >{{ currentUser.displayName }}</span
+                                                        >
+                                                        <span
+                                                            v-if="currentUser.statusDescription"
+                                                            class="block truncate text-[11px] text-muted-foreground"
+                                                            >{{ '・' + currentUser.statusDescription }}</span
+                                                        >
+                                                    </div>
+                                                    <Location
+                                                        v-if="isGameRunning && !gameLogDisabled"
+                                                        class="extra block truncate text-xs"
+                                                        :location="lastLocation.location"
+                                                        :traveling="lastLocationDestination"
+                                                        :link="false" />
+                                                    <Location
+                                                        v-else-if="
+                                                            isRealInstance(currentUser.$locationTag) ||
+                                                            isRealInstance(currentUser.$travelingToLocation)
+                                                        "
+                                                        class="extra block truncate text-xs"
+                                                        :location="currentUser.$locationTag"
+                                                        :traveling="currentUser.$travelingToLocation"
+                                                        :link="false" />
+                                                    <span v-else class="extra block truncate text-xs"></span>
+                                                </div>
                                             </div>
                                             <TooltipWrapper
                                                 side="bottom"
@@ -80,7 +82,7 @@
                                                     class="rounded-full flex-none ml-1"
                                                     variant="outline"
                                                     size="icon-sm"
-                                                    @click.stop="emit('show-social-status-dialog')">
+                                                    @click="emit('show-social-status-dialog')">
                                                     <i class="x-user-status" :class="userStatusClass(currentUser)"></i>
                                                 </Button>
                                             </TooltipWrapper>
