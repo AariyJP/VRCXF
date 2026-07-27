@@ -1,87 +1,128 @@
 <script setup>
-    import { TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
-    import { computed, ref, toRefs, watch } from 'vue';
+import {
+    TabsContent,
+    TabsIndicator,
+    TabsList,
+    TabsRoot,
+    TabsTrigger,
+} from "reka-ui";
+import { computed, ref, toRefs, watch } from "vue";
 
-    const props = defineProps({
-        modelValue: String,
-        defaultValue: String,
-        items: {
-            type: Array,
-            required: true,
-            validator: (value) =>
-                Array.isArray(value) &&
-                value.every(
-                    (item) =>
-                        item &&
-                        (typeof item.value === 'string' || typeof item.value === 'number') &&
-                        typeof item.label === 'string'
-                )
-        },
-        ariaLabel: { type: String, default: '' },
+const props = defineProps({
+    modelValue: String,
+    defaultValue: String,
+    items: {
+        type: Array,
+        required: true,
+        validator: (value) =>
+            Array.isArray(value) &&
+            value.every(
+                (item) =>
+                    item &&
+                    (typeof item.value === "string" ||
+                        typeof item.value === "number") &&
+                    typeof item.label === "string",
+            ),
+    },
+    ariaLabel: { type: String, default: "" },
 
-        variant: { type: String, default: 'fit' },
-        tabListClass: { type: String, default: '' },
-        unmountOnHide: { type: Boolean, default: false },
-        fill: { type: Boolean, default: false },
-        sticky: { type: Boolean, default: false }
-    });
+    variant: { type: String, default: "fit" },
+    tabListClass: { type: String, default: "" },
+    unmountOnHide: { type: Boolean, default: false },
+    fill: { type: Boolean, default: false },
+    sticky: { type: Boolean, default: false },
+    tabColor: { type: String, default: "" },
+});
 
-    const emit = defineEmits(['update:modelValue']);
-    const { modelValue, defaultValue, items, ariaLabel, variant, tabListClass, unmountOnHide, fill, sticky } =
-        toRefs(props);
+const emit = defineEmits(["update:modelValue"]);
+const {
+    modelValue,
+    defaultValue,
+    items,
+    ariaLabel,
+    variant,
+    tabListClass,
+    unmountOnHide,
+    fill,
+    sticky,
+    tabColor,
+} = toRefs(props);
 
-    const itemsList = computed(() => (Array.isArray(items.value) ? items.value : []));
+const itemsList = computed(() =>
+    Array.isArray(items.value) ? items.value : [],
+);
 
-    const resolvedDefault = computed(() => {
-        return defaultValue.value ?? itemsList.value?.[0]?.value;
-    });
+const resolvedDefault = computed(() => {
+    return defaultValue.value ?? itemsList.value?.[0]?.value;
+});
 
-    const isValueValid = (value) => itemsList.value.some((item) => item?.value === value);
+const isValueValid = (value) =>
+    itemsList.value.some((item) => item?.value === value);
 
-    const innerValue = ref(isValueValid(modelValue.value) ? modelValue.value : resolvedDefault.value);
+const innerValue = ref(
+    isValueValid(modelValue.value) ? modelValue.value : resolvedDefault.value,
+);
 
-    watch(modelValue, (v) => {
-        if (isValueValid(v)) {
-            innerValue.value = v;
-        }
-    });
-
-    watch([itemsList, defaultValue], () => {
-        if (!isValueValid(innerValue.value)) {
-            innerValue.value = resolvedDefault.value;
-            return;
-        }
-
-        if (modelValue.value !== undefined && modelValue.value !== null && !isValueValid(modelValue.value)) {
-            innerValue.value = resolvedDefault.value;
-        }
-    });
-
-    function onValueChange(v) {
+watch(modelValue, (v) => {
+    if (isValueValid(v)) {
         innerValue.value = v;
-        emit('update:modelValue', v);
+    }
+});
+
+watch([itemsList, defaultValue], () => {
+    if (!isValueValid(innerValue.value)) {
+        innerValue.value = resolvedDefault.value;
+        return;
     }
 
-    const triggerClass = computed(() => {
-        return [
-            'relative inline-flex cursor-pointer h-10 items-center justify-center px-3 text-sm font-medium',
-            'text-muted-foreground transition-colors hover:text-foreground',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background',
-            'disabled:pointer-events-none disabled:opacity-50',
-            'data-[state=active]:text-primary',
-            variant.value === 'equal' ? 'flex-1' : '',
-            variant.value === 'pill' ? 'rounded-full' : ''
-        ].join(' ');
-    });
+    if (
+        modelValue.value !== undefined &&
+        modelValue.value !== null &&
+        !isValueValid(modelValue.value)
+    ) {
+        innerValue.value = resolvedDefault.value;
+    }
+});
 
-    const listClass = computed(() => {
-        return [
-            'relative flex w-full items-center gap-1 border-b border-border',
-            tabListClass.value,
-            variant.value === 'pill' ? 'rounded-full bg-muted p-1' : '',
-            sticky.value ? 'sticky top-0 z-10 bg-background' : ''
-        ].join(' ');
-    });
+function onValueChange(v) {
+    innerValue.value = v;
+    emit("update:modelValue", v);
+}
+
+const triggerStyle = computed(() => {
+    if (!tabColor.value) {
+        return undefined;
+    }
+    return { color: tabColor.value };
+});
+
+const indicatorStyle = computed(() => {
+    if (!tabColor.value) {
+        return undefined;
+    }
+    return { backgroundColor: tabColor.value };
+});
+
+const triggerClass = computed(() => {
+    return [
+        "relative inline-flex cursor-pointer h-10 items-center justify-center px-3 text-sm font-medium",
+        "text-muted-foreground transition-colors hover:text-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+        "disabled:pointer-events-none disabled:opacity-50",
+        "data-[state=active]:text-primary",
+        variant.value === "equal" ? "flex-1" : "",
+        variant.value === "pill" ? "rounded-full" : "",
+    ].join(" ");
+});
+
+const listClass = computed(() => {
+    return [
+        "relative flex w-full items-center gap-1 border-b border-border",
+        tabListClass.value,
+        variant.value === "pill" ? "rounded-full bg-muted p-1" : "",
+        sticky.value ? "sticky top-0 z-10 bg-background" : "",
+    ].join(" ");
+});
 </script>
 
 <template>
@@ -90,11 +131,16 @@
         :default-value="resolvedDefault"
         :class="['w-full', fill ? 'flex min-h-0 flex-col' : '']"
         :unmount-on-hide="unmountOnHide"
-        @update:modelValue="onValueChange">
+        @update:modelValue="onValueChange"
+    >
         <TabsList :class="listClass" :aria-label="ariaLabel || undefined">
             <TabsIndicator
-                class="pointer-events-none absolute left-0 bottom-0 h-0.5 w-(--reka-tabs-indicator-size) translate-x-(--reka-tabs-indicator-position) transition-[width,translate] duration-200 ease-out">
-                <div class="h-full w-full rounded-full bg-primary" />
+                class="pointer-events-none absolute left-0 bottom-0 h-0.5 w-(--reka-tabs-indicator-size) translate-x-(--reka-tabs-indicator-position) transition-[width,translate] duration-200 ease-out"
+            >
+                <div
+                    class="h-full w-full rounded-full bg-primary"
+                    :style="indicatorStyle"
+                />
             </TabsIndicator>
 
             <TabsTrigger
@@ -102,7 +148,9 @@
                 :key="it.value"
                 :value="it.value"
                 :disabled="it.disabled"
-                :class="triggerClass">
+                :class="triggerClass"
+                :style="triggerStyle"
+            >
                 <slot :name="`label-${it.value}`">{{ it.label }}</slot>
             </TabsTrigger>
         </TabsList>
@@ -113,8 +161,9 @@
             :value="it.value"
             :class="[
                 'pt-4 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background',
-                fill ? 'min-h-0 flex-1 overflow-y-auto' : ''
-            ]">
+                fill ? 'min-h-0 flex-1 overflow-y-auto' : '',
+            ]"
+        >
             <slot :name="it.value" />
         </TabsContent>
     </TabsRoot>

@@ -1,514 +1,499 @@
 <template>
-    <div class="w-full max-w-full min-w-0 min-h-0 flex-1 flex flex-col">
+    <div class="flex-1 min-h-0 min-w-0 flex flex-col md:flex-row">
         <DialogHeader class="sr-only">
             <DialogTitle>{{
-                userDialog.ref?.displayName || userDialog.id || t('dialog.user.info.header')
+                userDialog.ref?.displayName ||
+                userDialog.id ||
+                t("dialog.user.info.header")
             }}</DialogTitle>
-            <DialogDescription>{{ getUserStateText(userDialog.ref || {}) }}</DialogDescription>
+            <DialogDescription>{{
+                getUserStateText(userDialog.ref || {})
+            }}</DialogDescription>
         </DialogHeader>
-        <UserSummaryHeader
-            class="flex-shrink-0"
-            :get-user-state-text="getUserStateText"
-            :copy-user-display-name="copyUserDisplayName"
-            :toggle-badge-visibility="toggleBadgeVisibility"
-            :toggle-badge-showcased="toggleBadgeShowcased"
-            :user-dialog-command="userDialogCommand" />
 
-        <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
-            <NativeSelect :model-value="userDialog.activeTab" class="w-full" @update:modelValue="selectUserDialogTab">
-                <NativeSelectOption v-for="tab in userDialogTabs" :key="tab.value" :value="tab.value">
-                    {{ tab.label }}
-                </NativeSelectOption>
-            </NativeSelect>
+        <div class="flex-none w-full overflow-y-auto md:w-80 md:pr-4">
+            <UserSummaryHeader
+                :get-user-state-text="getUserStateText"
+                :copy-user-display-name="copyUserDisplayName"
+                :toggle-badge-visibility="toggleBadgeVisibility"
+                :toggle-badge-showcased="toggleBadgeShowcased"
+                :user-dialog-command="userDialogCommand"
+            />
         </div>
 
-        <TabsUnderline
-            v-model="userDialog.activeTab"
-            :items="userDialogTabs"
-            :unmount-on-hide="false"
-            fill
-            class="min-h-0 flex-1"
-            tab-list-class="!hidden sm:!flex max-sm:!hidden"
-            @update:modelValue="userDialogTabClick">
-            <template #Info>
-                <UserDialogInfoTab ref="infoTabRef" @show-bio-dialog="showBioDialog" />
-            </template>
+        <div class="flex-1 min-w-0 flex flex-col min-h-0 md:pl-4">
+            <div
+                class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full"
+            >
+                <NativeSelect
+                    :model-value="userDialog.activeTab"
+                    class="w-full"
+                    @update:modelValue="selectUserDialogTab"
+                >
+                    <NativeSelectOption
+                        v-for="tab in userDialogTabs"
+                        :key="tab.value"
+                        :value="tab.value"
+                    >
+                        {{ tab.label }}
+                    </NativeSelectOption>
+                </NativeSelect>
+            </div>
+            <TabsUnderline
+                v-model="userDialog.activeTab"
+                :items="userDialogTabs"
+                :tab-color="userDialogTabColor"
+                :unmount-on-hide="false"
+                fill
+                class="min-h-0 flex-1"
+                tab-list-class="!hidden sm:!flex max-sm:!hidden"
+                @update:modelValue="userDialogTabClick"
+            >
+                <template #Info>
+                    <UserDialogInfoTab ref="infoTabRef" />
+                </template>
 
-            <template v-if="userDialog.id !== currentUser.id && !currentUser.hasSharedConnectionsOptOut" #mutual>
-                <UserDialogMutualFriendsTab ref="mutualFriendsTabRef" />
-            </template>
+                <template
+                    v-if="
+                        userDialog.id !== currentUser.id &&
+                        !currentUser.hasSharedConnectionsOptOut
+                    "
+                    #mutual
+                >
+                    <UserDialogMutualFriendsTab ref="mutualFriendsTabRef" />
+                </template>
 
-            <template #Groups>
-                <UserDialogGroupsTab ref="groupsTabRef" />
-            </template>
+                <template #Groups>
+                    <UserDialogGroupsTab ref="groupsTabRef" />
+                </template>
 
-            <template #Worlds>
-                <UserDialogWorldsTab ref="worldsTabRef" />
-            </template>
+                <template #Worlds>
+                    <UserDialogWorldsTab ref="worldsTabRef" />
+                </template>
 
-            <template #favorite-worlds>
-                <UserDialogFavoriteWorldsTab ref="favoriteWorldsTabRef" />
-            </template>
+                <template #favorite-worlds>
+                    <UserDialogFavoriteWorldsTab ref="favoriteWorldsTabRef" />
+                </template>
 
-            <template #Avatars>
-                <UserDialogAvatarsTab ref="avatarsTabRef" />
-            </template>
+                <template #Avatars>
+                    <UserDialogAvatarsTab ref="avatarsTabRef" />
+                </template>
 
-            <template #Activity>
-                <UserDialogActivityTab ref="activityTabRef" />
-            </template>
+                <template #Activity>
+                    <UserDialogActivityTab ref="activityTabRef" />
+                </template>
 
-            <template #JSON>
-                <DialogJsonTab
-                    :tree-data="treeData"
-                    :tree-data-key="treeData?.id"
-                    :dialog-id="userDialog.id"
-                    :dialog-ref="userDialog.ref"
-                    @refresh="refreshUserDialogTreeData()" />
-            </template>
-        </TabsUnderline>
-        <SendInviteDialog
-            v-model:sendInviteDialogVisible="sendInviteDialogVisible"
-            v-model:sendInviteDialog="sendInviteDialog"
-            @closeInviteDialog="closeInviteDialog" />
-        <SendInviteRequestDialog
-            v-model:sendInviteRequestDialogVisible="sendInviteRequestDialogVisible"
-            v-model:sendInviteDialog="sendInviteDialog"
-            @closeInviteDialog="closeInviteDialog" />
-        <SocialStatusDialog
-            :social-status-dialog="socialStatusDialog"
-            :social-status-history-table="socialStatusHistoryTable" />
-        <LanguageDialog />
-        <BioDialog :bio-dialog="bioDialog" />
-        <PronounsDialog :pronouns-dialog="pronounsDialog" />
-        <ModerateGroupDialog />
+                <template #JSON>
+                    <DialogJsonTab
+                        :tree-data="treeData"
+                        :tree-data-key="treeData?.id"
+                        :dialog-id="userDialog.id"
+                        :dialog-ref="userDialog.ref"
+                        @refresh="refreshUserDialogTreeData()"
+                    />
+                </template>
+            </TabsUnderline>
+            <SendInviteDialog
+                v-model:sendInviteDialogVisible="sendInviteDialogVisible"
+                v-model:sendInviteDialog="sendInviteDialog"
+                @closeInviteDialog="closeInviteDialog"
+            />
+            <SendInviteRequestDialog
+                v-model:sendInviteRequestDialogVisible="
+                    sendInviteRequestDialogVisible
+                "
+                v-model:sendInviteDialog="sendInviteDialog"
+                @closeInviteDialog="closeInviteDialog"
+            />
+            <ModerateGroupDialog />
+        </div>
     </div>
 </template>
 
 <script setup>
-    import { computed, ref, watch } from 'vue';
-    import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-    import { Button } from '@/components/ui/button';
-    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
-    import { TabsUnderline } from '@/components/ui/tabs';
-    import { storeToRefs } from 'pinia';
-    import { toast } from 'vue-sonner';
-    import { useI18n } from 'vue-i18n';
+import { computed, ref, watch } from "vue";
+import {
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    NativeSelect,
+    NativeSelectOption,
+} from "@/components/ui/native-select";
+import { TabsUnderline } from "@/components/ui/tabs";
+import { storeToRefs } from "pinia";
+import { toast } from "vue-sonner";
+import { useI18n } from "vue-i18n";
 
-    import {
-        useFavoriteStore,
-        useFriendStore,
-        useGalleryStore,
-        useGroupStore,
-        useInstanceStore,
-        useInviteStore,
-        useLocationStore,
-        useModalStore,
-        useModerationStore,
-        useNotificationStore,
-        useUserStore
-    } from '../../../stores';
-    import { copyToClipboard } from '../../../shared/utils';
-    import { formatJsonVars } from '../../../shared/utils/base/ui';
-    import { miscRequest } from '../../../api';
-    import { useUserDialogCommands } from './useUserDialogCommands';
-    import { showAvatarDialog, showAvatarAuthorDialog } from '../../../coordinators/avatarCoordinator';
-    import { showUserDialog, refreshUserDialogAvatars } from '../../../coordinators/userCoordinator';
-    import { getFriendRequest, handleFriendDelete } from '../../../coordinators/friendRelationshipCoordinator';
+import {
+    useFavoriteStore,
+    useFriendStore,
+    useGalleryStore,
+    useGroupStore,
+    useInstanceStore,
+    useInviteStore,
+    useLocationStore,
+    useModalStore,
+    useModerationStore,
+    useNotificationStore,
+    useUserStore,
+} from "../../../stores";
+import { copyToClipboard } from "../../../shared/utils";
+import { formatJsonVars } from "../../../shared/utils/base/ui";
+import { miscRequest } from "../../../api";
+import { useUserDialogCommands } from "./useUserDialogCommands";
+import {
+    showAvatarDialog,
+    showAvatarAuthorDialog,
+} from "../../../coordinators/avatarCoordinator";
+import {
+    showUserDialog,
+    refreshUserDialogAvatars,
+} from "../../../coordinators/userCoordinator";
+import {
+    getFriendRequest,
+    handleFriendDelete,
+} from "../../../coordinators/friendRelationshipCoordinator";
 
-    import DialogJsonTab from '../DialogJsonTab.vue';
-    import SendInviteDialog from '../InviteDialog/SendInviteDialog.vue';
-    import UserDialogActivityTab from './UserDialogActivityTab.vue';
-    import UserDialogAvatarsTab from './UserDialogAvatarsTab.vue';
-    import UserDialogFavoriteWorldsTab from './UserDialogFavoriteWorldsTab.vue';
-    import UserDialogGroupsTab from './UserDialogGroupsTab.vue';
-    import UserDialogInfoTab from './UserDialogInfoTab.vue';
-    import UserDialogMutualFriendsTab from './UserDialogMutualFriendsTab.vue';
-    import UserDialogWorldsTab from './UserDialogWorldsTab.vue';
-    import UserSummaryHeader from './UserSummaryHeader.vue';
+import DialogJsonTab from "../DialogJsonTab.vue";
+import SendInviteDialog from "../InviteDialog/SendInviteDialog.vue";
+import UserDialogActivityTab from "./UserDialogActivityTab.vue";
+import UserDialogAvatarsTab from "./UserDialogAvatarsTab.vue";
+import UserDialogFavoriteWorldsTab from "./UserDialogFavoriteWorldsTab.vue";
+import UserDialogGroupsTab from "./UserDialogGroupsTab.vue";
+import UserDialogInfoTab from "./UserDialogInfoTab.vue";
+import UserDialogMutualFriendsTab from "./UserDialogMutualFriendsTab.vue";
+import UserDialogWorldsTab from "./UserDialogWorldsTab.vue";
+import UserSummaryHeader from "./UserSummaryHeader.vue";
 
-    import BioDialog from './BioDialog.vue';
-    import LanguageDialog from './LanguageDialog.vue';
-    import ModerateGroupDialog from '../ModerateGroupDialog.vue';
-    import PronounsDialog from './PronounsDialog.vue';
-    import SendInviteRequestDialog from './SendInviteRequestDialog.vue';
-    import SocialStatusDialog from './SocialStatusDialog.vue';
+import ModerateGroupDialog from "../ModerateGroupDialog.vue";
+import SendInviteRequestDialog from "./SendInviteRequestDialog.vue";
 
-    const props = defineProps({
-        previousIds: {
-            type: Object,
-            required: true
+const props = defineProps({
+    previousIds: {
+        type: Object,
+        required: true,
+    },
+    updatePreviousId: {
+        type: Function,
+        default: () => {},
+    },
+});
+
+const { t } = useI18n();
+const userDialogTabs = computed(() => {
+    const tabs = [
+        { value: "Info", label: t("dialog.user.info.header") },
+        { value: "Groups", label: t("dialog.user.groups.header") },
+        { value: "Worlds", label: t("dialog.user.worlds.header") },
+        {
+            value: "favorite-worlds",
+            label: t("dialog.user.favorite_worlds.header"),
         },
-        updatePreviousId: {
-            type: Function,
-            default: () => {}
-        }
-    });
-
-    const { t } = useI18n();
-    const userDialogTabs = computed(() => {
-        const tabs = [
-            { value: 'Info', label: t('dialog.user.info.header') },
-            { value: 'Groups', label: t('dialog.user.groups.header') },
-            { value: 'Worlds', label: t('dialog.user.worlds.header') },
-            { value: 'favorite-worlds', label: t('dialog.user.favorite_worlds.header') },
-            { value: 'Avatars', label: t('dialog.user.avatars.header') },
-            { value: 'JSON', label: t('dialog.user.json.header') }
-        ];
-        if (userDialog.value.id !== currentUser.value.id && !currentUser.value.hasSharedConnectionsOptOut) {
-            tabs.splice(1, 0, { value: 'mutual', label: t('dialog.user.mutual_friends.header') });
-        }
-        // Insert Activity before JSON
-        const jsonIdx = tabs.findIndex((tab) => tab.value === 'JSON');
-        tabs.splice(jsonIdx, 0, { value: 'Activity', label: t('dialog.user.activity.header') });
-        return tabs;
-    });
-    const infoTabRef = ref(null);
-    const activityTabRef = ref(null);
-    const favoriteWorldsTabRef = ref(null);
-    const mutualFriendsTabRef = ref(null);
-    const worldsTabRef = ref(null);
-    const avatarsTabRef = ref(null);
-    const groupsTabRef = ref(null);
-
-    const modalStore = useModalStore();
-    const instanceStore = useInstanceStore();
-
-    const { userDialog, languageDialog, currentUser } = storeToRefs(useUserStore());
-    const { cachedUsers, showSendBoopDialog, setUserDialogActiveTab } = useUserStore();
-    const { showFavoriteDialog } = useFavoriteStore();
-    const { showModerateGroupDialog } = useGroupStore();
-    const { inviteGroupDialog } = storeToRefs(useGroupStore());
-    const { lastLocation, lastLocationDestination } = storeToRefs(useLocationStore());
-    const { refreshInviteMessageTableData } = useInviteStore();
-    const { friendLogTable } = storeToRefs(useFriendStore());
-    const { clearInviteImageUpload, showGalleryPage } = useGalleryStore();
-
-    const { applyPlayerModeration, handlePlayerModerationDelete } = useModerationStore();
-
-    const {
-        sendInviteDialogVisible,
-        sendInviteDialog,
-        sendInviteRequestDialogVisible,
-        userDialogCommand,
-        registerCallbacks
-    } = useUserDialogCommands(userDialog, {
-        t,
-        toast,
-        modalStore,
-        currentUser,
-        cachedUsers,
-        friendLogTable,
-        lastLocation,
-        lastLocationDestination,
-        inviteGroupDialog,
-        showUserDialog,
-        showFavoriteDialog,
-        showAvatarDialog,
-        showAvatarAuthorDialog,
-        showModerateGroupDialog,
-        showSendBoopDialog,
-        showGalleryPage,
-        getFriendRequest,
-        handleFriendDelete,
-        applyPlayerModeration,
-        handlePlayerModerationDelete,
-        refreshInviteMessageTableData,
-        clearInviteImageUpload,
-        instanceStore,
-        useNotificationStore
-    });
-
-    watch(
-        () => userDialog.value.loading,
-        () => {
-            if (userDialog.value.visible) {
-                !userDialog.value.loading && loadLastActiveTab();
-            }
-        }
-    );
-
-    watch(
-        () => userDialog.value.visible,
-        (visible) => {
-            if (visible && !userDialog.value.loading) {
-                loadLastActiveTab();
-            }
-        }
-    );
-
-    const socialStatusDialog = ref({
-        visible: false,
-        loading: false,
-        status: '',
-        statusDescription: ''
-    });
-    const socialStatusHistoryTable = ref({
-        data: [],
-
-        layout: 'table'
-    });
-
-    const bioDialog = ref({
-        visible: false,
-        loading: false,
-        bio: '',
-        bioLinks: []
-    });
-
-    const pronounsDialog = ref({
-        visible: false,
-        loading: false,
-        pronouns: ''
-    });
-    const treeData = ref({});
-
-    /**
-     *
-     * @param user
-     */
-    function getUserStateText(user) {
-        let state = '';
-        if (user.state === 'active') {
-            state = t('dialog.user.status.active');
-        } else if (user.state === 'offline') {
-            state = t('dialog.user.status.offline');
-        } else {
-            return getUserStatusText(user.status);
-        }
-        if (user.status) {
-            state += ` (${getUserStatusText(user.status)})`;
-        }
-        return state;
+        { value: "Avatars", label: t("dialog.user.avatars.header") },
+        { value: "JSON", label: t("dialog.user.json.header") },
+    ];
+    if (
+        userDialog.value.id !== currentUser.value.id &&
+        !currentUser.value.hasSharedConnectionsOptOut
+    ) {
+        tabs.splice(1, 0, {
+            value: "mutual",
+            label: t("dialog.user.mutual_friends.header"),
+        });
     }
+    // Insert Activity before JSON
+    const jsonIdx = tabs.findIndex((tab) => tab.value === "JSON");
+    tabs.splice(jsonIdx, 0, {
+        value: "Activity",
+        label: t("dialog.user.activity.header"),
+    });
+    return tabs;
+});
+const infoTabRef = ref(null);
+const activityTabRef = ref(null);
+const favoriteWorldsTabRef = ref(null);
+const mutualFriendsTabRef = ref(null);
+const worldsTabRef = ref(null);
+const avatarsTabRef = ref(null);
+const groupsTabRef = ref(null);
 
-    /**
-     *
-     * @param status
-     */
-    function getUserStatusText(status) {
-        if (status === 'active') {
-            return t('dialog.user.status.online');
-        }
-        if (status === 'join me') {
-            return t('dialog.user.status.join_me');
-        }
-        if (status === 'ask me') {
-            return t('dialog.user.status.ask_me');
-        }
-        if (status === 'busy') {
-            return t('dialog.user.status.busy');
-        }
-        return t('dialog.user.status.offline');
+const modalStore = useModalStore();
+const instanceStore = useInstanceStore();
+
+const { userDialog, currentUser } = storeToRefs(useUserStore());
+const userDialogTabColor = computed(() => {
+    const color = userDialog.value.theme?.buttonColor;
+    if (!color) {
+        return "var(--primary)";
     }
+    return color;
+});
+const {
+    cachedUsers,
+    showSendBoopDialog,
+    showEditProfileDialog,
+    setUserDialogActiveTab,
+} = useUserStore();
+const { showFavoriteDialog } = useFavoriteStore();
+const { showModerateGroupDialog } = useGroupStore();
+const { inviteGroupDialog } = storeToRefs(useGroupStore());
+const { lastLocation, lastLocationDestination } =
+    storeToRefs(useLocationStore());
+const { refreshInviteMessageTableData } = useInviteStore();
+const { friendLogTable } = storeToRefs(useFriendStore());
+const { clearInviteImageUpload, showGalleryPage } = useGalleryStore();
 
-    /**
-     *
-     */
-    function refreshUserDialogTreeData() {
-        const D = userDialog.value;
-        if (D.id === currentUser.value.id) {
-            treeData.value = formatJsonVars({
-                ...currentUser.value,
-                ...D.ref
-            });
+const { applyPlayerModeration, handlePlayerModerationDelete } =
+    useModerationStore();
+
+const {
+    sendInviteDialogVisible,
+    sendInviteDialog,
+    sendInviteRequestDialogVisible,
+    userDialogCommand,
+    registerCallbacks,
+} = useUserDialogCommands(userDialog, {
+    t,
+    toast,
+    modalStore,
+    currentUser,
+    cachedUsers,
+    friendLogTable,
+    lastLocation,
+    lastLocationDestination,
+    inviteGroupDialog,
+    showUserDialog,
+    showFavoriteDialog,
+    showAvatarDialog,
+    showAvatarAuthorDialog,
+    showModerateGroupDialog,
+    showSendBoopDialog,
+    showGalleryPage,
+    getFriendRequest,
+    handleFriendDelete,
+    applyPlayerModeration,
+    handlePlayerModerationDelete,
+    refreshInviteMessageTableData,
+    clearInviteImageUpload,
+    instanceStore,
+    useNotificationStore,
+    showEditProfileDialog,
+});
+
+watch(
+    () => userDialog.value.loading,
+    () => {
+        if (userDialog.value.visible) {
+            !userDialog.value.loading && loadLastActiveTab();
+        }
+    },
+);
+
+watch(
+    () => userDialog.value.visible,
+    (visible) => {
+        if (visible && !userDialog.value.loading) {
+            loadLastActiveTab();
+        }
+    },
+);
+
+const treeData = ref({});
+
+/**
+ *
+ * @param user
+ */
+function getUserStateText(user) {
+    let state;
+    if (user.state === "active") {
+        state = t("dialog.user.status.active");
+    } else if (user.state === "offline") {
+        state = t("dialog.user.status.offline");
+    } else {
+        return getUserStatusText(user.status);
+    }
+    if (user.status) {
+        state += ` (${getUserStatusText(user.status)})`;
+    }
+    return state;
+}
+
+/**
+ *
+ * @param status
+ */
+function getUserStatusText(status) {
+    if (status === "active") {
+        return t("dialog.user.status.online");
+    }
+    if (status === "join me") {
+        return t("dialog.user.status.join_me");
+    }
+    if (status === "ask me") {
+        return t("dialog.user.status.ask_me");
+    }
+    if (status === "busy") {
+        return t("dialog.user.status.busy");
+    }
+    return t("dialog.user.status.offline");
+}
+
+/**
+ *
+ */
+function refreshUserDialogTreeData() {
+    const D = userDialog.value;
+    if (D.id === currentUser.value.id) {
+        treeData.value = formatJsonVars({
+            ...currentUser.value,
+            ...D.ref,
+        });
+        return;
+    }
+    treeData.value = formatJsonVars(D.ref);
+}
+
+/**
+ *
+ * @param tabName
+ */
+function handleUserDialogTab(tabName) {
+    userDialog.value.lastActiveTab = tabName;
+    const userId = userDialog.value.id;
+    if (tabName === "Info") {
+        infoTabRef.value?.onTabActivated();
+    } else if (tabName === "mutual") {
+        if (userId === currentUser.value.id) {
+            userDialog.value.activeTab = "Info";
+            userDialog.value.lastActiveTab = "Info";
             return;
         }
-        treeData.value = formatJsonVars(D.ref);
-    }
-
-    /**
-     *
-     * @param tabName
-     */
-    function handleUserDialogTab(tabName) {
-        userDialog.value.lastActiveTab = tabName;
-        const userId = userDialog.value.id;
-        if (tabName === 'Info') {
-            infoTabRef.value?.onTabActivated();
-        } else if (tabName === 'mutual') {
+        if (props.previousIds.mutualFriend !== userId) {
+            props.updatePreviousId("mutualFriend", userId);
+            mutualFriendsTabRef.value?.getUserMutualFriends(userId);
+        }
+    } else if (tabName === "Groups") {
+        if (props.previousIds.group !== userId) {
+            props.updatePreviousId("group", userId);
+            groupsTabRef.value?.getUserGroups(userId);
+        }
+    } else if (tabName === "Avatars") {
+        avatarsTabRef.value?.setUserDialogAvatars(userId);
+        if (props.previousIds.avatar !== userId) {
+            props.updatePreviousId("avatar", userId);
             if (userId === currentUser.value.id) {
-                userDialog.value.activeTab = 'Info';
-                userDialog.value.lastActiveTab = 'Info';
-                return;
+                refreshUserDialogAvatars();
+            } else {
+                avatarsTabRef.value?.setUserDialogAvatarsRemote(userId);
             }
-            if (props.previousIds.mutualFriend !== userId) {
-                props.updatePreviousId('mutualFriend', userId);
-                mutualFriendsTabRef.value?.getUserMutualFriends(userId);
-            }
-        } else if (tabName === 'Groups') {
-            if (props.previousIds.group !== userId) {
-                props.updatePreviousId('group', userId);
-                groupsTabRef.value?.getUserGroups(userId);
-            }
-        } else if (tabName === 'Avatars') {
-            avatarsTabRef.value?.setUserDialogAvatars(userId);
-            if (props.previousIds.avatar !== userId) {
-                props.updatePreviousId('avatar', userId);
-                if (userId === currentUser.value.id) {
-                    refreshUserDialogAvatars();
-                } else {
-                    avatarsTabRef.value?.setUserDialogAvatarsRemote(userId);
-                }
-            }
-        } else if (tabName === 'Worlds') {
-            worldsTabRef.value?.setUserDialogWorlds(userId);
-            if (props.previousIds.world !== userId) {
-                props.updatePreviousId('world', userId);
-                worldsTabRef.value?.refreshUserDialogWorlds();
-            }
-        } else if (tabName === 'favorite-worlds') {
-            if (props.previousIds.favoriteWorld !== userId) {
-                props.updatePreviousId('favoriteWorld', userId);
-                favoriteWorldsTabRef.value?.getUserFavoriteWorlds(userId);
-            }
-        } else if (tabName === 'Activity') {
-            activityTabRef.value?.loadOnlineFrequency(userId);
-        } else if (tabName === 'JSON') {
+        }
+    } else if (tabName === "Worlds") {
+        worldsTabRef.value?.setUserDialogWorlds(userId);
+        if (props.previousIds.world !== userId) {
+            props.updatePreviousId("world", userId);
+            worldsTabRef.value?.refreshUserDialogWorlds();
+        }
+    } else if (tabName === "favorite-worlds") {
+        if (props.previousIds.favoriteWorld !== userId) {
+            props.updatePreviousId("favoriteWorld", userId);
+            favoriteWorldsTabRef.value?.getUserFavoriteWorlds(userId);
+        }
+    } else if (tabName === "Activity") {
+        activityTabRef.value?.loadOnlineFrequency(userId);
+    } else if (tabName === "JSON") {
+        refreshUserDialogTreeData();
+    }
+}
+
+/**
+ *
+ */
+function loadLastActiveTab() {
+    const tab = userDialog.value.lastActiveTab;
+    handleUserDialogTab(tab);
+}
+
+/**
+ *
+ * @param tabName
+ */
+function userDialogTabClick(tabName) {
+    if (tabName === userDialog.value.lastActiveTab) {
+        if (tabName === "JSON") {
             refreshUserDialogTreeData();
         }
+        return;
     }
+    handleUserDialogTab(tabName);
+}
 
-    /**
-     *
-     */
-    function loadLastActiveTab() {
-        const tab = userDialog.value.lastActiveTab;
-        handleUserDialogTab(tab);
+function selectUserDialogTab(tabName) {
+    setUserDialogActiveTab(tabName);
+    userDialogTabClick(tabName);
+}
+
+// Register simple dialog openers as callbacks for the command composable
+registerCallbacks({
+    showEditProfileDialog,
+});
+
+/**
+ *
+ * @param badge
+ */
+async function toggleBadgeVisibility(badge) {
+    if (badge.hidden) {
+        badge.showcased = false;
     }
-
-    /**
-     *
-     * @param tabName
-     */
-    function userDialogTabClick(tabName) {
-        if (tabName === userDialog.value.lastActiveTab) {
-            if (tabName === 'JSON') {
-                refreshUserDialogTreeData();
-            }
-            return;
-        }
-        handleUserDialogTab(tabName);
-    }
-
-    function selectUserDialogTab(tabName) {
-        setUserDialogActiveTab(tabName);
-        userDialogTabClick(tabName);
-    }
-
-    /**
-     *
-     */
-    function showPronounsDialog() {
-        const D = pronounsDialog.value;
-        D.pronouns = currentUser.value.pronouns;
-        D.visible = true;
-    }
-
-    /**
-     *
-     */
-    function showLanguageDialog() {
-        const D = languageDialog.value;
-        D.visible = true;
-    }
-
-    // Register simple dialog openers as callbacks for the command composable
-    registerCallbacks({
-        showSocialStatusDialog,
-        showLanguageDialog,
-        showBioDialog,
-        showPronounsDialog,
-        showEditNoteAndMemoDialog: () => {
-            infoTabRef.value?.showEditNoteAndMemoDialog();
-        }
+    const args = await miscRequest.updateBadge({
+        badgeId: badge.badgeId,
+        hidden: badge.hidden,
+        showcased: badge.showcased,
     });
+    handleBadgeUpdate(args);
+}
 
-    /**
-     *
-     */
-    function showSocialStatusDialog() {
-        const D = socialStatusDialog.value;
-        const { statusHistory } = currentUser.value;
-        const statusHistoryArray = [];
-        for (let i = 0; i < statusHistory.length; ++i) {
-            const addStatus = {
-                no: i + 1,
-                status: statusHistory[i]
-            };
-            statusHistoryArray.push(addStatus);
-        }
-        socialStatusHistoryTable.value.data = statusHistoryArray;
-        D.status = currentUser.value.status;
-        // D.status = '';
-        D.statusDescription = currentUser.value.statusDescription;
-        D.visible = true;
+/**
+ *
+ * @param badge
+ */
+async function toggleBadgeShowcased(badge) {
+    if (badge.showcased) {
+        badge.hidden = false;
     }
+    const args = await miscRequest.updateBadge({
+        badgeId: badge.badgeId,
+        hidden: badge.hidden,
+        showcased: badge.showcased,
+    });
+    handleBadgeUpdate(args);
+}
 
-    /**
-     *
-     * @param badge
-     */
-    async function toggleBadgeVisibility(badge) {
-        if (badge.hidden) {
-            badge.showcased = false;
-        }
-        const args = await miscRequest.updateBadge({
-            badgeId: badge.badgeId,
-            hidden: badge.hidden,
-            showcased: badge.showcased
-        });
-        handleBadgeUpdate(args);
+/**
+ *
+ * @param args
+ */
+function handleBadgeUpdate(args) {
+    if (args.json) {
+        toast.success(t("message.badge.updated"));
     }
+}
 
-    /**
-     *
-     * @param badge
-     */
-    async function toggleBadgeShowcased(badge) {
-        if (badge.showcased) {
-            badge.hidden = false;
-        }
-        const args = await miscRequest.updateBadge({
-            badgeId: badge.badgeId,
-            hidden: badge.hidden,
-            showcased: badge.showcased
-        });
-        handleBadgeUpdate(args);
-    }
+/**
+ *
+ * @param displayName
+ */
+function copyUserDisplayName(displayName) {
+    copyToClipboard(displayName, "User DisplayName copied to clipboard");
+}
 
-    /**
-     *
-     * @param args
-     */
-    function handleBadgeUpdate(args) {
-        if (args.json) {
-            toast.success(t('message.badge.updated'));
-        }
-    }
-
-    /**
-     *
-     */
-    function showBioDialog() {
-        const D = bioDialog.value;
-        D.bio = currentUser.value.bio;
-        D.bioLinks = currentUser.value.bioLinks.slice();
-        D.visible = true;
-    }
-
-    /**
-     *
-     * @param displayName
-     */
-    function copyUserDisplayName(displayName) {
-        copyToClipboard(displayName, 'User DisplayName copied to clipboard');
-    }
-
-    /**
-     *
-     */
-    function closeInviteDialog() {
-        clearInviteImageUpload();
-    }
+/**
+ *
+ */
+function closeInviteDialog() {
+    clearInviteImageUpload();
+}
 </script>

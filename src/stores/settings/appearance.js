@@ -61,6 +61,7 @@ export const useAppearanceSettingsStore = defineStore(
         const customFontFamily = ref('');
         const appCjkFontPack = ref(APP_CJK_FONT_PACK_DEFAULT_KEY);
         const displayVRCPlusIconsAsAvatar = ref(false);
+        const displayVRCProfileThemes = ref(false);
         const hideNicknames = ref(false);
         const showInstanceIdInLocation = ref(false);
         const isAgeGatedInstancesVisible = ref(false);
@@ -149,6 +150,7 @@ export const useAppearanceSettingsStore = defineStore(
             const [
                 appLanguageConfig,
                 displayVRCPlusIconsAsAvatarConfig,
+                displayVRCProfileThemesConfig,
                 hideNicknamesConfig,
                 showInstanceIdInLocationConfig,
                 isAgeGatedInstancesVisibleConfig,
@@ -187,6 +189,7 @@ export const useAppearanceSettingsStore = defineStore(
             ] = await Promise.all([
                 configRepository.getString('VRCX_appLanguage'),
                 configRepository.getBool('displayVRCPlusIconsAsAvatar', true),
+                configRepository.getBool('VRCX_displayVRCProfileThemes', true),
                 configRepository.getBool('VRCX_hideNicknames', false),
                 configRepository.getBool(
                     'VRCX_showInstanceIdInLocation',
@@ -304,6 +307,7 @@ export const useAppearanceSettingsStore = defineStore(
 
             displayVRCPlusIconsAsAvatar.value =
                 displayVRCPlusIconsAsAvatarConfig;
+            displayVRCProfileThemes.value = displayVRCProfileThemesConfig;
             hideNicknames.value = hideNicknamesConfig;
             showInstanceIdInLocation.value = showInstanceIdInLocationConfig;
             isAgeGatedInstancesVisible.value = isAgeGatedInstancesVisibleConfig;
@@ -608,6 +612,14 @@ export const useAppearanceSettingsStore = defineStore(
             configRepository.setBool(
                 'displayVRCPlusIconsAsAvatar',
                 displayVRCPlusIconsAsAvatar.value
+            );
+        }
+
+        function setDisplayVRCProfileThemes() {
+            displayVRCProfileThemes.value = !displayVRCProfileThemes.value;
+            configRepository.setBool(
+                'VRCX_displayVRCProfileThemes',
+                displayVRCProfileThemes.value
             );
         }
         /**
@@ -1177,6 +1189,7 @@ export const useAppearanceSettingsStore = defineStore(
             appFontFamily,
             appCjkFontPack,
             displayVRCPlusIconsAsAvatar,
+            displayVRCProfileThemes,
             hideNicknames,
             showInstanceIdInLocation,
             isAgeGatedInstancesVisible,
@@ -1220,6 +1233,7 @@ export const useAppearanceSettingsStore = defineStore(
 
             setAppLanguage,
             setDisplayVRCPlusIconsAsAvatar,
+            setDisplayVRCProfileThemes,
             setHideNicknames,
             setShowInstanceIdInLocation,
             setIsAgeGatedInstancesVisible,
