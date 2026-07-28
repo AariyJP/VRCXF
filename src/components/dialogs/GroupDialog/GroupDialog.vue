@@ -1,12 +1,12 @@
 <template>
-    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ groupDialog.ref?.name || t('dialog.group.info.header') }}</DialogTitle>
             <DialogDescription>
                 {{ groupDialog.ref?.description || groupDialog.ref?.name || t('dialog.group.info.header') }}
             </DialogDescription>
         </DialogHeader>
-        <div class="flex-1 min-h-0 flex flex-col">
+        <div class="flex flex-col max-sm:flex-none sm:flex-1 sm:min-h-0">
             <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
                 <div class="shrink-0 self-start" style="width: 120px; height: 120px">
                     <img
@@ -367,6 +367,7 @@
                 :items="groupDialogTabs"
                 :unmount-on-hide="false"
                 fill
+                class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
                 tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="groupDialogTabClick">
                 <template #Info>

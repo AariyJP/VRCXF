@@ -1,5 +1,7 @@
 <template>
-    <div class="flex-1 min-h-0 min-w-0 flex flex-col md:flex-row">
+    <div
+        class="flex-1 min-h-0 min-w-0 flex flex-col max-md:overflow-y-auto md:flex-row"
+    >
         <DialogHeader class="sr-only">
             <DialogTitle>{{
                 userDialog.ref?.displayName ||
@@ -11,7 +13,7 @@
             }}</DialogDescription>
         </DialogHeader>
 
-        <div class="flex-none w-full overflow-y-auto md:w-80 md:pr-4">
+        <div class="flex-none w-full md:w-80 md:overflow-y-auto md:pr-4">
             <UserSummaryHeader
                 :get-user-state-text="getUserStateText"
                 :copy-user-display-name="copyUserDisplayName"
@@ -21,7 +23,9 @@
             />
         </div>
 
-        <div class="flex-1 min-w-0 flex flex-col min-h-0 md:pl-4">
+        <div
+            class="min-w-0 flex flex-col max-md:flex-none md:flex-1 md:min-h-0 md:pl-4"
+        >
             <div
                 class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full"
             >
@@ -45,7 +49,7 @@
                 :tab-color="userDialogTabColor"
                 :unmount-on-hide="false"
                 fill
-                class="min-h-0 flex-1"
+                class="md:min-h-0 md:flex-1 max-md:[&_[role=tabpanel]]:flex-none max-md:[&_[role=tabpanel]]:overflow-visible"
                 tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="userDialogTabClick"
             >

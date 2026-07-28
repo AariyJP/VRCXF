@@ -1,5 +1,5 @@
 <template>
-    <div class="flex h-full min-h-0 flex-col overflow-hidden pt-2">
+    <div class="flex flex-col pt-2 md:h-full md:min-h-0 md:overflow-hidden">
         <div class="shrink-0" style="display: flex; align-items: center; justify-content: space-between">
             <div style="display: flex; align-items: center">
                 <Button
@@ -59,7 +59,7 @@
                 </Button>
             </div>
         </div>
-        <div class="min-h-0 flex-1 overflow-auto">
+        <div class="md:min-h-0 md:flex-1 md:overflow-auto">
             <div style="margin-top: 8px">
                 <template v-if="userDialogGroupEditMode">
                     <div

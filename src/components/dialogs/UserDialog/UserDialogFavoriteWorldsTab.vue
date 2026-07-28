@@ -11,12 +11,12 @@
             @click="getUserFavoriteWorlds(userDialog.id)">
         </Button> -->
     <template v-if="userDialog.userFavoriteWorlds && userDialog.userFavoriteWorlds.length > 0">
-        <div class="flex h-full min-h-0 flex-col overflow-hidden pt-2">
+        <div class="flex flex-col pt-2 md:h-full md:min-h-0 md:overflow-hidden">
             <div class="pb-2">
                 <Input v-model="searchQuery" class="h-8 w-40 shrink-0" placeholder="Search worlds" @click.stop />
             </div>
             <template v-if="searchActive">
-                <div class="min-h-0 flex-1 overflow-auto">
+                <div class="md:min-h-0 md:flex-1 md:overflow-auto">
                     <div class="flex flex-wrap items-start pb-4">
                         <div
                             v-for="world in allFilteredFavoriteWorlds"
@@ -48,7 +48,7 @@
                 :unmount-on-hide="false"
                 variant="equal"
                 fill
-                class="zero-margin-tabs favorite-worlds-tabs min-h-0 flex-1 overflow-hidden">
+                class="zero-margin-tabs favorite-worlds-tabs md:min-h-0 md:flex-1 md:overflow-hidden">
                 <template
                     v-for="(list, index) in userDialog.userFavoriteWorlds"
                     :key="`favorite-worlds-label-${index}`"
@@ -67,7 +67,7 @@
                     v-for="(list, index) in userDialog.userFavoriteWorlds"
                     :key="`favorite-worlds-content-${index}`"
                     v-slot:[String(index)]>
-                    <div class="min-h-0 flex-1 overflow-auto">
+                    <div class="md:min-h-0 md:flex-1 md:overflow-auto">
                         <div class="flex flex-wrap items-start pb-4">
                             <div
                                 v-for="world in list[2]"
