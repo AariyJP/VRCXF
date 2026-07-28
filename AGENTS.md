@@ -88,7 +88,7 @@ src/
   app.css                 # レイアウト/アプリシェル用 CSS
   index.html              # メインエントリ
   vr.html                 # VR オーバーレイエントリ
-  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、target chrome145)
+  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、PLATFORM=browser のみ ../build/html-browser、target chrome145)
   api/                    # VRChat API ラッパー
   components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
@@ -267,10 +267,13 @@ Dotnet/
 ```bash
 pnpm dev
 pnpm dev-linux
+pnpm dev-browser
 pnpm test
 pnpm test:coverage
 pnpm prod
 pnpm prod-linux
+pnpm prod-browser
+pnpm preview-cloudflare
 pnpm build-electron
 pnpm build-electron-arm64
 pnpm start-electron
@@ -325,6 +328,8 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 - `src/vite.config.js` は `chrome145` ターゲットと LightningCSS を使用
 - `src/public/` は Vite によってビルド出力にコピーされる
+- Browser ターゲット (`PLATFORM=browser`) の出力先は Cef/Electron と分離して `build/html-browser`。`build-scripts/generate-third-party-licenses.js` と `wrangler.toml` (`pages_build_output_dir`) も同じディレクトリを参照する。`prod-browser` は `build:licenses` にも `PLATFORM=browser` を渡す必要がある（別プロセスで環境変数が引き継がれないため）
+- リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま

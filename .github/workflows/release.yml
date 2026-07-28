@@ -283,6 +283,14 @@ jobs:
                   name: Electron-AppImage-arm64
                   path: 'build/VRCX_${{ needs.set_version.outputs.version }}_arm64.AppImage'
 
+            - name: Build Browser-html
+              run: npm run prod-browser
+            - name: Upload Browser-html artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: Browser-html
+                  path: build/html-browser
+
     build_macos:
         runs-on: macos-latest
         needs: [set_version, build_dotnet_macos]
@@ -379,6 +387,18 @@ jobs:
                   7z a -tzip ${file_name} * -mx=7 -xr0!*.log
                   mv ${file_name} ../../${file_name}
 
+            - name: Download Browser-html artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  name: Browser-html
+                  path: build/browser
+            - name: Make browser zip
+              run: |
+                  file_name="VRCXF_browser.zip"
+                  cd build/browser
+                  7z a -tzip ${file_name} * -mx=7 -xr0!*.log
+                  mv ${file_name} ../../${file_name}
+
             - name: Download x64 Electron AppImage artifacts
               uses: actions/download-artifact@v8
               with:
@@ -420,4 +440,5 @@ jobs:
                       VRCXF_arm64.AppImage
                       VRCXF_x64.dmg
                       VRCXF_arm64.dmg
+                      VRCXF_browser.zip
                   body: 'VRCXF ${{ needs.set_version.outputs.version }}'
