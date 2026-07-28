@@ -9,7 +9,7 @@ jobs:
     name: Build Docusaurus
     runs-on: &runs-on ubuntu-slim
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: docs
           fetch-depth: 0
@@ -22,7 +22,7 @@ jobs:
       - name: Build website
         run: npm run build
       - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build
   deploy:
@@ -38,4 +38,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
