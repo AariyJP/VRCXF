@@ -424,9 +424,6 @@ jobs:
                   mv VRCX_*_x64.dmg VRCXF_x64.dmg
                   mv VRCX_*_arm64.dmg VRCXF_arm64.dmg
 
-            - name: Generate hashes
-              run: |
-                  sha256sum "VRCXF_Setup.exe" "VRCXF_x64.AppImage" > "SHA256SUMS.txt"
             - name: Create Release
               id: create_release
               uses: softprops/action-gh-release@v3
