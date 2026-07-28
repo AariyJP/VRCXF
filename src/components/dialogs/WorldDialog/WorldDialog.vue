@@ -1,12 +1,12 @@
 <template>
-    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col">
+    <div class="w-full max-w-full min-w-0 sm:w-223 flex-1 min-h-0 flex flex-col max-sm:overflow-y-auto">
         <DialogHeader class="sr-only">
             <DialogTitle>{{ worldDialog.ref?.name || t('dialog.world.info.header') }}</DialogTitle>
             <DialogDescription>
                 {{ worldDialog.ref?.description || worldDialog.ref?.name || t('dialog.world.info.header') }}
             </DialogDescription>
         </DialogHeader>
-        <div class="flex-1 min-h-0 flex flex-col">
+        <div class="flex flex-col max-sm:flex-none sm:flex-1 sm:min-h-0">
             <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
                 <div style="flex: none; width: 160px; height: 120px">
                     <img
@@ -329,6 +329,7 @@
                 :items="worldDialogTabs"
                 :unmount-on-hide="false"
                 fill
+                class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
                 tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="worldDialogTabClick">
                 <template #Instances>

@@ -186,6 +186,120 @@ const userReq = {
             };
             return args;
         });
+    },
+
+    /**
+     * @param {{ userId: string }} params
+     * @returns {Promise<{json: import('../types/api/profile').publicProfile, params: { userId: string }}>}
+     */
+    getPublicProfile(params) {
+        return request(`profile/${params.userId}`, {
+            method: 'GET'
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @param {{ userId: string }} params
+     * @returns {Promise<{json: import('../types/api/profile').privateProfile, params: { userId: string }}>}
+     */
+    getPrivateProfile(params) {
+        return request(`profile/${params.userId}/private`, {
+            method: 'GET'
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @returns {Promise<{json: import('../types/api/profile').selfProfile, params: {}}>}
+     */
+    getSelfProfile() {
+        return request(`profile/${getCurrentUserId()}`, {
+            method: 'GET',
+            params: {
+                asSelf: true
+            }
+        }).then((json) => {
+            const args = {
+                json,
+                params: {}
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @param {Partial<import('../types/api/profile').publicProfile>} params
+     * @returns {Promise<{json: import('../types/api/profile').publicProfile, params: Partial<import('../types/api/profile').publicProfile>}>}
+     */
+    saveProfile(params) {
+        return request(`profile/${getCurrentUserId()}`, {
+            method: 'PUT',
+            params
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @param {{ buttonColor: string; iconColor: string; themeId: string; name: string; subtextColor: string; }} params
+     */
+    saveProfileTheme(params) {
+        return request(`profile/theme/${params.themeId}`, {
+            method: 'PUT',
+            params
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @param {{ buttonColor?: string; iconColor?: string; name: string; subtextColor?: string; }} params
+     */
+    createProfileTheme(params) {
+        return request(`profile/theme`, {
+            method: 'POST',
+            params
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
+    },
+
+    /**
+     * @param {{ id: string }} params
+     */
+    deleteProfileTheme(params) {
+        return request(`profile/theme/${params.id}`, {
+            method: 'DELETE'
+        }).then((json) => {
+            const args = {
+                json,
+                params
+            };
+            return args;
+        });
     }
 };
 

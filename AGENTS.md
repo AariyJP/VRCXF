@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > このプロジェクトでは `AGENTS.md` をエージェント向け指示の単一の正本として扱う。
-> `CLAUDE.md`、`.clinerules/CLINE.md`、`.gemini/GEMINI.md` は本ファイルへの symbolic link。
+> `CLAUDE.md` は本ファイルへの symbolic link。
 
 **ユーザーへの回答はすべて日本語で行うこと。**
 
@@ -88,7 +88,7 @@ src/
   app.css                 # レイアウト/アプリシェル用 CSS
   index.html              # メインエントリ
   vr.html                 # VR オーバーレイエントリ
-  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、target chrome145)
+  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、PLATFORM=browser のみ ../build/html-browser、target chrome145)
   api/                    # VRChat API ラッパー
   components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
@@ -262,29 +262,34 @@ Dotnet/
 
 ## 開発コマンド
 
+ローカル開発では `pnpm`、CI では `npm` を使用する。
+
 ```bash
-npm run dev
-npm run dev-linux
-npm test
-npm run test:coverage
-npm run prod
-npm run prod-linux
-npm run build-electron
-npm run build-electron-arm64
-npm run start-electron
-npm run localization
-npm run dotnet-win
-npm run dotnet-arm64
-npm run lint
-npm run lint:eslint
-npm run lint:oxlint
-npm run typecheck:js
+pnpm dev
+pnpm dev-linux
+pnpm dev-browser
+pnpm test
+pnpm test:coverage
+pnpm prod
+pnpm prod-linux
+pnpm prod-browser
+pnpm preview-cloudflare
+pnpm build-electron
+pnpm build-electron-arm64
+pnpm start-electron
+pnpm localization
+pnpm dotnet-win
+pnpm dotnet-arm64
+pnpm lint
+pnpm lint:eslint
+pnpm lint:oxlint
+pnpm typecheck:js
 ```
 
 ## .NET ビルド
 
 ```bash
-dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64 --self-contained
+dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
@@ -306,14 +311,31 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - 検証ステップにテスト実行を含めない。型チェック、Lint、ビルドで十分。
 - リファクタの副作用で既存テストが壊れた場合、自分で直そうとせずそのまま残し、事実だけユーザーに報告する。
 
+## 🔍 コードレビューポリシー
+
+- **upstream 由来のコードは指摘しない**。レビュー対象は fork（VRCXF）が書いたコードのみ。upstream ([vrcx-team/VRCX](https://github.com/vrcx-team/VRCX)) から引き継いだままのコードは、たとえ問題があっても指摘対象外とする。
+- ファイル単位ではなく**変更行単位で判定する**。upstream に存在するファイルでも、fork が書き足した部分は指摘対象。逆にファイル内の upstream 由来部分は対象外。
+- 判定方法:
+
+  ```bash
+  git ls-tree --name-only upstream/master <path>   # upstream に存在するか
+  git diff upstream/master HEAD -- <path>          # fork が変更した行はどこか
+  ```
+
+- upstream リモート未登録の場合は `git remote add upstream https://github.com/vrcx-team/VRCX.git && git fetch upstream` で追加する。
+
 ## 重要な注意点
 
 - `src/vite.config.js` は `chrome145` ターゲットと LightningCSS を使用
 - `src/public/` は Vite によってビルド出力にコピーされる
+- Browser ターゲット (`PLATFORM=browser`) の出力先は Cef/Electron と分離して `build/html-browser`。`build-scripts/generate-third-party-licenses.js` と `wrangler.toml` (`pages_build_output_dir`) も同じディレクトリを参照する。`prod-browser` は `build:licenses` にも `PLATFORM=browser` を渡す必要がある（別プロセスで環境変数が引き継がれないため）
+- リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
+- Windows CEF 版は framework-dependent としてビルドし、.NET ランタイムを配布物へ同梱しない。`--self-contained` を付けないこと。
 - `build-scripts/build-all.ps1` は **`build-scripts/` ディレクトリから**実行する必要がある（スクリプトの先頭が `cd ..` でリポジトリルートに移動する）。`Set-Location build-scripts; .\build-all.ps1` のように呼び出す。
+- framework-dependent への切り替え後などに古い成果物が混在して.NETランタイム要求ダイアログが表示される場合は、リポジトリ直下の `build/` を全削除してから `build-scripts/build-all.ps1` を再実行する。
 - `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
 - 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、upstream 同期マージ
 
@@ -324,3 +346,4 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 ## 🚨 Git 操作の制限
 
 - **commit と push**: `git commit` と `git push` は基本的にユーザーが行う。エージェントはユーザーの明示的な許可なくこれらの操作を行ってはならない。
+- **`.serena/project.yml`**: 常にコミットに含めてよい。Serena による設定の自動移行で差分が出ても stash 退避や除外はせず、そのままステージする。

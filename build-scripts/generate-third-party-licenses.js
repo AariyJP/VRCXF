@@ -7,14 +7,16 @@ const os = require('os');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
+const htmlDirName =
+    process.env.PLATFORM === 'browser' ? 'html-browser' : 'html';
 const frontendLicensePath = path.join(
     rootDir,
     'build',
-    'html',
+    htmlDirName,
     '.vite',
     'license.md'
 );
-const outputDir = path.join(rootDir, 'build', 'html', 'licenses');
+const outputDir = path.join(rootDir, 'build', htmlDirName, 'licenses');
 const outputManifestPath = path.join(outputDir, 'third-party-licenses.json');
 const outputNoticePath = path.join(outputDir, 'THIRD_PARTY_NOTICES.txt');
 const dotnetDir = path.join(rootDir, 'Dotnet');

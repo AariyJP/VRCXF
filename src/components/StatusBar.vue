@@ -14,7 +14,7 @@
                             -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
                         ">
                         <TooltipWrapper
-                            v-if="visibility.proxy"
+                            v-if="!isLinux && visibility.proxy"
                             :content="
                                 vrcxStore.proxyServer
                                     ? `${t('status_bar.proxy')}: ${vrcxStore.proxyServer}`
@@ -442,6 +442,7 @@
     const { t } = useI18n();
 
     const isMacOS = computed(() => navigator.platform.includes('Mac'));
+    const isLinux = computed(() => LINUX);
 
     const gameStore = useGameStore();
     const gameLogStore = useGameLogStore();
