@@ -314,23 +314,12 @@
                     </div>
                 </div>
             </div>
-            <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
-                <NativeSelect
-                    :model-value="worldDialog.activeTab"
-                    class="w-full"
-                    @update:modelValue="selectWorldDialogTab">
-                    <NativeSelectOption v-for="tab in worldDialogTabs" :key="tab.value" :value="tab.value">
-                        {{ tab.label }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
             <TabsUnderline
                 v-model="worldDialog.activeTab"
                 :items="worldDialogTabs"
                 :unmount-on-hide="false"
                 fill
                 class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
-                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="worldDialogTabClick">
                 <template #Instances>
                     <WorldDialogInstancesTab />
@@ -403,7 +392,6 @@
     import { computed, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
-    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { Spinner } from '@/components/ui/spinner';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
@@ -449,7 +437,7 @@
     const { currentUser, userDialog } = storeToRefs(useUserStore());
     const worldStore = useWorldStore();
     const { worldDialog } = storeToRefs(worldStore);
-    const { cachedWorlds, setWorldDialogActiveTab } = worldStore;
+    const { cachedWorlds } = worldStore;
     const { lastLocation } = storeToRefs(useLocationStore());
     const { canOpenInstanceInGame } = useInviteStore();
     const { showFavoriteDialog } = useFavoriteStore();
@@ -566,11 +554,6 @@
             return;
         }
         handleWorldDialogTab(tabName);
-    }
-
-    function selectWorldDialogTab(tabName) {
-        setWorldDialogActiveTab(tabName);
-        worldDialogTabClick(tabName);
     }
 
     /**

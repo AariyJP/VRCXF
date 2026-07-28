@@ -26,23 +26,6 @@
         <div
             class="min-w-0 flex flex-col max-md:flex-none md:flex-1 md:min-h-0 md:pl-4"
         >
-            <div
-                class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full"
-            >
-                <NativeSelect
-                    :model-value="userDialog.activeTab"
-                    class="w-full"
-                    @update:modelValue="selectUserDialogTab"
-                >
-                    <NativeSelectOption
-                        v-for="tab in userDialogTabs"
-                        :key="tab.value"
-                        :value="tab.value"
-                    >
-                        {{ tab.label }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
             <TabsUnderline
                 v-model="userDialog.activeTab"
                 :items="userDialogTabs"
@@ -50,7 +33,6 @@
                 :unmount-on-hide="false"
                 fill
                 class="md:min-h-0 md:flex-1 max-md:[&_[role=tabpanel]]:flex-none max-md:[&_[role=tabpanel]]:overflow-visible"
-                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="userDialogTabClick"
             >
                 <template #Info>
@@ -121,10 +103,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {
-    NativeSelect,
-    NativeSelectOption,
-} from "@/components/ui/native-select";
 import { TabsUnderline } from "@/components/ui/tabs";
 import { storeToRefs } from "pinia";
 import { toast } from "vue-sonner";
@@ -234,12 +212,8 @@ const userDialogTabColor = computed(() => {
     }
     return color;
 });
-const {
-    cachedUsers,
-    showSendBoopDialog,
-    showEditProfileDialog,
-    setUserDialogActiveTab,
-} = useUserStore();
+const { cachedUsers, showSendBoopDialog, showEditProfileDialog } =
+    useUserStore();
 const { showFavoriteDialog } = useFavoriteStore();
 const { showModerateGroupDialog } = useGroupStore();
 const { inviteGroupDialog } = storeToRefs(useGroupStore());
@@ -432,11 +406,6 @@ function userDialogTabClick(tabName) {
         return;
     }
     handleUserDialogTab(tabName);
-}
-
-function selectUserDialogTab(tabName) {
-    setUserDialogActiveTab(tabName);
-    userDialogTabClick(tabName);
 }
 
 // Register simple dialog openers as callbacks for the command composable

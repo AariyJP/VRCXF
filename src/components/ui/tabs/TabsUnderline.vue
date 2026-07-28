@@ -6,7 +6,7 @@ import {
     TabsRoot,
     TabsTrigger,
 } from "reka-ui";
-import { computed, ref, toRefs, watch } from "vue";
+import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
 
 const props = defineProps({
     modelValue: String,
@@ -89,6 +89,24 @@ function onValueChange(v) {
     emit("update:modelValue", v);
 }
 
+const listRef = ref(null);
+
+async function scrollActiveTabIntoView() {
+    await nextTick();
+    const listEl = listRef.value?.$el ?? listRef.value;
+    const activeEl = listEl?.querySelector?.(
+        '[role="tab"][data-state="active"]',
+    );
+    activeEl?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+    });
+}
+
+watch(innerValue, scrollActiveTabIntoView);
+onMounted(scrollActiveTabIntoView);
+
 const triggerStyle = computed(() => {
     if (!tabColor.value) {
         return undefined;
@@ -105,12 +123,12 @@ const indicatorStyle = computed(() => {
 
 const triggerClass = computed(() => {
     return [
-        "relative inline-flex cursor-pointer h-10 items-center justify-center px-3 text-sm font-medium",
+        "relative inline-flex cursor-pointer h-10 items-center justify-center px-3 text-sm font-medium whitespace-nowrap",
         "text-muted-foreground transition-colors hover:text-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-50",
         "data-[state=active]:text-primary",
-        variant.value === "equal" ? "flex-1" : "",
+        variant.value === "equal" ? "flex-1" : "shrink-0",
         variant.value === "pill" ? "rounded-full" : "",
     ].join(" ");
 });
@@ -118,6 +136,7 @@ const triggerClass = computed(() => {
 const listClass = computed(() => {
     return [
         "relative flex w-full items-center gap-1 border-b border-border",
+        "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         tabListClass.value,
         variant.value === "pill" ? "rounded-full bg-muted p-1" : "",
         sticky.value ? "sticky top-0 z-10 bg-background" : "",
@@ -133,7 +152,11 @@ const listClass = computed(() => {
         :unmount-on-hide="unmountOnHide"
         @update:modelValue="onValueChange"
     >
-        <TabsList :class="listClass" :aria-label="ariaLabel || undefined">
+        <TabsList
+            ref="listRef"
+            :class="listClass"
+            :aria-label="ariaLabel || undefined"
+        >
             <TabsIndicator
                 class="pointer-events-none absolute left-0 bottom-0 h-0.5 w-(--reka-tabs-indicator-size) translate-x-(--reka-tabs-indicator-position) transition-[width,translate] duration-200 ease-out"
             >
