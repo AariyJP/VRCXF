@@ -36,8 +36,12 @@
                     :ariaLabel="t('view.settings.advanced.advanced.self_invite.header')"
                     @update:modelValue="setSelfInviteOverride" />
             </SettingsItem>
+        </SettingsGroup>
 
-            <SettingsItem label="ウェブソケットに自動接続する">
+        <SettingsGroup title="WebSocket">
+            <SettingsItem
+                label="WebSocketに自動接続する"
+                description="WebSocketに接続すると、VRChatでアクティブとして表示されます。">
                 <Switch
                     :model-value="webSocketAutoConnectEnabled"
                     @update:modelValue="setWebSocketAutoConnectEnabled" />
