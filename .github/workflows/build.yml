@@ -4,7 +4,6 @@ on:
     push:
         branches-ignore:
             - main
-    workflow_dispatch:
 
 concurrency:
     group: ${{ github.ref }}
@@ -18,14 +17,17 @@ jobs:
             - uses: actions/setup-dotnet@v5
               with:
                   dotnet-version: '10.0.x'
-            - name: Build Cef .NET Application
-              run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -p:RestorePackagesConfig=true -t:"Restore;Clean;Build" -m -a x64
+            - run: dotnet build Dotnet/VRCX-Cef.csproj -c Release -p:Platform=x64
     build_node:
         runs-on: ubuntu-slim
         steps:
             - uses: actions/checkout@v6
+            - uses: pnpm/action-setup@v6
+              with:
+                  version: 11
             - uses: actions/setup-node@v6
-            - name: Restore dependencies
-              run: npm ci
-            - name: Build Cef-html
-              run: npm run prod
+              with:
+                  node-version: lts/*
+                  cache: pnpm
+            - run: pnpm i --frozen-lockfile --prefer-offline
+            - run: pnpm prod
