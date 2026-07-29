@@ -287,6 +287,29 @@
                     </div>
                 </section>
 
+                <section v-if="editProfileDialog.ageVerified" class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.user.tags.age_verified') }}</h3>
+
+                    <Select
+                        v-model="editProfileDialog.ageVerificationStatus"
+                        :disabled="editProfileDialog.loading">
+                        <SelectTrigger size="sm" class="w-42">
+                            <IdCard
+                                class="h-4 w-4"
+                                :class="
+                                    editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''
+                                " />
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="hidden"> <IdCard class="h-4 w-4" /> Hidden </SelectItem>
+                            <SelectItem value="18+">
+                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </section>
+
                 <section class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.pronouns.header') }}</h3>
                     <InputGroupTextareaField
@@ -419,7 +442,7 @@
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
-    import { Bookmark, History, Trash2, X } from 'lucide-vue-next';
+    import { Bookmark, History, IdCard, Trash2, X } from 'lucide-vue-next';
 
     import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
@@ -834,6 +857,9 @@
         }
         if (!arraysMatch(D.bioLinks, currentUser.value.bioLinks)) {
             userPayload.bioLinks = D.bioLinks;
+        }
+        if (D.ageVerified && D.ageVerificationStatus !== currentUser.value.ageVerificationStatus) {
+            userPayload.ageVerificationStatus = D.ageVerificationStatus;
         }
 
         /** @type {Partial<import("../../../types/api/profile").selfProfile>} */
