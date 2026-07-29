@@ -176,65 +176,28 @@
                         {{ userDialog.ref.$trustLevel }}
                     </Badge>
                 </TooltipWrapper>
-                <template
+                <TooltipWrapper
                     v-if="
                         userDialog.ref.ageVerified &&
                         userDialog.ref.ageVerificationStatus
                     "
+                    side="top"
+                    :content="t('dialog.user.tags.age_verified')"
                 >
-                    <Select
-                        v-if="userDialog.ref.id === currentUser.id"
-                        :model-value="userDialog.ref.ageVerificationStatus"
-                        @update:modelValue="changeAgeVerificationStatus"
+                    <Badge
+                        variant="outline"
+                        class="h-5 px-1.5 text-[11px] leading-none text-[#3b82f6] border-[#3b82f6]!"
                     >
-                        <SelectTrigger
-                            size="sm"
-                            class="h-5 px-1.5 text-[11px] leading-none"
+                        <template
+                            v-if="userDialog.ref.ageVerificationStatus === '18+'"
                         >
-                            <IdCard
-                                class="h-2.5 w-2.5"
-                                :class="
-                                    userDialog.ref.ageVerificationStatus ===
-                                    '18+'
-                                        ? 'text-[#3b82f6]!'
-                                        : ''
-                                "
-                            />
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="hidden">
-                                <IdCard class="h-4 w-4" /> Hidden
-                            </SelectItem>
-                            <SelectItem value="18+">
-                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+
-                                Verified
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <TooltipWrapper
-                        v-else
-                        side="top"
-                        :content="t('dialog.user.tags.age_verified')"
-                    >
-                        <Badge
-                            variant="outline"
-                            class="h-5 px-1.5 text-[11px] leading-none text-[#3b82f6] border-[#3b82f6]!"
-                        >
-                            <template
-                                v-if="
-                                    userDialog.ref.ageVerificationStatus ===
-                                    '18+'
-                                "
-                            >
-                                <IdCard class="h-2.5 w-2.5" /> 18+
-                            </template>
-                            <template v-else>
-                                <IdCard class="h-2.5 w-2.5" />
-                            </template>
-                        </Badge>
-                    </TooltipWrapper>
-                </template>
+                            <IdCard class="h-2.5 w-2.5" /> 18+
+                        </template>
+                        <template v-else>
+                            <IdCard class="h-2.5 w-2.5" />
+                        </template>
+                    </Badge>
+                </TooltipWrapper>
                 <TooltipWrapper
                     v-if="userDialog.isFriend && userDialog.friend"
                     side="top"
@@ -709,15 +672,7 @@ import {
 } from "../../../shared/utils";
 import { useUserDisplay } from "../../../composables/useUserDisplay";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../../ui/select";
 import { useGalleryStore, useUserStore } from "../../../stores";
-import { userRequest } from "../../../api";
 import { Badge } from "../../ui/badge";
 import { Checkbox } from "../../ui/checkbox";
 
@@ -777,15 +732,4 @@ const copyUserDisplayName = props.copyUserDisplayName;
 const toggleBadgeVisibility = props.toggleBadgeVisibility;
 const toggleBadgeShowcased = props.toggleBadgeShowcased;
 const userDialogCommand = props.userDialogCommand;
-
-async function changeAgeVerificationStatus(value) {
-    if (!value || value === userDialog.value.ref.ageVerificationStatus) {
-        return;
-    }
-    const args = await userRequest.saveCurrentUser({
-        ageVerificationStatus: value,
-    });
-    userDialog.value.ref.ageVerificationStatus =
-        args.json.ageVerificationStatus;
-}
 </script>

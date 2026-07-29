@@ -352,23 +352,12 @@
                     </div>
                 </div>
             </div>
-            <div class="sm:hidden mt-2 mb-2 min-w-0 w-full [&_[data-slot=native-select-wrapper]]:w-full">
-                <NativeSelect
-                    :model-value="groupDialog.activeTab"
-                    class="w-full min-w-0"
-                    @update:modelValue="groupDialogTabClick">
-                    <NativeSelectOption v-for="tab in groupDialogTabs" :key="tab.value" :value="tab.value">
-                        {{ tab.label }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
             <TabsUnderline
                 v-model="groupDialog.activeTab"
                 :items="groupDialogTabs"
                 :unmount-on-hide="false"
                 fill
                 class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
-                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="groupDialogTabClick">
                 <template #Info>
                     <GroupDialogInfoTab
@@ -425,7 +414,6 @@
     import { computed, reactive, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
-    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';

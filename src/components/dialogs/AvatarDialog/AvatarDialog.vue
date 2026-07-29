@@ -336,23 +336,12 @@
                 </div>
             </div>
 
-            <div class="sm:hidden mt-2 mb-2 w-full [&_[data-slot=native-select-wrapper]]:w-full">
-                <NativeSelect
-                    :model-value="avatarDialog.activeTab"
-                    class="w-full"
-                    @update:modelValue="selectAvatarDialogTab">
-                    <NativeSelectOption v-for="tab in avatarDialogTabs" :key="tab.value" :value="tab.value">
-                        {{ tab.label }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
             <TabsUnderline
                 v-model="avatarDialog.activeTab"
                 :items="avatarDialogTabs"
                 :unmount-on-hide="false"
                 fill
                 class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
-                tab-list-class="!hidden sm:!flex max-sm:!hidden"
                 @update:modelValue="avatarDialogTabClick">
                 <template #Info>
                     <div class="flex flex-wrap items-start px-2.5" style="max-height: unset">
@@ -613,7 +602,6 @@
     import { computed, nextTick, ref, watch } from 'vue';
     import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
-    import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
     import { TabsUnderline } from '@/components/ui/tabs';
     import { storeToRefs } from 'pinia';
@@ -671,7 +659,7 @@
     const avatarStore = useAvatarStore();
     const { cachedAvatarModerations, cachedAvatars } = avatarStore;
     const { avatarDialog } = storeToRefs(avatarStore);
-    const { getAvatarGallery, applyAvatarModeration, setAvatarDialogActiveTab } = avatarStore;
+    const { getAvatarGallery, applyAvatarModeration } = avatarStore;
     const { showFavoriteDialog } = useFavoriteStore();
     const { isGameRunning } = storeToRefs(useGameStore());
     const { showFullscreenImageDialog } = useGalleryStore();
@@ -835,11 +823,6 @@
             return;
         }
         handleAvatarDialogTab(tabName);
-    }
-
-    function selectAvatarDialogTab(tabName) {
-        setAvatarDialogActiveTab(tabName);
-        avatarDialogTabClick(tabName);
     }
 
     /**

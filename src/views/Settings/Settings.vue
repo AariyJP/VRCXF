@@ -16,13 +16,13 @@
             <template #notifications>
                 <NotificationsTab />
             </template>
-            <template v-if="!BROWSER" #vr>
+            <template #vr>
                 <VrTab />
             </template>
-            <template v-if="!BROWSER" #media>
+            <template #media>
                 <MediaTab />
             </template>
-            <template v-if="!BROWSER" #integrations>
+            <template #integrations>
                 <IntegrationsTab />
             </template>
             <template #advanced>
@@ -51,12 +51,12 @@
         { value: 'system', label: t('view.settings.category.system') },
         { value: 'interface', label: t('view.settings.category.interface') },
         { value: 'social', label: t('view.settings.category.social') },
-        {
-            value: 'notifications',
-            label: t('view.settings.category.notifications')
-        },
         ...(!BROWSER
             ? [
+                  {
+                      value: 'notifications',
+                      label: t('view.settings.category.notifications')
+                  },
                   { value: 'vr', label: t('view.settings.category.vr') },
                   { value: 'media', label: t('view.settings.category.media') },
                   {

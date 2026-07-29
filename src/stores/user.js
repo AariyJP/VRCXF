@@ -283,6 +283,8 @@ export const useUserStore = defineStore('User', () => {
         pronouns: '',
         bio: '',
         bioLinks: [],
+        ageVerified: false,
+        ageVerificationStatus: '',
         socialStatusHistoryTable: [],
         bannerColor: '',
         bannerUrl: '',
@@ -816,6 +818,8 @@ export const useUserStore = defineStore('User', () => {
         D.pronouns = currentUser.value.pronouns;
         D.bio = currentUser.value.bio;
         D.bioLinks = currentUser.value.bioLinks.slice();
+        D.ageVerified = currentUser.value.ageVerified;
+        D.ageVerificationStatus = currentUser.value.ageVerificationStatus;
         D.bannerColor = currentUser.value.bannerColor;
         D.bannerUrl = currentUser.value.bannerUrl;
         D.bannerType = currentUser.value.bannerType;
