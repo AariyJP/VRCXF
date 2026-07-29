@@ -77,7 +77,8 @@ jobs:
                   Copy-Item -LiteralPath build/html -Destination build/Cef/html -Recurse
                   $manifestPath = 'build-scripts/msix/AppxManifest.xml'
                   $manifest = Get-Content -LiteralPath $manifestPath -Raw
-                  $manifest = $manifest.Replace('Version="0.0.0.0"', 'Version="${{ needs.set_version.outputs.date }}.0"')
+                  $msixVersion = ([Version]'${{ needs.set_version.outputs.date }}.0').ToString()
+                  $manifest = $manifest.Replace('Version="0.0.0.0"', "Version=`"$msixVersion`"")
                   Set-Content -LiteralPath $manifestPath -Value $manifest -NoNewline
                   winapp pack build/Cef --manifest $manifestPath --output 'VRCXF_${{ needs.set_version.outputs.version }}.msix' --skip-pri
             - run: |
@@ -93,7 +94,7 @@ jobs:
                       VRCXF_Setup.exe
 
     build_linux:
-        runs-on: ubuntu-slim
+        runs-on: ubuntu-latest
         needs: [set_version, create_draft_release]
         steps:
             - uses: actions/checkout@v6
@@ -181,9 +182,34 @@ jobs:
                   draft: true
                   files: VRCXF_arm64.dmg
 
+    build_browser:
+        runs-on: ubuntu-latest
+        needs: [set_version, create_draft_release]
+        steps:
+            - uses: actions/checkout@v6
+            - uses: pnpm/action-setup@v6
+              with:
+                  version: 11
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: lts/*
+                  cache: pnpm
+            - run: |
+                  echo '${{ needs.set_version.outputs.version }}' > Version
+                  pnpm i --frozen-lockfile --prefer-offline
+            - run: pnpm prod-browser
+            - run: |
+                  cd build/html-browser
+                  7z a -tzip ../../VRCXF_browser.zip * -mx=7 -xr0!*.log
+            - uses: softprops/action-gh-release@v3
+              with:
+                  tag_name: '${{ needs.set_version.outputs.version }}'
+                  draft: true
+                  files: VRCXF_browser.zip
+
     publish_release:
         runs-on: ubuntu-slim
-        needs: [set_version, build_windows, build_linux, build_macos]
+        needs: [set_version, build_windows, build_linux, build_macos, build_browser]
         steps:
             - uses: softprops/action-gh-release@v3
               with:
