@@ -139,14 +139,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     }
 
     async function initBranch() {
-        if (!appVersion.value) {
-            return;
-        }
-        if (currentVersion.value.includes('VRCXF')) {
-            branch.value = 'Nightly';
-        } else {
-            branch.value = 'Stable';
-        }
+        branch.value = 'Nightly';
         await configRepository.setString('VRCX_branch', branch.value);
     }
 
