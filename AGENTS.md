@@ -347,3 +347,4 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 - **commit と push**: `git commit` と `git push` は基本的にユーザーが行う。エージェントはユーザーの明示的な許可なくこれらの操作を行ってはならない。
 - **`.serena/project.yml`**: 常にコミットに含めてよい。Serena による設定の自動移行で差分が出ても stash 退避や除外はせず、そのままステージする。
+- **ブランチ保護の bypass 警告**: `develop` などへの push で `remote: Bypassed rule violations for refs/heads/...`（required status checks / Changes must be made through a pull request）が出るのは想定どおり。リポジトリオーナーが admin 権限で直接 push しているだけなので問題ない。エージェントはこれを警告として報告しなくてよい。
