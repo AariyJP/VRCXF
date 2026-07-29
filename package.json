@@ -23,6 +23,7 @@
         "dev-browser": "concurrently -k -n vite,wrangler -c cyan,magenta \"npm run dev-browser:vite\" \"wrangler pages dev src --port 8788\"",
         "dev-browser:vite": "cross-env PLATFORM=browser vite serve src",
         "dev-linux": "cross-env PLATFORM=linux vite serve src",
+        "dev-win": "concurrently -k -n vite,vrcx -c cyan,green \"pnpm dev\" \"build\\Cef\\VRCX.exe --debug\"",
         "localization": "node ./src/shared/utils/localizationHelperCLI.js",
         "format": "oxfmt src src-electron eslint.config.mjs vitest.config.js vitest.setup.js",
         "format:check": "oxfmt --check src src-electron eslint.config.mjs vitest.config.js vitest.setup.js",
