@@ -6,7 +6,7 @@
 
 **ユーザーへの回答はすべて日本語で行うこと。**
 
-VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) のフォークで、AariyJP が VRCXF として保守している。MIT ライセンス。
+VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https://github.com/vrcx-team/VRCX) のフォークで、AariyJP が VRCXF として保守している。
 
 ## 🔧 Serena MCP 連携
 
