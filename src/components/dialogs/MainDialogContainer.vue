@@ -183,6 +183,11 @@
             return {};
         }
 
+        const opacity = -appearanceSettingsStore.profileBackgroundOpacity + 1; // Invert the opacity value
+        const overlay = appearanceSettingsStore.isDarkMode
+            ? `rgba(0, 0, 0, ${opacity})`
+            : `rgba(255, 255, 255, ${opacity})`;
+
         if (userStore.userDialog.publicProfileRef?.backgroundType === 'gradient') {
             const bgTopColor = getReadableProfileThemeColor(
                 `#${userStore.userDialog.publicProfileRef?.backgroundGradientTop}`,
@@ -195,7 +200,7 @@
                 !appearanceSettingsStore.isDarkMode
             );
             return {
-                backgroundImage: `linear-gradient(180deg, ${bgTopColor}, ${bgBottomColor})`
+                backgroundImage: `linear-gradient(${overlay}, ${overlay}), linear-gradient(180deg, ${bgTopColor}, ${bgBottomColor})`
             };
         }
         if (userStore.userDialog.publicProfileRef?.backgroundType === 'texture') {
@@ -205,12 +210,8 @@
             if (!bg) {
                 return {};
             }
-            const opacity = -appearanceSettingsStore.profileBackgroundOpacity + 1; // Invert the opacity value
-            const textureOverlay = appearanceSettingsStore.isDarkMode
-                ? `rgba(0, 0, 0, ${opacity})`
-                : `rgba(255, 255, 255, ${opacity})`;
             return {
-                backgroundImage: `linear-gradient(${textureOverlay}, ${textureOverlay}), url(${bg.url})`,
+                backgroundImage: `linear-gradient(${overlay}, ${overlay}), url(${bg.url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'top center',
                 backgroundRepeat: 'no-repeat'
