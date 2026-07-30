@@ -62,6 +62,8 @@ export const useAppearanceSettingsStore = defineStore(
         const appCjkFontPack = ref(APP_CJK_FONT_PACK_DEFAULT_KEY);
         const displayVRCPlusIconsAsAvatar = ref(false);
         const displayVRCProfileThemes = ref(false);
+        const displayVRCProfileBackgrounds = ref(false);
+        const profileBackgroundOpacity = ref(0.2);
         const hideNicknames = ref(false);
         const showInstanceIdInLocation = ref(false);
         const isAgeGatedInstancesVisible = ref(false);
@@ -151,6 +153,8 @@ export const useAppearanceSettingsStore = defineStore(
                 appLanguageConfig,
                 displayVRCPlusIconsAsAvatarConfig,
                 displayVRCProfileThemesConfig,
+                displayVRCProfileBackgroundsConfig,
+                profileBackgroundOpacityConfig,
                 hideNicknamesConfig,
                 showInstanceIdInLocationConfig,
                 isAgeGatedInstancesVisibleConfig,
@@ -190,6 +194,11 @@ export const useAppearanceSettingsStore = defineStore(
                 configRepository.getString('VRCX_appLanguage'),
                 configRepository.getBool('displayVRCPlusIconsAsAvatar', true),
                 configRepository.getBool('VRCX_displayVRCProfileThemes', true),
+                configRepository.getBool(
+                    'VRCX_displayVRCProfileBackgrounds',
+                    false
+                ),
+                configRepository.getFloat('VRCX_profileBackgroundOpacity', 0.2),
                 configRepository.getBool('VRCX_hideNicknames', false),
                 configRepository.getBool(
                     'VRCX_showInstanceIdInLocation',
@@ -308,6 +317,9 @@ export const useAppearanceSettingsStore = defineStore(
             displayVRCPlusIconsAsAvatar.value =
                 displayVRCPlusIconsAsAvatarConfig;
             displayVRCProfileThemes.value = displayVRCProfileThemesConfig;
+            displayVRCProfileBackgrounds.value =
+                displayVRCProfileBackgroundsConfig;
+            profileBackgroundOpacity.value = profileBackgroundOpacityConfig;
             hideNicknames.value = hideNicknamesConfig;
             showInstanceIdInLocation.value = showInstanceIdInLocationConfig;
             isAgeGatedInstancesVisible.value = isAgeGatedInstancesVisibleConfig;
@@ -615,6 +627,9 @@ export const useAppearanceSettingsStore = defineStore(
             );
         }
 
+        /**
+         *
+         */
         function setDisplayVRCProfileThemes() {
             displayVRCProfileThemes.value = !displayVRCProfileThemes.value;
             configRepository.setBool(
@@ -622,6 +637,27 @@ export const useAppearanceSettingsStore = defineStore(
                 displayVRCProfileThemes.value
             );
         }
+
+        /**
+         *
+         */
+        function setDisplayVRCProfileBackgrounds() {
+            displayVRCProfileBackgrounds.value =
+                !displayVRCProfileBackgrounds.value;
+            configRepository.setBool(
+                'VRCX_displayVRCProfileBackgrounds',
+                displayVRCProfileBackgrounds.value
+            );
+        }
+
+        /**
+         *
+         */
+        function setProfileBackgroundOpacity(value) {
+            profileBackgroundOpacity.value = value;
+            configRepository.setFloat('VRCX_profileBackgroundOpacity', value);
+        }
+
         /**
          *
          */
@@ -1190,6 +1226,8 @@ export const useAppearanceSettingsStore = defineStore(
             appCjkFontPack,
             displayVRCPlusIconsAsAvatar,
             displayVRCProfileThemes,
+            displayVRCProfileBackgrounds,
+            profileBackgroundOpacity,
             hideNicknames,
             showInstanceIdInLocation,
             isAgeGatedInstancesVisible,
@@ -1234,6 +1272,8 @@ export const useAppearanceSettingsStore = defineStore(
             setAppLanguage,
             setDisplayVRCPlusIconsAsAvatar,
             setDisplayVRCProfileThemes,
+            setDisplayVRCProfileBackgrounds,
+            setProfileBackgroundOpacity,
             setHideNicknames,
             setShowInstanceIdInLocation,
             setIsAgeGatedInstancesVisible,

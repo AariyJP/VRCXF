@@ -928,7 +928,9 @@
                     "table_density_comfortable": "Comfortable",
                     "table_density_compact": "Compact",
                     "table_entries_settings": "Table Entries Settings",
-                    "table_entries_settings_description": "Control how many items are loaded for lists and searches."
+                    "table_entries_settings_description": "Control how many items are loaded for lists and searches.",
+                    "vrc_profile_backgrounds": "VRChat Profile Backgrounds",
+                    "vrc_profile_backgrounds_opacity": "Profile Background Opacity"
                 },
                 "display": {
                     "header": "Display"
@@ -1857,7 +1859,13 @@
             "profile_theme": "Profile Theme",
             "theme_name_placeholder": "Theme name",
             "create_theme": "Create Theme",
-            "delete_theme": "Delete Theme"
+            "delete_theme": "Delete Theme",
+            "profile_background": "Profile Background",
+            "profile_background_type_none": "None",
+            "profile_background_type_image": "Image",
+            "profile_background_type_gradient": "Gradient",
+            "gradient_top": "Gradient Top",
+            "gradient_bottom": "Gradient Bottom"
         },
         "new_instance": {
             "header": "New Instance",
