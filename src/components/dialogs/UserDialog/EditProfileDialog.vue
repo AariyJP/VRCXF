@@ -287,29 +287,6 @@
                     </div>
                 </section>
 
-                <section v-if="editProfileDialog.ageVerified" class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.user.tags.age_verified') }}</h3>
-
-                    <Select
-                        v-model="editProfileDialog.ageVerificationStatus"
-                        :disabled="editProfileDialog.loading">
-                        <SelectTrigger size="sm" class="w-42">
-                            <IdCard
-                                class="h-4 w-4"
-                                :class="
-                                    editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''
-                                " />
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="hidden"> <IdCard class="h-4 w-4" /> Hidden </SelectItem>
-                            <SelectItem value="18+">
-                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </section>
-
                 <section class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.edit_profile.profile_background') }}</h3>
                     <div class="flex items-center gap-2">
@@ -412,6 +389,29 @@
                             </SelectContent>
                         </Select>
                     </div>
+                </section>
+
+                <section v-if="editProfileDialog.ageVerified" class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.user.tags.age_verified') }}</h3>
+
+                    <Select
+                        v-model="editProfileDialog.ageVerificationStatus"
+                        :disabled="editProfileDialog.loading">
+                        <SelectTrigger size="sm" class="w-42">
+                            <IdCard
+                                class="h-4 w-4"
+                                :class="
+                                    editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''
+                                " />
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="hidden"> <IdCard class="h-4 w-4" /> Hidden </SelectItem>
+                            <SelectItem value="18+">
+                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </section>
 
                 <section class="space-y-3">
