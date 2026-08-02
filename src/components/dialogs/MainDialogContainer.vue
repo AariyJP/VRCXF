@@ -179,15 +179,19 @@
     }
 
     const dialogStyle = computed(() => {
-        if (activeType.value !== 'user') {
+        if (activeType.value !== 'user' || !appearanceSettingsStore.displayVRCProfileBackgrounds) {
             return {};
         }
 
+        const userDialogBaseStyle = {
+            overflow: 'hidden',
+            backgroundClip: 'padding-box'
+        };
+
         const opacity = -appearanceSettingsStore.profileBackgroundOpacity + 1; // Invert the opacity value
-        const overlay = appearanceSettingsStore.isDarkMode
+        const textureOverlay = appearanceSettingsStore.isDarkMode
             ? `rgba(0, 0, 0, ${opacity})`
             : `rgba(255, 255, 255, ${opacity})`;
-
         if (userStore.userDialog.publicProfileRef?.backgroundType === 'gradient') {
             const bgTopColor = getReadableProfileThemeColor(
                 `#${userStore.userDialog.publicProfileRef?.backgroundGradientTop}`,
@@ -200,7 +204,8 @@
                 !appearanceSettingsStore.isDarkMode
             );
             return {
-                backgroundImage: `linear-gradient(${overlay}, ${overlay}), linear-gradient(180deg, ${bgTopColor}, ${bgBottomColor})`
+                ...userDialogBaseStyle,
+                backgroundImage: `linear-gradient(${textureOverlay}, ${textureOverlay}), linear-gradient(180deg, ${bgTopColor}, ${bgBottomColor})`
             };
         }
         if (userStore.userDialog.publicProfileRef?.backgroundType === 'texture') {
@@ -208,23 +213,26 @@
                 (b) => b.id === userStore.userDialog.publicProfileRef?.backgroundTextureId
             );
             if (!bg) {
-                return {};
+                return userDialogBaseStyle;
             }
             return {
-                backgroundImage: `linear-gradient(${overlay}, ${overlay}), url(${bg.url})`,
+                ...userDialogBaseStyle,
+                backgroundImage: `linear-gradient(${textureOverlay}, ${textureOverlay}), url(${bg.url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'top center',
                 backgroundRepeat: 'no-repeat'
             };
         }
-        return {};
+        return userDialogBaseStyle;
     });
 </script>
 
 <template>
     <Dialog v-if="isOpen" v-model:open="isOpen">
         <DialogContent :class="dialogClass" style="top: 10vh" :show-close-button="false" :style="dialogStyle">
-            <Breadcrumb v-if="shouldShowBreadcrumbs" class="mb-2 flex-shrink-0">
+            <Breadcrumb
+                v-if="shouldShowBreadcrumbs"
+                class="mb-2 flex-shrink-0 rounded-xl bg-(--profile-card) w-fit pr-4">
                 <BreadcrumbList>
                     <TooltipWrapper :content="backCrumbLabel" :disabled="!backCrumbLabel" :delayDuration="500">
                         <Button variant="ghost" size="icon-sm" @click="handleBreadcrumbClick(dialogCrumbs.length - 2)">

@@ -1,9 +1,15 @@
 <template>
-    <div class="flex items-center gap-2">
+    <div
+        :class="
+            cn(
+                'flex items-center gap-2 text-muted-foreground rounded-full border border-muted-foreground/10 py-0.5 px-2',
+                props.class
+            )
+        ">
         <span v-if="region" :class="cn('flags inline-block shrink-0', region)"></span>
-        <span @click="showLaunchDialog" class="cursor-pointer">
+        <span @click="showLaunchDialog" class="cursor-pointer text-muted-foreground">
             <Unlock v-if="isUnlocked" :class="['inline-block', 'mr-1.25']" />
-            <span> {{ accessTypeName }} #{{ instanceName }}</span>
+            <span>{{ accessTypeName }} ⋅ #{{ instanceName }}</span>
         </span>
         <span v-if="groupName" @click="openLocationGroupDialog" class="cursor-pointer">({{ groupName }})</span>
         <div v-if="closedAt">
@@ -44,7 +50,8 @@
         grouphint: {
             type: String,
             default: ''
-        }
+        },
+        class: { type: null, required: false }
     });
 
     const location = ref('');

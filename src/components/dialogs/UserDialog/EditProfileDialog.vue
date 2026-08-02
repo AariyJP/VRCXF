@@ -175,6 +175,113 @@
                 </section>
 
                 <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.pronouns.header') }}</h3>
+                    <InputGroupTextareaField
+                        v-model="editProfileDialog.pronouns"
+                        :maxlength="32"
+                        :rows="1"
+                        input-class="min-h-0 py-2"
+                        :placeholder="t('dialog.pronouns.pronouns_placeholder')"
+                        show-count />
+                </section>
+
+                <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.bio.header') }}</h3>
+
+                    <InputGroupTextareaField
+                        v-model="editProfileDialog.bio"
+                        :maxlength="512"
+                        :rows="5"
+                        :placeholder="t('dialog.bio.bio_placeholder')"
+                        show-count
+                        autosize />
+
+                    <InputGroupAction
+                        v-for="(link, index) in editProfileDialog.bioLinks"
+                        :key="index"
+                        v-model="editProfileDialog.bioLinks[index]"
+                        :maxlength="1000"
+                        size="sm">
+                        <template #leading>
+                            <img
+                                v-if="link"
+                                :src="getFaviconUrl(link)"
+                                style="width: 16px; height: 16px; vertical-align: middle" />
+                            <div v-else style="width: 16px; height: 16px" />
+                        </template>
+                        <template #actions>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                @click="editProfileDialog.bioLinks.splice(index, 1)"
+                                :ariaLabel="t('common.actions.delete')">
+                                <Trash2 class="size-4" />
+                            </Button>
+                        </template>
+                    </InputGroupAction>
+
+                    <Button
+                        variant="outline"
+                        :disabled="editProfileDialog.bioLinks.length >= 3 || editProfileDialog.loading"
+                        size="sm"
+                        @click="editProfileDialog.bioLinks.push('')">
+                        {{ t('dialog.bio.add_link') }}
+                    </Button>
+                </section>
+
+                <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.language.header') }}</h3>
+
+                    <div class="my-2" v-for="item in currentLanguages" :key="item.key">
+                        <Badge class="mr-1.5" variant="outline">
+                            <span
+                                class="flags mr-1.5"
+                                :class="languageClass(item.key)"
+                                style="display: inline-block"></span>
+                            {{ item.value }} ({{ item.key.toUpperCase() }})
+                            <button
+                                class="ml-2 p-0"
+                                type="button"
+                                style="
+                                    border: none;
+                                    background: transparent;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    color: inherit;
+                                    cursor: pointer;
+                                "
+                                @click="removeUserLanguage(item.key)">
+                                <X class="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    </div>
+
+                    <Select
+                        :model-value="selectedLanguageToAdd"
+                        :disabled="editProfileDialog.loading || currentLanguages.length === 3"
+                        @update:modelValue="handleAddUserLanguage">
+                        <SelectTrigger size="sm">
+                            <SelectValue :placeholder="t('dialog.language.select_language')" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem
+                                    v-for="item in availableLanguages"
+                                    :key="item.key"
+                                    :value="item.key"
+                                    :text-value="item.value">
+                                    <span
+                                        class="flags mr-1.5"
+                                        :class="languageClass(item.key)"
+                                        style="display: inline-block"></span>
+                                    {{ item.value }} ({{ item.key.toUpperCase() }})
+                                </SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </section>
+
+                <section class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.edit_profile.profile_theme') }}</h3>
                     <div class="flex items-center gap-2">
                         <Select
@@ -393,130 +500,16 @@
 
                 <section v-if="editProfileDialog.ageVerified" class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.user.tags.age_verified') }}</h3>
-
-                    <Select
-                        v-model="editProfileDialog.ageVerificationStatus"
-                        :disabled="editProfileDialog.loading">
+                    <Select v-model="editProfileDialog.ageVerificationStatus" :disabled="editProfileDialog.loading">
                         <SelectTrigger size="sm" class="w-42">
                             <IdCard
                                 class="h-4 w-4"
-                                :class="
-                                    editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''
-                                " />
+                                :class="editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="hidden"> <IdCard class="h-4 w-4" /> Hidden </SelectItem>
-                            <SelectItem value="18+">
-                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.pronouns.header') }}</h3>
-                    <InputGroupTextareaField
-                        v-model="editProfileDialog.pronouns"
-                        :maxlength="32"
-                        :rows="1"
-                        input-class="min-h-0 py-2"
-                        :placeholder="t('dialog.pronouns.pronouns_placeholder')"
-                        show-count />
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.bio.header') }}</h3>
-
-                    <InputGroupTextareaField
-                        v-model="editProfileDialog.bio"
-                        :maxlength="512"
-                        :rows="5"
-                        :placeholder="t('dialog.bio.bio_placeholder')"
-                        show-count
-                        autosize />
-
-                    <InputGroupAction
-                        v-for="(link, index) in editProfileDialog.bioLinks"
-                        :key="index"
-                        v-model="editProfileDialog.bioLinks[index]"
-                        :maxlength="1000"
-                        size="sm">
-                        <template #leading>
-                            <img
-                                v-if="link"
-                                :src="getFaviconUrl(link)"
-                                style="width: 16px; height: 16px; vertical-align: middle" />
-                            <div v-else style="width: 16px; height: 16px" />
-                        </template>
-                        <template #actions>
-                            <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                @click="editProfileDialog.bioLinks.splice(index, 1)"
-                                :ariaLabel="t('common.actions.delete')">
-                                <Trash2 class="size-4" />
-                            </Button>
-                        </template>
-                    </InputGroupAction>
-
-                    <Button
-                        variant="outline"
-                        :disabled="editProfileDialog.bioLinks.length >= 3 || editProfileDialog.loading"
-                        size="sm"
-                        @click="editProfileDialog.bioLinks.push('')">
-                        {{ t('dialog.bio.add_link') }}
-                    </Button>
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.language.header') }}</h3>
-
-                    <div class="my-2" v-for="item in currentLanguages" :key="item.key">
-                        <Badge class="mr-1.5" variant="outline">
-                            <span
-                                class="flags mr-1.5"
-                                :class="languageClass(item.key)"
-                                style="display: inline-block"></span>
-                            {{ item.value }} ({{ item.key.toUpperCase() }})
-                            <button
-                                class="ml-2 p-0"
-                                type="button"
-                                style="
-                                    border: none;
-                                    background: transparent;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    color: inherit;
-                                    cursor: pointer;
-                                "
-                                @click="removeUserLanguage(item.key)">
-                                <X class="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    </div>
-
-                    <Select
-                        :model-value="selectedLanguageToAdd"
-                        :disabled="editProfileDialog.loading || currentLanguages.length === 3"
-                        @update:modelValue="handleAddUserLanguage">
-                        <SelectTrigger size="sm">
-                            <SelectValue :placeholder="t('dialog.language.select_language')" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem
-                                    v-for="item in availableLanguages"
-                                    :key="item.key"
-                                    :value="item.key"
-                                    :text-value="item.value">
-                                    <span
-                                        class="flags mr-1.5"
-                                        :class="languageClass(item.key)"
-                                        style="display: inline-block"></span>
-                                    {{ item.value }} ({{ item.key.toUpperCase() }})
-                                </SelectItem>
-                            </SelectGroup>
+                            <SelectItem value="hidden"><IdCard class="h-4 w-4" /> Hidden</SelectItem>
+                            <SelectItem value="18+"><IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified</SelectItem>
                         </SelectContent>
                     </Select>
                 </section>
@@ -1019,28 +1012,38 @@
         if (D.pronouns !== currentUser.value.pronouns) {
             userPayload.pronouns = D.pronouns;
         }
-        if (D.bio !== currentUser.value.bio) {
-            userPayload.bio = D.bio;
-        }
-        if (!arraysMatch(D.bioLinks, currentUser.value.bioLinks)) {
-            userPayload.bioLinks = D.bioLinks;
-        }
         if (D.ageVerified && D.ageVerificationStatus !== currentUser.value.ageVerificationStatus) {
             userPayload.ageVerificationStatus = D.ageVerificationStatus;
         }
 
         /** @type {Partial<import("../../../types/api/profile").selfProfile>} */
         const profilePayload = {};
-        if (D.bannerColor !== currentUser.value.bannerColor) {
+        if (D.bio !== D.selfProfileRef.bio) {
+            profilePayload.bio = D.bio;
+        }
+        if (!arraysMatch(D.bioLinks, D.selfProfileRef.bioLinks)) {
+            profilePayload.bioLinks = D.bioLinks;
+        }
+        if (D.bannerColor !== D.selfProfileRef.bannerColor) {
             profilePayload.bannerColor = D.bannerColor;
         }
-        if (D.bannerUrl !== currentUser.value.bannerUrl) {
+        if (D.bannerUrl !== D.selfProfileRef.bannerUrl) {
             profilePayload.bannerCustomUrl = D.bannerUrl;
         }
-        if (D.bannerType !== currentUser.value.bannerType) {
+        if (D.bannerType !== D.selfProfileRef.bannerType) {
             profilePayload.bannerType = D.bannerType;
+            if (D.bannerType === 'avatarBanner') {
+                profilePayload.bannerCustomUrl = undefined;
+                profilePayload.bannerColor = undefined;
+            }
+            if (D.bannerType === 'color') {
+                profilePayload.bannerCustomUrl = undefined;
+            }
+            if (D.bannerType === 'customImage') {
+                profilePayload.bannerColor = undefined;
+            }
         }
-        if (D.userIcon !== currentUser.value.userIcon) {
+        if (D.userIcon !== D.selfProfileRef.userIcon) {
             profilePayload.userIcon = D.userIcon;
         }
         if (D.themeId !== D.selfProfileRef.themeId) {
@@ -1066,9 +1069,11 @@
         D.loading = true;
         try {
             if (Object.keys(profilePayload).length) {
+                console.log('Saving profile with payload:', profilePayload);
                 await userRequest.saveProfile(profilePayload);
             }
             if (Object.keys(userPayload).length) {
+                console.log('Saving user with payload:', userPayload);
                 await userRequest.saveCurrentUser(userPayload);
             }
             D.visible = false;
