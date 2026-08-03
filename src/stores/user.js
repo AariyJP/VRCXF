@@ -134,6 +134,13 @@ export const useUserStore = defineStore('User', () => {
             steamId: '',
             tags: [],
             temporaryExpiryDate: null,
+            twitchDetails: {
+                display_name: '',
+                id: '',
+                login: '',
+                profile_image_url: ''
+            },
+            twitchId: '',
             twoFactorAuthEnabled: false,
             twoFactorAuthEnabledDate: null,
             unsubscribe: false,
@@ -295,7 +302,11 @@ export const useUserStore = defineStore('User', () => {
         themeName: '',
         themeButtonColor: '',
         themeIconColor: '',
-        themeSubtextColor: ''
+        themeSubtextColor: '',
+        backgroundType: 'default',
+        backgroundTextureId: '',
+        backgroundGradientBottom: '',
+        backgroundGradientTop: ''
     });
 
     const currentTravelers = reactive(new Map());
@@ -836,14 +847,14 @@ export const useUserStore = defineStore('User', () => {
             const ref = args.json;
             D.selfProfileRef = ref;
 
-            D.status = ref.status;
-            D.statusDescription = ref.statusDescription;
+            // D.status = ref.status;
+            // D.statusDescription = ref.statusDescription;
             D.pronouns = ref.pronouns;
             D.bio = ref.bio;
             D.bioLinks = ref.bioLinks.slice();
             D.bannerColor = ref.bannerColor;
             D.bannerUrl = ref.bannerUrl;
-            D.bannerType = ref.bannerType;
+            D.bannerType = ref.bannerType || 'color';
             D.userIcon = ref.userIcon;
 
             D.themes = ref.themes;
@@ -855,6 +866,10 @@ export const useUserStore = defineStore('User', () => {
             D.themeButtonColor = ref.themeButtonColor;
             D.themeIconColor = ref.themeIconColor;
             D.themeSubtextColor = ref.themeSubtextColor;
+            D.backgroundType = ref.backgroundType || 'default';
+            D.backgroundTextureId = ref.backgroundTextureId;
+            D.backgroundGradientBottom = ref.backgroundGradientBottom;
+            D.backgroundGradientTop = ref.backgroundGradientTop;
         });
 
         D.visible = true;

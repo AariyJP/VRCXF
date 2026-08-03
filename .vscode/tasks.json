@@ -2,18 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build All",
             "type": "shell",
-            "command": "powershell",
-            "args": ["-ExecutionPolicy", "Bypass", "-File", "build-all.ps1"],
-            "options": {
-                "cwd": "${workspaceFolder}/build-scripts"
-            },
+            "label": "build-all",
+            "command": "${workspaceFolder}/build-scripts/build-all.ps1",
+            "args": ["-NoCI"],
+            "options": { "cwd": "${workspaceFolder}/build-scripts" },
             "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "type": "shell",
+            "label": "clean",
+            "command": "Remove-Item",
+            "args": ["-Path", "${workspaceFolder}/build/*", "-Recurse"],
+            "problemMatcher": []
         }
     ]
 }

@@ -492,7 +492,8 @@
                     "contentrestriction": "Moderation Content Restriction"
                 },
                 "instance": {
-                    "closed": "Instance Closed"
+                    "closed": "Instance Closed",
+                    "announcement": "Instance Announcement"
                 },
                 "badge": {
                     "earned": "Badge Earned"
@@ -506,6 +507,9 @@
                         "gift": "Gift Received"
                     },
                     "alert": "Economy Alert"
+                },
+                "twitchdrop": {
+                    "fulfilled": "Twitch Drop Fulfilled"
                 }
             }
         },
@@ -928,7 +932,11 @@
                     "table_density_comfortable": "Comfortable",
                     "table_density_compact": "Compact",
                     "table_entries_settings": "Table Entries Settings",
-                    "table_entries_settings_description": "Control how many items are loaded for lists and searches."
+                    "table_entries_settings_description": "Control how many items are loaded for lists and searches.",
+                    "vrc_profile_backgrounds": "VRChat Profile Backgrounds",
+                    "vrc_profile_backgrounds_description": "Show profile backgrounds in user dialog, e.g. color gradient or VRC+ background.",
+                    "vrc_profile_backgrounds_opacity": "Profile Background Opacity",
+                    "vrc_profile_backgrounds_opacity_description": "Higher values will impact text readability."
                 },
                 "display": {
                     "header": "Display"
@@ -1434,7 +1442,8 @@
                 "show_mutual_friends": "Show Mutual Friends",
                 "show_discord_connections": "Show Discord Connections",
                 "instance_minimum_avatar_performance": "Minimum Avatar Performance",
-                "current_instance": "Current Instance"
+                "current_instance": "Current Instance",
+                "economy_creator": "Economy Creator"
             },
             "groups": {
                 "header": "Groups",
@@ -1857,7 +1866,13 @@
             "profile_theme": "Profile Theme",
             "theme_name_placeholder": "Theme name",
             "create_theme": "Create Theme",
-            "delete_theme": "Delete Theme"
+            "delete_theme": "Delete Theme",
+            "profile_background": "Profile Background",
+            "profile_background_type_none": "None",
+            "profile_background_type_image": "Image",
+            "profile_background_type_gradient": "Gradient",
+            "gradient_top": "Gradient Top",
+            "gradient_bottom": "Gradient Bottom"
         },
         "new_instance": {
             "header": "New Instance",

@@ -175,6 +175,113 @@
                 </section>
 
                 <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.pronouns.header') }}</h3>
+                    <InputGroupTextareaField
+                        v-model="editProfileDialog.pronouns"
+                        :maxlength="32"
+                        :rows="1"
+                        input-class="min-h-0 py-2"
+                        :placeholder="t('dialog.pronouns.pronouns_placeholder')"
+                        show-count />
+                </section>
+
+                <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.bio.header') }}</h3>
+
+                    <InputGroupTextareaField
+                        v-model="editProfileDialog.bio"
+                        :maxlength="512"
+                        :rows="5"
+                        :placeholder="t('dialog.bio.bio_placeholder')"
+                        show-count
+                        autosize />
+
+                    <InputGroupAction
+                        v-for="(link, index) in editProfileDialog.bioLinks"
+                        :key="index"
+                        v-model="editProfileDialog.bioLinks[index]"
+                        :maxlength="1000"
+                        size="sm">
+                        <template #leading>
+                            <img
+                                v-if="link"
+                                :src="getFaviconUrl(link)"
+                                style="width: 16px; height: 16px; vertical-align: middle" />
+                            <div v-else style="width: 16px; height: 16px" />
+                        </template>
+                        <template #actions>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                @click="editProfileDialog.bioLinks.splice(index, 1)"
+                                :ariaLabel="t('common.actions.delete')">
+                                <Trash2 class="size-4" />
+                            </Button>
+                        </template>
+                    </InputGroupAction>
+
+                    <Button
+                        variant="outline"
+                        :disabled="editProfileDialog.bioLinks.length >= 3 || editProfileDialog.loading"
+                        size="sm"
+                        @click="editProfileDialog.bioLinks.push('')">
+                        {{ t('dialog.bio.add_link') }}
+                    </Button>
+                </section>
+
+                <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.language.header') }}</h3>
+
+                    <div class="my-2" v-for="item in currentLanguages" :key="item.key">
+                        <Badge class="mr-1.5" variant="outline">
+                            <span
+                                class="flags mr-1.5"
+                                :class="languageClass(item.key)"
+                                style="display: inline-block"></span>
+                            {{ item.value }} ({{ item.key.toUpperCase() }})
+                            <button
+                                class="ml-2 p-0"
+                                type="button"
+                                style="
+                                    border: none;
+                                    background: transparent;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    color: inherit;
+                                    cursor: pointer;
+                                "
+                                @click="removeUserLanguage(item.key)">
+                                <X class="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    </div>
+
+                    <Select
+                        :model-value="selectedLanguageToAdd"
+                        :disabled="editProfileDialog.loading || currentLanguages.length === 3"
+                        @update:modelValue="handleAddUserLanguage">
+                        <SelectTrigger size="sm">
+                            <SelectValue :placeholder="t('dialog.language.select_language')" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem
+                                    v-for="item in availableLanguages"
+                                    :key="item.key"
+                                    :value="item.key"
+                                    :text-value="item.value">
+                                    <span
+                                        class="flags mr-1.5"
+                                        :class="languageClass(item.key)"
+                                        style="display: inline-block"></span>
+                                    {{ item.value }} ({{ item.key.toUpperCase() }})
+                                </SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </section>
+
+                <section class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.edit_profile.profile_theme') }}</h3>
                     <div class="flex items-center gap-2">
                         <Select
@@ -287,132 +394,122 @@
                     </div>
                 </section>
 
+                <section class="space-y-3">
+                    <h3 class="text-sm font-semibold">{{ t('dialog.edit_profile.profile_background') }}</h3>
+                    <div class="flex items-center gap-2">
+                        <Select
+                            :model-value="props.editProfileDialog.backgroundType"
+                            :disabled="editProfileDialog.loading"
+                            @update:modelValue="handleProfileBackgroundTypeChange">
+                            <SelectTrigger size="sm" class="w-42">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem
+                                        v-for="option in profileBackgroundTypeOptions"
+                                        :key="option.value"
+                                        :value="option.value"
+                                        :text-value="option.label">
+                                        {{ option.label }}
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div v-if="editProfileDialog.backgroundType === 'gradient'" class="grid gap-2 sm:grid-cols-3">
+                        <label class="space-y-1">
+                            <span class="text-xs text-muted-foreground">{{
+                                t('dialog.edit_profile.gradient_top')
+                            }}</span>
+                            <div class="flex items-center gap-1">
+                                <input
+                                    type="color"
+                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
+                                    :value="backgroundGradientTopColorValue"
+                                    :disabled="editProfileDialog.loading"
+                                    @input="handleBackgroundGradientTopColorInput" />
+                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
+                                    {{ backgroundGradientTopColorValue }}
+                                </span>
+                            </div>
+                        </label>
+
+                        <label class="space-y-1">
+                            <span class="text-xs text-muted-foreground">{{
+                                t('dialog.edit_profile.gradient_bottom')
+                            }}</span>
+                            <div class="flex items-center gap-1">
+                                <input
+                                    type="color"
+                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
+                                    :value="backgroundGradientBottomColorValue"
+                                    :disabled="editProfileDialog.loading"
+                                    @input="handleBackgroundGradientBottomColorInput" />
+                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
+                                    {{ backgroundGradientBottomColorValue }}
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div v-if="editProfileDialog.backgroundType === 'texture'" class="space-y-2">
+                        <Select
+                            :model-value="props.editProfileDialog.backgroundTextureId"
+                            :disabled="editProfileDialog.loading"
+                            @update:modelValue="handleBackgroundTextureChange">
+                            <SelectTrigger size="sm" class="h-14! w-80">
+                                <SelectValue :placeholder="t('dialog.edit_profile.profile_background_type_image')">
+                                    <template v-if="selectedProfileBackgroundTextureOption">
+                                        <span class="inline-flex min-w-0 items-center gap-2">
+                                            <img
+                                                :src="selectedProfileBackgroundTextureOption.thumbnail"
+                                                class="h-9 w-16 shrink-0 rounded-sm object-cover"
+                                                :alt="selectedProfileBackgroundTextureOption.label"
+                                                loading="lazy" />
+                                            <span class="truncate">{{
+                                                selectedProfileBackgroundTextureOption.label
+                                            }}</span>
+                                        </span>
+                                    </template>
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent class="w-80">
+                                <SelectGroup>
+                                    <SelectItem
+                                        v-for="option in profileBackgrounds"
+                                        :key="option.id"
+                                        :value="option.id"
+                                        :text-value="option.label"
+                                        :disabled="!isLocalUserVrcPlusSupporter && option.isVRCPlus">
+                                        <div class="flex items-center gap-2">
+                                            <img
+                                                :src="option.thumbnail"
+                                                class="h-9 w-16 shrink-0 rounded-sm object-cover"
+                                                :alt="option.label"
+                                                loading="lazy" />
+                                            <span>{{ option.label }}</span>
+                                        </div>
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </section>
+
                 <section v-if="editProfileDialog.ageVerified" class="space-y-3">
                     <h3 class="text-sm font-semibold">{{ t('dialog.user.tags.age_verified') }}</h3>
-
-                    <Select
-                        v-model="editProfileDialog.ageVerificationStatus"
-                        :disabled="editProfileDialog.loading">
+                    <Select v-model="editProfileDialog.ageVerificationStatus" :disabled="editProfileDialog.loading">
                         <SelectTrigger size="sm" class="w-42">
                             <IdCard
                                 class="h-4 w-4"
-                                :class="
-                                    editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''
-                                " />
+                                :class="editProfileDialog.ageVerificationStatus === '18+' ? 'text-[#3b82f6]!' : ''" />
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="hidden"> <IdCard class="h-4 w-4" /> Hidden </SelectItem>
-                            <SelectItem value="18+">
-                                <IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.pronouns.header') }}</h3>
-                    <InputGroupTextareaField
-                        v-model="editProfileDialog.pronouns"
-                        :maxlength="32"
-                        :rows="1"
-                        input-class="min-h-0 py-2"
-                        :placeholder="t('dialog.pronouns.pronouns_placeholder')"
-                        show-count />
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.bio.header') }}</h3>
-
-                    <InputGroupTextareaField
-                        v-model="editProfileDialog.bio"
-                        :maxlength="512"
-                        :rows="5"
-                        :placeholder="t('dialog.bio.bio_placeholder')"
-                        show-count
-                        autosize />
-
-                    <InputGroupAction
-                        v-for="(link, index) in editProfileDialog.bioLinks"
-                        :key="index"
-                        v-model="editProfileDialog.bioLinks[index]"
-                        :maxlength="1000"
-                        size="sm">
-                        <template #leading>
-                            <img
-                                v-if="link"
-                                :src="getFaviconUrl(link)"
-                                style="width: 16px; height: 16px; vertical-align: middle" />
-                            <div v-else style="width: 16px; height: 16px" />
-                        </template>
-                        <template #actions>
-                            <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                @click="editProfileDialog.bioLinks.splice(index, 1)"
-                                :ariaLabel="t('common.actions.delete')">
-                                <Trash2 class="size-4" />
-                            </Button>
-                        </template>
-                    </InputGroupAction>
-
-                    <Button
-                        variant="outline"
-                        :disabled="editProfileDialog.bioLinks.length >= 3 || editProfileDialog.loading"
-                        size="sm"
-                        @click="editProfileDialog.bioLinks.push('')">
-                        {{ t('dialog.bio.add_link') }}
-                    </Button>
-                </section>
-
-                <section class="space-y-3">
-                    <h3 class="text-sm font-semibold">{{ t('dialog.language.header') }}</h3>
-
-                    <div class="my-2" v-for="item in currentLanguages" :key="item.key">
-                        <Badge class="mr-1.5" variant="outline">
-                            <span
-                                class="flags mr-1.5"
-                                :class="languageClass(item.key)"
-                                style="display: inline-block"></span>
-                            {{ item.value }} ({{ item.key.toUpperCase() }})
-                            <button
-                                class="ml-2 p-0"
-                                type="button"
-                                style="
-                                    border: none;
-                                    background: transparent;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    color: inherit;
-                                    cursor: pointer;
-                                "
-                                @click="removeUserLanguage(item.key)">
-                                <X class="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    </div>
-
-                    <Select
-                        :model-value="selectedLanguageToAdd"
-                        :disabled="editProfileDialog.loading || currentLanguages.length === 3"
-                        @update:modelValue="handleAddUserLanguage">
-                        <SelectTrigger size="sm">
-                            <SelectValue :placeholder="t('dialog.language.select_language')" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectItem
-                                    v-for="item in availableLanguages"
-                                    :key="item.key"
-                                    :value="item.key"
-                                    :text-value="item.value">
-                                    <span
-                                        class="flags mr-1.5"
-                                        :class="languageClass(item.key)"
-                                        style="display: inline-block"></span>
-                                    {{ item.value }} ({{ item.key.toUpperCase() }})
-                                </SelectItem>
-                            </SelectGroup>
+                            <SelectItem value="hidden"><IdCard class="h-4 w-4" /> Hidden</SelectItem>
+                            <SelectItem value="18+"><IdCard class="h-4 w-4 text-[#3b82f6]!" /> 18+ Verified</SelectItem>
                         </SelectContent>
                     </Select>
                 </section>
@@ -468,9 +565,10 @@
     import { useStatusPresets } from './composables/useStatusPresets';
     import GallerySelectDialog from '../GroupDialog/GallerySelectDialog.vue';
     import { updateUserDialogProfile } from '@/coordinators/userCoordinator';
+    import { profileBackgrounds } from '@/shared/constants/backgrounds';
 
     const { t } = useI18n();
-    const { currentUser } = storeToRefs(useUserStore());
+    const { currentUser, isLocalUserVrcPlusSupporter } = storeToRefs(useUserStore());
     const authStore = useAuthStore();
     const modalStore = useModalStore();
     const { refreshGalleryTable } = useGalleryStore();
@@ -497,11 +595,20 @@
         return Object.entries(options).map(([key, value]) => ({ key, value }));
     });
     const historyItems = computed(() => props.editProfileDialog.socialStatusHistoryTable ?? []);
+
     const bannerTypeOptions = [
         { value: 'color', label: t('dialog.edit_profile.banner_type_color') },
         { value: 'avatarBanner', label: t('dialog.edit_profile.banner_type_avatar_banner') },
         { value: 'customImage', label: t('dialog.edit_profile.banner_type_custom_image') }
     ];
+    const profileBackgroundTypeOptions = [
+        { value: 'default', label: t('dialog.edit_profile.profile_background_type_none') },
+        { value: 'texture', label: t('dialog.edit_profile.profile_background_type_image') },
+        { value: 'gradient', label: t('dialog.edit_profile.profile_background_type_gradient') }
+    ];
+    const selectedProfileBackgroundTextureOption = computed(() =>
+        profileBackgrounds.find((option) => option.id === props.editProfileDialog.backgroundTextureId)
+    );
 
     const selectedBannerType = computed(() => {
         const type = props.editProfileDialog.bannerType;
@@ -511,6 +618,13 @@
     const themeButtonColorValue = computed(() => getThemeHexColor(props.editProfileDialog.themeButtonColor));
     const themeIconColorValue = computed(() => getThemeHexColor(props.editProfileDialog.themeIconColor));
     const themeSubtextColorValue = computed(() => getThemeHexColor(props.editProfileDialog.themeSubtextColor));
+    const backgroundGradientBottomColorValue = computed(() =>
+        getThemeHexColor(props.editProfileDialog.backgroundGradientBottom)
+    );
+    const backgroundGradientTopColorValue = computed(() =>
+        getThemeHexColor(props.editProfileDialog.backgroundGradientTop)
+    );
+
     const saveThemeDebounced = debounce(saveTheme, 300);
 
     function normalizeColor(value) {
@@ -616,6 +730,51 @@
         }
         const D = props.editProfileDialog;
         D.bannerType = value;
+    }
+
+    function handleProfileBackgroundTypeChange(value) {
+        if (!profileBackgroundTypeOptions.some((option) => option.value === value)) {
+            return;
+        }
+        const D = props.editProfileDialog;
+        D.backgroundType = value;
+        if (value === 'texture' && !profileBackgrounds.some((option) => option.id === D.backgroundTextureId)) {
+            D.backgroundTextureId = profileBackgrounds[0]?.id ?? '';
+        }
+        if (value === 'gradient') {
+            const profileDefaults = authStore.cachedConfig?.profileDefaults;
+            D.backgroundGradientTop = profileDefaults?.backgroundGradientTop ?? '000000';
+            D.backgroundGradientBottom = profileDefaults?.backgroundGradientBottom ?? '000000';
+        }
+    }
+
+    function handleBackgroundTextureChange(value) {
+        if (!profileBackgrounds.some((option) => option.id === value)) {
+            return;
+        }
+        const D = props.editProfileDialog;
+        D.backgroundTextureId = value;
+        D.backgroundType = 'texture';
+    }
+
+    function handleBackgroundGradientTopColorInput(event) {
+        const normalized = normalizeColor(event?.target?.value);
+        if (!normalized) {
+            return;
+        }
+        const D = props.editProfileDialog;
+        D.backgroundGradientTop = normalized;
+        D.backgroundType = 'gradient';
+    }
+
+    function handleBackgroundGradientBottomColorInput(event) {
+        const normalized = normalizeColor(event?.target?.value);
+        if (!normalized) {
+            return;
+        }
+        const D = props.editProfileDialog;
+        D.backgroundGradientBottom = normalized;
+        D.backgroundType = 'gradient';
     }
 
     function handleThemeChange(value) {
@@ -853,32 +1012,54 @@
         if (D.pronouns !== currentUser.value.pronouns) {
             userPayload.pronouns = D.pronouns;
         }
-        if (D.bio !== currentUser.value.bio) {
-            userPayload.bio = D.bio;
-        }
-        if (!arraysMatch(D.bioLinks, currentUser.value.bioLinks)) {
-            userPayload.bioLinks = D.bioLinks;
-        }
         if (D.ageVerified && D.ageVerificationStatus !== currentUser.value.ageVerificationStatus) {
             userPayload.ageVerificationStatus = D.ageVerificationStatus;
         }
 
         /** @type {Partial<import("../../../types/api/profile").selfProfile>} */
         const profilePayload = {};
-        if (D.bannerColor !== currentUser.value.bannerColor) {
+        if (D.bio !== D.selfProfileRef.bio) {
+            profilePayload.bio = D.bio;
+        }
+        if (!arraysMatch(D.bioLinks, D.selfProfileRef.bioLinks)) {
+            profilePayload.bioLinks = D.bioLinks;
+        }
+        if (D.bannerColor !== D.selfProfileRef.bannerColor) {
             profilePayload.bannerColor = D.bannerColor;
         }
-        if (D.bannerUrl !== currentUser.value.bannerUrl) {
+        if (D.bannerUrl !== D.selfProfileRef.bannerUrl) {
             profilePayload.bannerCustomUrl = D.bannerUrl;
         }
-        if (D.bannerType !== currentUser.value.bannerType) {
+        if (D.bannerType !== D.selfProfileRef.bannerType) {
             profilePayload.bannerType = D.bannerType;
+            if (D.bannerType === 'avatarBanner') {
+                profilePayload.bannerCustomUrl = undefined;
+                profilePayload.bannerColor = undefined;
+            }
+            if (D.bannerType === 'color') {
+                profilePayload.bannerCustomUrl = undefined;
+            }
+            if (D.bannerType === 'customImage') {
+                profilePayload.bannerColor = undefined;
+            }
         }
-        if (D.userIcon !== currentUser.value.userIcon) {
+        if (D.userIcon !== D.selfProfileRef.userIcon) {
             profilePayload.userIcon = D.userIcon;
         }
         if (D.themeId !== D.selfProfileRef.themeId) {
             profilePayload.themeId = D.themeId;
+        }
+        if (D.backgroundType !== D.selfProfileRef.backgroundType) {
+            profilePayload.backgroundType = D.backgroundType;
+        }
+        if (D.backgroundTextureId !== D.selfProfileRef.backgroundTextureId) {
+            profilePayload.backgroundTextureId = D.backgroundTextureId;
+        }
+        if (D.backgroundGradientBottom !== D.selfProfileRef.backgroundGradientBottom) {
+            profilePayload.backgroundGradientBottom = D.backgroundGradientBottom;
+        }
+        if (D.backgroundGradientTop !== D.selfProfileRef.backgroundGradientTop) {
+            profilePayload.backgroundGradientTop = D.backgroundGradientTop;
         }
         if (!Object.keys(userPayload).length && !Object.keys(profilePayload).length) {
             D.visible = false;
@@ -888,9 +1069,11 @@
         D.loading = true;
         try {
             if (Object.keys(profilePayload).length) {
+                console.log('Saving profile with payload:', profilePayload);
                 await userRequest.saveProfile(profilePayload);
             }
             if (Object.keys(userPayload).length) {
+                console.log('Saving user with payload:', userPayload);
                 await userRequest.saveCurrentUser(userPayload);
             }
             D.visible = false;

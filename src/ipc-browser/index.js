@@ -114,12 +114,24 @@ function hashColor(input) {
     return Math.abs(hash % 360);
 }
 
+async function requestPersistentStorage() {
+    try {
+        if (
+            navigator?.storage?.persist &&
+            !(await navigator.storage.persisted())
+        ) {
+            await navigator.storage.persist();
+        }
+    } catch (error) {
+        void error;
+    }
+}
+
 class BrowserSQLiteRuntime {
     constructor() {
         this.db = null;
         this.SQL = null;
         this.inTransaction = false;
-        this.persistTimer = null;
         this.queue = Promise.resolve();
         this.ready = this.init();
     }
@@ -133,6 +145,7 @@ class BrowserSQLiteRuntime {
         this.SQL = await initSqlJs({
             locateFile: () => sqlWasmUrl
         });
+        await requestPersistentStorage();
         const stored = await getIndexedDbValue(sqliteKey).catch(() => null);
         const bytes =
             stored instanceof Uint8Array
@@ -140,15 +153,13 @@ class BrowserSQLiteRuntime {
                 : stored instanceof ArrayBuffer
                   ? new Uint8Array(stored)
                   : null;
-        this.db = bytes ? new this.SQL.Database(bytes) : new this.SQL.Database();
+        this.db = bytes
+            ? new this.SQL.Database(bytes)
+            : new this.SQL.Database();
     }
 
     async persistNow() {
-        clearTimeout(this.persistTimer);
-        this.persistTimer = null;
-        const bytes = this.db.export();
-        const payload = bytes.buffer.slice(0);
-        await setIndexedDbValue(sqliteKey, payload).catch(() => {});
+        await setIndexedDbValue(sqliteKey, this.db.export());
     }
 
     async execute(sql, args) {
@@ -171,21 +182,21 @@ class BrowserSQLiteRuntime {
     async executeNonQuery(sql, args) {
         await this.ready;
         return this.enqueue(async () => {
-            const normalizedSql = sql.trim().toUpperCase();
-            if (normalizedSql === 'BEGIN') {
-                this.inTransaction = true;
-            }
+            const statement = sql.trim().replace(/;+$/, '').toUpperCase();
             this.db.run(sql, normalizeSqlArgs(args));
-            if (normalizedSql === 'COMMIT' || normalizedSql === 'ROLLBACK') {
+            const rowsModified = this.db.getRowsModified();
+            if (/^BEGIN\b/.test(statement)) {
+                this.inTransaction = true;
+            } else if (/^(COMMIT|END|ROLLBACK)\b/.test(statement)) {
                 this.inTransaction = false;
-                await this.persistNow();
-            } else if (
-                normalizedSql !== 'BEGIN' &&
-                normalizedSql !== 'PRAGMA OPTIMIZE'
+            }
+            if (
+                !this.inTransaction &&
+                !/^PRAGMA\s+OPTIMIZE\b/.test(statement)
             ) {
                 await this.persistNow();
             }
-            return this.db.getRowsModified();
+            return rowsModified;
         });
     }
 }

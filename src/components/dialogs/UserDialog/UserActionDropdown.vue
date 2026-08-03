@@ -6,24 +6,23 @@
                 side="top"
                 :content="t('dialog.user.actions.favorites_tooltip')">
                 <Button
-                    class="rounded-full"
+                    class="rounded-full border-muted-foreground/30!"
                     :style="{
                         color:
-                            userDialog.theme.iconColor === 'var(--muted-foreground)'
-                                ? 'var(--foreground)'
-                                : userDialog.theme.iconColor,
+                            userDialog.theme.buttonColor === 'var(--primary)'
+                                ? 'var(--background)'
+                                : invertHexColor(userDialog.theme.buttonColor),
                         backgroundColor: userDialog.theme.buttonColor
                     }"
                     size="icon-lg"
                     @click="userDialogCommand('Add Favorite')"
                     :ariaLabel="t('dialog.user.actions.favorites_tooltip')"
                     ><Star
-                        class="[filter:drop-shadow(0_0_1px_rgba(255,255,255,0.95))_drop-shadow(0_0_1px_rgba(0,0,0,0.95))_drop-shadow(0_1px_1px_rgba(0,0,0,0.6))]"
                 /></Button>
             </TooltipWrapper>
             <TooltipWrapper v-else side="top" :content="t('dialog.user.actions.favorites_tooltip')">
                 <Button
-                    class="rounded-full"
+                    class="rounded-full border-muted-foreground/30!"
                     :style="{
                         color:
                             userDialog.theme.iconColor === 'var(--muted-foreground)'
@@ -35,7 +34,6 @@
                     @click="userDialogCommand('Add Favorite')"
                     :ariaLabel="t('dialog.user.actions.favorites_tooltip')"
                     ><Star
-                        class="[filter:drop-shadow(0_0_1px_rgba(255,255,255,0.95))_drop-shadow(0_0_1px_rgba(0,0,0,0.95))_drop-shadow(0_1px_1px_rgba(0,0,0,0.6))]"
                 /></Button>
             </TooltipWrapper>
             <TooltipWrapper side="top" :content="t('dialog.user.actions.request_invite')">
@@ -78,8 +76,13 @@
                     <Button
                         :variant="hasRisk ? 'destructive' : 'outline'"
                         size="icon-lg"
-                        class="rounded-full"
-                        :style="{ color: userDialog.theme.iconColor }"
+                        class="rounded-full border-muted-foreground/30!"
+                        :style="{
+                            color:
+                                userDialog.theme.iconColor === 'var(--muted-foreground)'
+                                    ? 'var(--foreground)'
+                                    : userDialog.theme.iconColor
+                        }"
                         :class="{ 'dot-indicator': hasRequest }"
                         :ariaLabel="t('nav_tooltip.manage')">
                         <MoreHorizontal />
@@ -349,6 +352,7 @@
     import { useGameStore, useLocationStore, useUserStore } from '../../../stores';
     import { useInviteChecks } from '../../../composables/useInviteChecks';
     import { isActionRecent } from '../../../composables/useRecentActions';
+    import { invertHexColor } from '@/shared/utils';
 
     const props = defineProps({
         userDialogCommand: {

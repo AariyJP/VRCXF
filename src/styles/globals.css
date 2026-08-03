@@ -20,6 +20,7 @@
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
+    --profile-card: oklch(0.95 0 0 / 80%);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
     --primary: oklch(0.205 0 0);
@@ -78,6 +79,7 @@
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
+    --profile-card: oklch(0.235 0 0 / 80%);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.922 0 0);
@@ -206,10 +208,12 @@ html.dark .x-container {
     white-space: pre-line;
 }
 
-* {
-    @apply border-border outline-ring/50;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
 }
 
 body {
