@@ -334,7 +334,7 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - `window.electron` は macOS/Linux のみ
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
 - Windows CEF 版は framework-dependent としてビルドし、.NET ランタイムを配布物へ同梱しない。`--self-contained` を付けないこと。
-- `build-scripts/build-all.ps1` は **`build-scripts/` ディレクトリから**実行する必要がある（スクリプトの先頭が `cd ..` でリポジトリルートに移動する）。`Set-Location build-scripts; .\build-all.ps1` のように呼び出す。
+- `build-scripts/build-all.ps1` は **どのディレクトリからでも**実行できる（スクリプト先頭の `cd "$PSScriptRoot/.."` でリポジトリルートに移動する）。`-NoCI` と `-BuildArm64` のスイッチを取る。ただし `-NoCI` を付けても `node_modules` は削除される（upstream の実装に合わせているため）。
 - framework-dependent への切り替え後などに古い成果物が混在して.NETランタイム要求ダイアログが表示される場合は、リポジトリ直下の `build/` を全削除してから `build-scripts/build-all.ps1` を再実行する。
 - `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
 - 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、upstream 同期マージ

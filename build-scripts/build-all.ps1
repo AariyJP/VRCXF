@@ -33,7 +33,7 @@ $SetupName = "VRCX_" + $Date + "_Setup.exe"
 Write-Host "Building .Net..." -ForegroundColor Green
 
 if ($IsWindows) {
-    dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:RestorePackagesConfig=true -t:"Restore;Clean;Build" -maxcpucount
+    dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -t:"Restore;Clean;Build" -maxcpucount
 }
 
 if ($IsLinux -or $IsMacOS) {
@@ -46,10 +46,14 @@ if ($IsLinux -or $IsMacOS) {
 }
 
 Write-Host "Building Node.js..." -ForegroundColor Green
-if (-not $NoCI) {
-    Remove-Item -Path "node_modules" -Force -Recurse -ErrorAction SilentlyContinue
+Remove-Item -Path "node_modules" -Force -Recurse -ErrorAction SilentlyContinue
+
+if ($NoCI) {
+    pnpm install
 }
-pnpm install --frozen-lockfile --loglevel=error
+else {
+    pnpm install --frozen-lockfile --loglevel=error
+}
 
 $ErrorActionPreference = "Continue"
 
@@ -66,6 +70,7 @@ if ($IsLinux -or $IsMacOS) {
         pnpm build-electron
     }
 }
+
 $ErrorActionPreference = "Stop"
 
 if ($IsWindows) {
