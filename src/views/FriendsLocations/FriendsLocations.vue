@@ -104,7 +104,7 @@
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     <LocationWorld
                                         v-if="getRowLocationObject(row)"
-                                        class="text-sm w-fit max-w-full border-muted-foreground/30"
+                                        class="text-sm w-fit max-w-full overflow-hidden border-muted-foreground/30"
                                         :locationobject="getRowLocationObject(row)"
                                         :currentuserid="userStore.currentUser.id" />
                                     <InstanceActionBar
