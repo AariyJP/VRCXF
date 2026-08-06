@@ -97,7 +97,7 @@
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
                                 <span
-                                    class="friend-view__instance-world text-xs w-full min-w-0 cursor-pointer truncate"
+                                    class="text-md text-foreground w-full min-w-0 cursor-pointer truncate"
                                     @click="showWorldDialog(getRowInstanceId(row))"
                                     >{{ getRowWorldName(row) }}</span
                                 >
@@ -108,7 +108,7 @@
                                         :locationobject="getRowLocationObject(row)"
                                         :currentuserid="userStore.currentUser.id" />
                                     <InstanceActionBar
-                                        class="text-sm"
+                                        class="text-sm border-muted-foreground/30"
                                         :show-buttons="false"
                                         :location="getRowInstanceId(row)"
                                         :instance="getRowInstance(row)"
@@ -1130,8 +1130,6 @@
         min-width: 0;
         max-width: 100%;
         padding: 4px 2px;
-        font-weight: 600;
-        font-size: 13px;
     }
 
     .friend-view__divider {
