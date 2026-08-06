@@ -8,6 +8,7 @@ import { runUpdateIsGameRunningFlow } from '../coordinators/gameCoordinator';
 import { addGameLogEvent } from '../coordinators/gameLogCoordinator';
 import { runRefreshPlayerModerationsFlow } from '../coordinators/moderationCoordinator';
 import { clearVRCXCache } from '../coordinators/vrcxCoordinator';
+import { runLocateMeSweepFlow } from '../coordinators/locateMeCoordinator';
 import { useAuthStore } from './auth';
 import { useDiscordPresenceSettingsStore } from './settings/discordPresence';
 import { useFriendStore } from './friend';
@@ -43,7 +44,8 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         nextAutoStateChange: 0,
         nextGetLogCheck: 0,
         nextGameRunningCheck: 0,
-        nextDatabaseOptimize: 3600
+        nextDatabaseOptimize: 3600,
+        nextLocateMeRefresh: 60
     };
 
     watch(
@@ -52,6 +54,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
             state.nextCurrentUserRefresh = 300;
             state.nextFriendsRefresh = 3600;
             state.nextGroupInstanceRefresh = 0;
+            state.nextLocateMeRefresh = 60;
         },
         { flush: 'sync' }
     );
@@ -73,6 +76,10 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                 if (--state.nextCurrentUserRefresh <= 0) {
                     state.nextCurrentUserRefresh = 300; // 5min
                     getCurrentUser();
+                }
+                if (--state.nextLocateMeRefresh <= 0) {
+                    state.nextLocateMeRefresh = 60;
+                    runLocateMeSweepFlow();
                 }
                 if (--state.nextFriendsRefresh <= 0) {
                     state.nextFriendsRefresh = 3600; // 1hour

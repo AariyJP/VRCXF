@@ -13,6 +13,7 @@ import {
     replaceBioSymbols
 } from '../shared/utils';
 import { getAllUserMemos } from '../coordinators/memoCoordinator';
+import { loadLocateMeUrls } from '../coordinators/locateMeCoordinator';
 import { instanceRequest, userRequest, cosmeticsRequest } from '../api';
 import { AppDebug } from '../services/appConfig';
 import { database } from '../services/database';
@@ -282,7 +283,8 @@ export const useUserStore = defineStore('User', () => {
         mutualFriendCount: 0,
         mutualGroupCount: 0,
         mutualFriends: [],
-        isMutualFriendsLoading: false
+        isMutualFriendsLoading: false,
+        $locateMeUrl: ''
     });
 
     const editProfileDialog = ref({
@@ -434,6 +436,7 @@ export const useUserStore = defineStore('User', () => {
             if (isFriendsLoaded) {
                 getAllUserMemos();
                 initUserNotes();
+                loadLocateMeUrls();
             }
         },
         { flush: 'sync' }
@@ -757,6 +760,13 @@ export const useUserStore = defineStore('User', () => {
     }
 
     /**
+     * @param {string} value
+     */
+    function setUserDialogLocateMeUrl(value) {
+        userDialog.value.$locateMeUrl = value;
+    }
+
+    /**
      * @param {boolean} value
      */
     function setUserDialogVisible(value) {
@@ -1057,6 +1067,7 @@ export const useUserStore = defineStore('User', () => {
         showSendBoopDialog,
         showEditProfileDialog,
         setUserDialogMemo,
+        setUserDialogLocateMeUrl,
         setUserDialogVisible,
         setUserDialogIsFavorite,
         setUserDialogActiveTab,

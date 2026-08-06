@@ -224,6 +224,23 @@
                         >{{ userDialog.memo }}</pre>
                     <pre class="text-xs font-[inherit] text-muted-foreground" v-else>—</pre>
                 </div>
+
+                <div
+                    v-if="userDialog.friend && userDialog.$locateMeUrl"
+                    class="rounded-xl bg-(--profile-card) p-3 cursor-pointer"
+                    @click="isEditNoteAndMemoDialogVisible = true">
+                    <div class="flex items-center justify-between mb-2 pb-2 border-b border-muted-foreground/20">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-wide"
+                            :style="{ color: userDialog.theme.subtextColor }">
+                            LocateMe URL
+                        </span>
+                        <Button class="h-5 w-5" size="icon-sm" variant="ghost">
+                            <Pencil class="h-3 w-3" :style="{ color: userDialog.theme.iconColor }" />
+                        </Button>
+                    </div>
+                    <span class="text-xs truncate block">{{ userDialog.$locateMeUrl }}</span>
+                </div>
             </div>
 
             <div class="flex flex-col gap-2.5">
