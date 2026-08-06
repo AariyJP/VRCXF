@@ -96,18 +96,23 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location class="text-xs w-full min-w-0" :location="getRowInstanceId(row)" />
-                                <InstanceActionBar
-                                    class="text-sm"
-                                    :location="getRowInstanceId(row)"
-                                    :instance="getRowInstance(row)"
-                                    :friendcount="getRowCount(row)"
-                                    :currentlocation="lastLocation.location"
-                                    :refresh-tooltip="t('dialog.world.instances.refresh_instance_info')"
-                                    :show-history="!!instanceJoinHistory.get(getRowInstanceId(row))"
-                                    :history-tooltip="t('dialog.previous_instances.info')"
-                                    :on-refresh="() => refreshInstancePlayerCount(getRowInstanceId(row))"
-                                    :on-history="() => showPreviousInstancesInfoDialog(getRowInstanceId(row))" />
+                                <Location
+                                    class="friend-view__instance-world text-xs w-full min-w-0"
+                                    :location="getRowInstanceId(row)" />
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <LocationWorld
+                                        v-if="getRowLocationObject(row)"
+                                        class="text-sm w-fit max-w-full border-muted-foreground/30"
+                                        :locationobject="getRowLocationObject(row)"
+                                        :currentuserid="userStore.currentUser.id" />
+                                    <InstanceActionBar
+                                        class="text-sm"
+                                        :show-buttons="false"
+                                        :location="getRowInstanceId(row)"
+                                        :instance="getRowInstance(row)"
+                                        :friendcount="getRowCount(row)"
+                                        :currentlocation="lastLocation.location" />
+                                </div>
                             </header>
                         </template>
 
@@ -177,9 +182,9 @@
     import { Switch } from '../../components/ui/switch';
     import { getFriendsLocations } from '../../shared/utils/location.js';
     import { debounce, getFriendsSortFunction, parseLocation } from '../../shared/utils';
-    import { refreshInstancePlayerCount } from '../../coordinators/instanceCoordinator';
 
     import InstanceActionBar from '@/components/InstanceActionBar.vue';
+    import LocationWorld from '@/components/LocationWorld.vue';
     import FriendLocationCard from './components/FriendsLocationsCard.vue';
     import configRepository from '../../services/config.js';
     import { userRequest } from '../../api';
@@ -204,8 +209,7 @@
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } = storeToRefs(favoriteStore);
 
     const instanceStore = useInstanceStore();
-    const { lastInstanceApplied, instanceJoinHistory } = storeToRefs(instanceStore);
-    const { showPreviousInstancesInfoDialog } = instanceStore;
+    const { lastInstanceApplied } = storeToRefs(instanceStore);
 
     const locationStore = useLocationStore();
     const { lastLocation } = storeToRefs(locationStore);
@@ -868,6 +872,17 @@
     const getRowItems = (row) => (row && Array.isArray(row.items) ? row.items : []);
     const getRowInstanceId = (row) => (row && row.type === 'header' ? row.instanceId : '');
     const getRowCount = (row) => (row && row.type === 'header' ? row.count : 0);
+    const locationObjectCache = new Map();
+    const getRowLocationObject = (row) => {
+        const instanceId = getRowInstanceId(row);
+        if (!instanceId) {
+            return null;
+        }
+        if (!locationObjectCache.has(instanceId)) {
+            locationObjectCache.set(instanceId, parseLocation(instanceId));
+        }
+        return locationObjectCache.get(instanceId);
+    };
     const getRowInstance = (row) => {
         void lastInstanceApplied.value;
         if (!row || row.type !== 'header' || !row.instanceId) {
@@ -1087,6 +1102,10 @@
         display: grid;
         place-items: center;
         min-height: 240px;
+    }
+
+    .friend-view__instance-world :deep(.flags) {
+        display: none;
     }
 
     .friend-view__instance-header {
