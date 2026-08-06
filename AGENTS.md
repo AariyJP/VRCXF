@@ -34,14 +34,15 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 
 - **Windows**: CEF (CefSharp) — `Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`、`Dotnet/VRCX-Cef.csproj`
 - **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`、`Dotnet/VRCX-Electron.csproj`
+- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`PLATFORM=browser`(`BROWSER` フラグ)。`npm run dev-browser` で Vite + Cloudflare Wrangler Pages (port 8788) を起動し Edge 等で開ける。リリースアセットにも含める（iOS/Android の CI がダウンロードして利用するため）
 
 分岐パターン:
 
-- **Frontend JS**: `WINDOWS` / `LINUX` で分岐
-- **ネイティブ API 呼び出し**: Windows は `CefSharp.BindObjectAsync` 経由のグローバル直接呼び出し、macOS/Linux は `window.interopApi.callDotNetMethod` 経由のプロキシ
-- **Interop ブートストラップ**: `src/plugins/interopApi.js` がグローバルを初期化、`src/ipc-electron/interopApi.js` が Electron 側プロキシヘルパーを公開
-- **WebApi 実行**: `src/services/webapi.js` が Windows では `WebApi.Execute()`、macOS/Linux では `WebApi.ExecuteJson()` に分岐
-- **.NET 側**: 共通ロジックは `Dotnet/AppApi/Common/`、プラットフォーム固有コードは `Dotnet/AppApi/Cef/` と `Dotnet/AppApi/Electron/`
+- **Frontend JS**: `WINDOWS` / `LINUX` / `BROWSER` で分岐
+- **ネイティブ API 呼び出し**: Windows は `CefSharp.BindObjectAsync` 経由のグローバル直接呼び出し、macOS/Linux は `window.interopApi.callDotNetMethod` 経由のプロキシ、Browser は `src/ipc-browser/index.js` のブラウザ内モック実装（fetch + Cookie 中継、sql.js on IndexedDB 等）
+- **Interop ブートストラップ**: `src/plugins/interopApi.js` がグローバルを初期化。macOS/Linux は `src/ipc-electron/interopApi.js` が Electron 側プロキシヘルパーを公開、Browser は `src/ipc-browser/index.js` を動的 import して同名グローバルにモックを割り当てる
+- **WebApi 実行**: `src/services/webapi.js` は `LINUX` のときのみ `WebApi.ExecuteJson()`、それ以外（Windows/Browser）は `WebApi.Execute()`（`{Item1, Item2}` 形式）に分岐。Browser のモックもこの形式で応答を返す
+- **.NET 側**: 共通ロジックは `Dotnet/AppApi/Common/`、プラットフォーム固有コードは `Dotnet/AppApi/Cef/` と `Dotnet/AppApi/Electron/`（Browser は .NET 側の実装を持たない）
 - **Electron 専用 API**: `window.electron.*` は macOS/Linux のみ存在
 
 実装チェックリスト:
@@ -50,17 +51,27 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 2. フロントエンドのプラットフォーム分岐は `src/plugins/interopApi.js` と `src/services/webapi.js` の既存パターンに従う
 3. `window.electron.*` を使う場合は、必要に応じて Windows 互換パスを提供する
 4. .NET コードを変更したら `Dotnet/VRCX-Cef.csproj` と `Dotnet/VRCX-Electron.csproj` の両方がビルド可能な状態を保つ
+5. Browser ターゲットに影響するネイティブ API を追加/変更する場合は `src/ipc-browser/index.js` のモックも合わせて更新する（ネイティブ依存機能はスタブのままで構わない）
 
 ## 技術スタック
 
-- **Frontend**: Vue 3、Pinia、Vue Router、Vite 8、TailwindCSS 4、shadcn-vue、reka-ui、LightningCSS、vue-i18n、Vitest、Vue Query、ECharts、Graphology + Sigma、vue-sonner
-- **Backend**: C# / .NET 10 (Windows) / .NET 9 (macOS/Linux)、SQLite、OpenVR、node-api-dotnet
-- **Desktop**: Electron 40 (macOS/Linux)、CEF/CefSharp 148 (Windows)、electron-builder
-- **対応プラットフォーム**: Windows / Linux / macOS、x64 + arm64
+> [!IMPORTANT]
+> このファイルにバージョン番号やビルドターゲットなどの**具体値は書かない**。更新のたびに書き換える手間とドリフトを避けるため、必要なときは正本のファイルを読むこと。
+>
+> - JS / Electron の依存バージョン: `package.json`
+> - .NET の TargetFramework: `Dotnet/VRCX-*.csproj`
+> - Vite の dev port / build target / outDir: `src/vite.config.js`
+> - フォーマッタ / Linter の設定値: `.oxfmtrc.json`、`eslint.config.mjs`、`.oxlintrc.json`
+> - DB スキーマバージョン: `src/stores/vrcx.js`
+
+- **Frontend**: Vue、Pinia、Vue Router、Vite、TailwindCSS、shadcn-vue、reka-ui、LightningCSS、vue-i18n、Vitest、Vue Query、ECharts、Graphology + Sigma、vue-sonner
+- **Backend**: C# / .NET、SQLite、OpenVR、node-api-dotnet
+- **Desktop**: Electron (macOS/Linux)、CEF/CefSharp (Windows)、electron-builder
+- **対応プラットフォーム**: Windows / Linux / macOS（x64 + arm64）、Browser
 
 ## アーキテクチャ
 
-レンダラ (`src/`) → ネイティブブリッジ (`src/plugins/interopApi.js`、`src/ipc-electron/interopApi.js`) → .NET ランタイム (`Dotnet/`) → VRChat REST/WebSocket、SQLite、OS 連携
+レンダラ (`src/`) → ネイティブブリッジ (`src/plugins/interopApi.js`、`src/ipc-electron/interopApi.js`、`src/ipc-browser/index.js`) → .NET ランタイム (`Dotnet/`) → VRChat REST/WebSocket、SQLite、OS 連携（Browser ターゲットのみ .NET ランタイムを介さずブラウザ API で代替）
 
 現在のフロントエンド構成:
 
@@ -76,6 +87,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 - **Coordinator パターン** (`src/coordinators/`)
 - **Query レイヤ** (`src/queries/`)
 - **Electron IPC ヘルパー** (`src/ipc-electron/`)
+- **Browser IPC ヘルパー** (`src/ipc-browser/`) — Browser ターゲットのネイティブ API モック
 - **公開静的アセット** (`src/public/`)
 - **アプリシェル CSS の分割**: `src/styles/globals.css` と `src/app.css`
 
@@ -88,11 +100,12 @@ src/
   app.css                 # レイアウト/アプリシェル用 CSS
   index.html              # メインエントリ
   vr.html                 # VR オーバーレイエントリ
-  vite.config.js          # Vite 設定 (port 9000、outDir ../build/html、PLATFORM=browser のみ ../build/html-browser、target chrome145)
+  vite.config.js          # Vite 設定 (outDir ../build/html、PLATFORM=browser のみ ../build/html-browser)
   api/                    # VRChat API ラッパー
   components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
   ipc-electron/           # レンダラ向け Electron interop ヘルパー
+  ipc-browser/            # Browser ターゲット向けネイティブ API モック (index.js)
   lib/                    # 共通ライブラリヘルパー
   localization/           # i18n JSON ファイル
   plugins/                # ブートストラッププラグイン (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
@@ -135,8 +148,8 @@ Dotnet/
   Overlay/                # VR オーバーレイ実装
   IPC/                    # IPC 基盤
   ScreenshotMetadata/     # スクリーンショットメタデータ対応
-  VRCX-Cef.csproj         # Windows ビルド (.NET 10)
-  VRCX-Electron.csproj    # Electron x64 ビルド (.NET 9)
+  VRCX-Cef.csproj         # Windows ビルド
+  VRCX-Electron.csproj    # Electron x64 ビルド
   VRCX-Electron-arm64.csproj
 ```
 
@@ -226,12 +239,11 @@ Dotnet/
 - REST エンドポイントベース: `https://api.vrchat.cloud/api/1`
 - WebSocket ベース: `wss://pipeline.vrchat.cloud`
 - リクエスト経路: `src/services/request.js` → `src/services/webapi.js` → ネイティブ `WebApi`
-- GET 重複排除ウィンドウ: 10 秒
-- 404/403 抑制ウィンドウ: 15 分
+- `src/services/request.js` に GET 重複排除ウィンドウと 404/403 抑制ウィンドウがある（具体値は同ファイルを参照）
 
 ## DB スキーマ
 
-現在のデータベースバージョン: **16** (`VRCX_databaseVersion` config キーに保存、`src/stores/vrcx.js` で管理)
+データベースバージョンは `VRCX_databaseVersion` config キーに保存し、`src/stores/vrcx.js` で管理する（現在値は同ファイルを参照）
 
 `src/services/database/` に含まれる現行モジュール:
 
@@ -254,7 +266,7 @@ Dotnet/
 
 ## スタイリング
 
-- TailwindCSS 4 + CSS 変数
+- TailwindCSS + CSS 変数
 - ベーステーマ/スタイルは `src/styles/globals.css`
 - レイアウトシェル規則は `src/app.css`
 - テーマファイルは `src/styles/themes/`
@@ -284,6 +296,8 @@ pnpm lint
 pnpm lint:eslint
 pnpm lint:oxlint
 pnpm typecheck:js
+pnpm format
+pnpm format:check
 ```
 
 ## .NET ビルド
@@ -296,9 +310,9 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 ## ツール / 規約
 
-- **Prettier**: `printWidth: 80`、`tabWidth: 4`、`semi: true`、`singleQuote: true`、`trailingComma: none`、Vue は `printWidth: 120`
-- **ESLint**: flat config、`vue/essential`、`eslint-plugin-prettier`、`eslint-plugin-jsdoc`、`pretty-import`
-- **oxlint**: `.oxlintrc.json`、`npm run lint:oxlint` で実行
+- **フォーマッタ**: oxfmt（`.oxfmtrc.json`）。`pnpm format` / `pnpm format:check` で実行。Vue には別 override がある
+- **ESLint**: flat config（`eslint.config.mjs`）、`eslint-plugin-vue` + `eslint-plugin-oxlint`。`no-restricted-syntax` でストア境界ルールを強制
+- **oxlint**: `.oxlintrc.json`、`pnpm lint:oxlint` で実行
 - **TypeScript 設定**: `allowJs`、`checkJs`、`strict: false`、`moduleResolution: bundler`、`noEmit`
 - **Vitest**: `jsdom`、`src/**/*.{test,spec}.js`、setup は `vitest.setup.js`
 - **パスエイリアス**: `@/*` → `./src/*`
@@ -326,12 +340,13 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 ## 重要な注意点
 
-- `src/vite.config.js` は `chrome145` ターゲットと LightningCSS を使用
+- `src/vite.config.js` は Chrome ベースの build target と LightningCSS を使用
 - `src/public/` は Vite によってビルド出力にコピーされる
 - Browser ターゲット (`PLATFORM=browser`) の出力先は Cef/Electron と分離して `build/html-browser`。`build-scripts/generate-third-party-licenses.js` と `wrangler.toml` (`pages_build_output_dir`) も同じディレクトリを参照する。`prod-browser` は `build:licenses` にも `PLATFORM=browser` を渡す必要がある（別プロセスで環境変数が引き継がれないため）
 - リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
+- `BROWSER` ターゲット（`npm run dev-browser` / `prod-browser`）は Cloudflare Wrangler Pages 経由で一般ブラウザ (Edge 等) から動かすビルド。`src/ipc-browser/index.js` が `WebApi`(fetch + Cookie 中継)や `SQLite`(sql.js on IndexedDB) を実装するが、`LogWatcher`/`Discord`/ゲーム起動/レジストリ操作/スクリーンショット等のネイティブ依存機能はスタブのため動作しない
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
 - Windows CEF 版は framework-dependent としてビルドし、.NET ランタイムを配布物へ同梱しない。`--self-contained` を付けないこと。
 - `build-scripts/build-all.ps1` は **どのディレクトリからでも**実行できる（スクリプト先頭の `cd "$PSScriptRoot/.."` でリポジトリルートに移動する）。`-NoCI` と `-BuildArm64` のスイッチを取る。ただし `-NoCI` を付けても `node_modules` は削除される（upstream の実装に合わせているため）。
