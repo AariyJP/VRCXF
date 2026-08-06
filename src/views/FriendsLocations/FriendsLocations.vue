@@ -96,9 +96,11 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location
-                                    class="friend-view__instance-world text-xs w-full min-w-0"
-                                    :location="getRowInstanceId(row)" />
+                                <span
+                                    class="friend-view__instance-world text-xs w-full min-w-0 cursor-pointer truncate"
+                                    @click="showWorldDialog(getRowInstanceId(row))"
+                                    >{{ getRowWorldName(row) }}</span
+                                >
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     <LocationWorld
                                         v-if="getRowLocationObject(row)"
@@ -176,8 +178,10 @@
         useFriendStore,
         useInstanceStore,
         useLocationStore,
-        useUserStore
+        useUserStore,
+        useWorldStore
     } from '../../stores';
+    import { showWorldDialog } from '../../coordinators/worldCoordinator';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { getFriendsLocations } from '../../shared/utils/location.js';
@@ -213,6 +217,8 @@
 
     const locationStore = useLocationStore();
     const { lastLocation } = storeToRefs(locationStore);
+
+    const { cachedWorlds } = useWorldStore();
 
     const userStore = useUserStore();
 
@@ -890,6 +896,17 @@
         }
         return instanceStore.cachedInstances.get(row.instanceId) || null;
     };
+    const getRowWorldName = (row) => {
+        const worldName = getRowInstance(row)?.world?.name;
+        if (worldName) {
+            return worldName;
+        }
+        const locationObject = getRowLocationObject(row);
+        if (!locationObject?.worldId) {
+            return '';
+        }
+        return cachedWorlds.get(locationObject.worldId)?.name || locationObject.worldId;
+    };
 
     watch([searchTerm, activeSegment], () => {
         nextTick(() => updateGridWidth());
@@ -1102,10 +1119,6 @@
         display: grid;
         place-items: center;
         min-height: 240px;
-    }
-
-    .friend-view__instance-world :deep(.flags) {
-        display: none;
     }
 
     .friend-view__instance-header {
