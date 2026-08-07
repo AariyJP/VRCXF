@@ -1,14 +1,16 @@
 <template>
     <SidebarFooter class="px-2 py-3">
         <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton tooltip="ポップアウト" @click="emit('popout-current')">
-                    <i class="ri-external-link-line inline-flex size-6 items-center justify-center text-lg" />
-                    <span v-show="!isCollapsed">ポップアウト</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+            <template v-if="popoutEnabled">
+                <SidebarMenuItem>
+                    <SidebarMenuButton tooltip="ポップアウト" @click="emit('popout-current')">
+                        <i class="ri-external-link-line inline-flex size-6 items-center justify-center text-lg" />
+                        <span v-show="!isCollapsed">ポップアウト</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
 
-            <SidebarSeparator class="mx-0" />
+                <SidebarSeparator class="mx-0" />
+            </template>
 
             <SidebarMenuItem>
                 <DropdownMenu>
@@ -266,6 +268,10 @@
         themeColorDisplayName: {
             type: Function,
             required: true
+        },
+        popoutEnabled: {
+            type: Boolean,
+            default: false
         }
     });
 

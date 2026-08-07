@@ -211,6 +211,15 @@
                 description="無効にすると、Feedのデータベースへの保存を停止してディスク容量を節約します。">
                 <Switch :model-value="feedEnabled" ariaLabel="Feedを有効にする" @update:modelValue="setFeedEnabled" />
             </SettingsItem>
+
+            <SettingsItem
+                label="ポップアウト機能を使用する"
+                description="ナビゲーションのポップアウトボタンと、メニュー項目の中クリックでビューを別ウィンドウに切り離せるようにします。">
+                <Switch
+                    :model-value="popoutEnabled"
+                    ariaLabel="ポップアウト機能を使用する"
+                    @update:modelValue="setPopoutEnabled" />
+            </SettingsItem>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.interface.lists_tables.header')">
@@ -519,7 +528,8 @@
         isDataTableStriped,
         accessibleStatusIndicators,
         showNewDashboardButton,
-        feedEnabled
+        feedEnabled,
+        popoutEnabled
     } = storeToRefs(appearanceSettingsStore);
 
     const appLanguageDisplayName = computed(() => getLanguageName(String(appLanguage.value)));
@@ -548,6 +558,7 @@
         toggleAccessibleStatusIndicators,
         setShowNewDashboardButton,
         setFeedEnabled,
+        setPopoutEnabled,
         setAppFontFamily,
         setCustomFontFamily,
         setAppCjkFontPack
