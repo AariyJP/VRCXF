@@ -50,6 +50,8 @@
     const appearanceSettingsStore = useAppearanceSettingsStore();
 
     const { previousInstancesInfoDialog, previousInstancesListDialog } = storeToRefs(instanceStore);
+    const { popoutEnabled } = storeToRefs(appearanceSettingsStore);
+    const isInAppDialog = computed(() => BROWSER || !popoutEnabled.value);
 
     const previousIds = ref({
         userDialog: {
@@ -139,8 +141,8 @@
             }
         }
     });
-    const dialogContentComponent = BROWSER ? DialogContent : 'div';
-    const dialogContentProps = BROWSER ? { showCloseButton: false } : {};
+    const dialogContentComponent = computed(() => (isInAppDialog.value ? DialogContent : 'div'));
+    const dialogContentProps = computed(() => (isInAppDialog.value ? { showCloseButton: false } : {}));
 
     const shouldShowBreadcrumbs = computed(() => dialogCrumbs.value.length > 1);
     const shouldCollapseBreadcrumbs = computed(() => dialogCrumbs.value.length > 5);
@@ -159,25 +161,26 @@
     });
     const windowTitle = computed(() => dialogCrumbs.value.at(-1)?.label);
     const dialogContentClass = computed(() => {
-        if (!BROWSER) {
+        if (!isInAppDialog.value) {
             return 'flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
         }
 
         switch (activeType.value) {
             case 'user':
             case 'group':
+                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
             case 'world':
             case 'avatar':
-                return 'x-dialog translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
+                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
             case 'group-member-moderation':
-                return 'x-dialog translate-y-0 max-w-none flex flex-col sm:min-w-[90vw] sm:max-w-[90vw] sm:min-h-[80vh] sm:max-h-[80vh]';
+                return 'x-dialog top-[10vh] translate-y-0 max-w-none flex flex-col sm:min-w-[90vw] sm:max-w-[90vw] sm:min-h-[80vh] sm:max-h-[80vh]';
             case 'previous-instances-info':
             case 'previous-instances-user':
             case 'previous-instances-world':
             case 'previous-instances-group':
-                return 'x-dialog translate-y-0 sm:max-w-250';
+                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-250';
             default:
-                return 'x-dialog translate-y-0 sm:max-w-235 overflow-hidden flex flex-col';
+                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-235 overflow-hidden flex flex-col';
         }
     });
 
@@ -234,7 +237,7 @@
     });
 
     function handleDialogOpen(value) {
-        if (BROWSER && !value) {
+        if (isInAppDialog.value && !value) {
             uiStore.closeMainDialog();
         }
     }
@@ -243,11 +246,11 @@
 <template>
     <WindowTeleport
         :open="isOpen"
-        :disabled="BROWSER"
+        :disabled="isInAppDialog"
         :focus-key="uiStore.dialogFocusRequest"
         :title="windowTitle"
         @close="uiStore.closeMainDialog">
-        <Dialog v-if="isOpen" :open="isOpen" :modal="BROWSER" @update:open="handleDialogOpen">
+        <Dialog v-if="isOpen" :open="isOpen" :modal="isInAppDialog" @update:open="handleDialogOpen">
             <component
                 :is="dialogContentComponent"
                 v-bind="dialogContentProps"
