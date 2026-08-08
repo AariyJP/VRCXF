@@ -1,3 +1,4 @@
+using System;
 using CefSharp;
 
 namespace VRCX
@@ -6,7 +7,7 @@ namespace VRCX
     {
         public void OnBeforeContextMenu(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model)
         {
-            if (!browser.IsSame(MainForm.Instance.Browser?.GetBrowser()))
+            if (frame?.Url?.StartsWith("devtools://", StringComparison.OrdinalIgnoreCase) == true)
             {
                 // allow devtools
                 return;

@@ -20,7 +20,7 @@
             <TabsUnderline
                 v-model="userDialog.activeTab"
                 :items="userDialogTabs"
-                :tab-color="userDialogTabColor"
+                :activeColor="userDialogTabColor"
                 :unmount-on-hide="false"
                 :background="true"
                 fill
@@ -175,6 +175,12 @@
             return 'var(--primary)';
         }
         return color;
+    });
+    const scrollbarThumbColor = computed(() => {
+        const color = userDialog.value.theme?.buttonColor;
+        return color === 'var(--primary)'
+            ? 'color-mix(in oklab, var(--foreground) 30%, transparent)'
+            : `color-mix(in oklab, ${color} 50%, transparent)`;
     });
     const { cachedUsers, showSendBoopDialog, showEditProfileDialog } = useUserStore();
     const { showFavoriteDialog } = useFavoriteStore();
@@ -375,7 +381,8 @@
 
     // Register simple dialog openers as callbacks for the command composable
     registerCallbacks({
-        showEditProfileDialog
+        showEditProfileDialog,
+        showEditNoteAndMemoDialog: () => infoTabRef.value?.showEditNoteAndMemoDialog()
     });
 
     /**
@@ -435,3 +442,14 @@
         clearInviteImageUpload();
     }
 </script>
+
+<style scoped>
+    .user-dialog-scrollbars {
+        --user-dialog-scrollbar-thumb: v-bind(scrollbarThumbColor);
+        --user-dialog-scrollbar-track: transparent;
+    }
+
+    .user-dialog-scrollbars :deep(*) {
+        scrollbar-color: var(--user-dialog-scrollbar-thumb) var(--user-dialog-scrollbar-track);
+    }
+</style>

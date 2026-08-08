@@ -96,18 +96,25 @@
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
                         <template v-if="row.type === 'header'">
                             <header class="friend-view__instance-header">
-                                <Location class="text-xs w-full min-w-0" :location="getRowInstanceId(row)" />
-                                <InstanceActionBar
-                                    class="text-sm"
-                                    :location="getRowInstanceId(row)"
-                                    :instance="getRowInstance(row)"
-                                    :friendcount="getRowCount(row)"
-                                    :currentlocation="lastLocation.location"
-                                    :refresh-tooltip="t('dialog.world.instances.refresh_instance_info')"
-                                    :show-history="!!instanceJoinHistory.get(getRowInstanceId(row))"
-                                    :history-tooltip="t('dialog.previous_instances.info')"
-                                    :on-refresh="() => refreshInstancePlayerCount(getRowInstanceId(row))"
-                                    :on-history="() => showPreviousInstancesInfoDialog(getRowInstanceId(row))" />
+                                <span
+                                    class="text-md text-foreground w-full min-w-0 cursor-pointer truncate"
+                                    @click="showWorldDialog(getRowInstanceId(row))"
+                                    >{{ getRowWorldName(row) }}</span
+                                >
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <LocationWorld
+                                        v-if="getRowLocationObject(row)"
+                                        class="text-sm w-fit max-w-full overflow-hidden border-muted-foreground/30"
+                                        :locationobject="getRowLocationObject(row)"
+                                        :currentuserid="userStore.currentUser.id" />
+                                    <InstanceActionBar
+                                        class="text-sm border-muted-foreground/30"
+                                        :show-buttons="false"
+                                        :location="getRowInstanceId(row)"
+                                        :instance="getRowInstance(row)"
+                                        :friendcount="getRowCount(row)"
+                                        :currentlocation="lastLocation.location" />
+                                </div>
                             </header>
                         </template>
 
@@ -171,15 +178,17 @@
         useFriendStore,
         useInstanceStore,
         useLocationStore,
-        useUserStore
+        useUserStore,
+        useWorldStore
     } from '../../stores';
+    import { showWorldDialog } from '../../coordinators/worldCoordinator';
     import { Slider } from '../../components/ui/slider';
     import { Switch } from '../../components/ui/switch';
     import { getFriendsLocations } from '../../shared/utils/location.js';
     import { debounce, getFriendsSortFunction, parseLocation } from '../../shared/utils';
-    import { refreshInstancePlayerCount } from '../../coordinators/instanceCoordinator';
 
     import InstanceActionBar from '@/components/InstanceActionBar.vue';
+    import LocationWorld from '@/components/LocationWorld.vue';
     import FriendLocationCard from './components/FriendsLocationsCard.vue';
     import configRepository from '../../services/config.js';
     import { userRequest } from '../../api';
@@ -204,11 +213,12 @@
     const { favoriteFriendGroups, groupedByGroupKeyFavoriteFriends, localFriendFavorites } = storeToRefs(favoriteStore);
 
     const instanceStore = useInstanceStore();
-    const { lastInstanceApplied, instanceJoinHistory } = storeToRefs(instanceStore);
-    const { showPreviousInstancesInfoDialog } = instanceStore;
+    const { lastInstanceApplied } = storeToRefs(instanceStore);
 
     const locationStore = useLocationStore();
     const { lastLocation } = storeToRefs(locationStore);
+
+    const { cachedWorlds } = useWorldStore();
 
     const userStore = useUserStore();
 
@@ -868,12 +878,34 @@
     const getRowItems = (row) => (row && Array.isArray(row.items) ? row.items : []);
     const getRowInstanceId = (row) => (row && row.type === 'header' ? row.instanceId : '');
     const getRowCount = (row) => (row && row.type === 'header' ? row.count : 0);
+    const locationObjectCache = new Map();
+    const getRowLocationObject = (row) => {
+        const instanceId = getRowInstanceId(row);
+        if (!instanceId) {
+            return null;
+        }
+        if (!locationObjectCache.has(instanceId)) {
+            locationObjectCache.set(instanceId, parseLocation(instanceId));
+        }
+        return locationObjectCache.get(instanceId);
+    };
     const getRowInstance = (row) => {
         void lastInstanceApplied.value;
         if (!row || row.type !== 'header' || !row.instanceId) {
             return null;
         }
         return instanceStore.cachedInstances.get(row.instanceId) || null;
+    };
+    const getRowWorldName = (row) => {
+        const worldName = getRowInstance(row)?.world?.name;
+        if (worldName) {
+            return worldName;
+        }
+        const locationObject = getRowLocationObject(row);
+        if (!locationObject?.worldId) {
+            return '';
+        }
+        return cachedWorlds.get(locationObject.worldId)?.name || locationObject.worldId;
     };
 
     watch([searchTerm, activeSegment], () => {
@@ -1098,8 +1130,6 @@
         min-width: 0;
         max-width: 100%;
         padding: 4px 2px;
-        font-weight: 600;
-        font-size: 13px;
     }
 
     .friend-view__divider {
