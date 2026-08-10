@@ -43,7 +43,9 @@ declare global {
             getClipboardText: () => Promise<string>;
             getNoUpdater: () => Promise<boolean>;
             setTrayIconNotification: (notify: boolean) => Promise<void>;
-            openFileDialog: () => Promise<string>;
+            openFileDialog: (
+                filters?: { name: string; extensions: string[] }[]
+            ) => Promise<string>;
             openDirectoryDialog: () => Promise<string>;
             desktopNotification: (
                 displayName: string,
@@ -244,6 +246,7 @@ declare global {
             defaultExt?: string,
             defaultFilter?: string
         ): Promise<string>;
+        ImportDatabase(sourcePath: string): Promise<boolean>;
 
         // Game Handler
         OnProcessStateChanged(monitoredProcess: any): Promise<void>;

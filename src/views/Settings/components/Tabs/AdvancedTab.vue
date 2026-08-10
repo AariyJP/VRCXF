@@ -273,6 +273,20 @@
                     <span v-text="sqliteTableSizes.event"></span
                 ></span>
             </div>
+
+            <SettingsItem label="データベースをインポート">
+                <Button size="sm" variant="outline" :disabled="dbImport.loading" @click="triggerDbImport">
+                    {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
+                </Button>
+            </SettingsItem>
+            <p v-if="dbImport.error" class="text-sm text-destructive px-1">{{ dbImport.error }}</p>
+            <input
+                v-if="BROWSER"
+                ref="dbFileInputRef"
+                type="file"
+                accept=".db,.sqlite,.sqlite3"
+                class="hidden"
+                @change="handleDbFileImport" />
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.advanced.advanced.database_cleanup.header')">
@@ -421,21 +435,6 @@
             </SettingsGroup>
         </template>
 
-        <SettingsGroup v-if="BROWSER" title="ブラウザ版データベース">
-            <SettingsItem
-                label="デスクトップ版DBをインポート"
-                description="デスクトップ版 VRCXF の VRCX.sqlite3 をブラウザ版に移行します。現在のデータは上書きされます。">
-                <Button size="sm" variant="outline" :disabled="dbImport.loading" @click="triggerDbFileInput">
-                    {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
-                </Button>
-            </SettingsItem>
-            <p v-if="dbImport.error" class="text-sm text-destructive px-1">{{ dbImport.error }}</p>
-            <p v-if="dbImport.success" class="text-sm text-green-500 px-1">
-                インポート成功。ページをリロードしています...
-            </p>
-            <input ref="dbFileInputRef" type="file" accept=".db,.sqlite,.sqlite3" class="hidden" @change="handleDbFileImport" />
-        </SettingsGroup>
-
         <RegistryBackupDialog />
         <PhotonSettings v-if="photonLoggingEnabled" />
     </div>
@@ -547,7 +546,7 @@
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
     const dbFileInputRef = ref(null);
-    const dbImport = reactive({ loading: false, error: '', success: false });
+    const dbImport = reactive({ loading: false, error: '' });
 
     const cacheSize = reactive({
         cachedUsers: 0,
@@ -593,8 +592,44 @@
         configTreeData.value = cachedConfig.value;
     }
 
-    function triggerDbFileInput() {
-        dbFileInputRef.value?.click();
+    function triggerDbImport() {
+        if (BROWSER) {
+            dbFileInputRef.value?.click();
+            return;
+        }
+        importDesktopDatabase();
+    }
+
+    async function importDesktopDatabase() {
+        dbImport.error = '';
+
+        let filePath;
+        if (LINUX) {
+            filePath = await window.electron.openFileDialog([
+                { name: 'SQLite Database', extensions: ['sqlite3', 'sqlite', 'db'] }
+            ]);
+        } else {
+            filePath = await AppApi.OpenFileSelectorDialog(
+                null,
+                '.sqlite3',
+                'SQLite Database (*.sqlite3;*.sqlite;*.db)|*.sqlite3;*.sqlite;*.db'
+            );
+        }
+        if (!filePath) {
+            return;
+        }
+
+        dbImport.loading = true;
+        try {
+            const imported = await AppApi.ImportDatabase(filePath);
+            if (!imported) {
+                dbImport.error = '有効な SQLite データベースファイルではないか、読み込みに失敗しました。';
+            }
+        } catch (err) {
+            dbImport.error = `インポートに失敗しました: ${err?.message ?? err}`;
+        } finally {
+            dbImport.loading = false;
+        }
     }
 
     async function handleDbFileImport(event) {
@@ -603,11 +638,12 @@
 
         dbImport.loading = true;
         dbImport.error = '';
-        dbImport.success = false;
 
         try {
             const buffer = await file.arrayBuffer();
-            const magic = [0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00];
+            const magic = [
+                0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00
+            ];
             const bytes = new Uint8Array(buffer, 0, 16);
             if (!magic.every((b, i) => bytes[i] === b)) {
                 dbImport.error = '有効な SQLite データベースファイルではありません。';
@@ -630,8 +666,7 @@
                 req.onerror = () => reject(req.error);
             });
 
-            dbImport.success = true;
-            setTimeout(() => location.reload(), 1500);
+            location.reload();
         } catch (err) {
             dbImport.error = `インポートに失敗しました: ${err?.message ?? err}`;
         } finally {

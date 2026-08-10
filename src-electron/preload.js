@@ -48,7 +48,7 @@ contextBridge.exposeInMainWorld('electron', {
     getNoUpdater: () => ipcRenderer.invoke('app:getNoUpdater'),
     setTrayIconNotification: (notify) =>
         ipcRenderer.invoke('app:setTrayIconNotification', notify),
-    openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+    openFileDialog: (filters) => ipcRenderer.invoke('dialog:openFile', filters),
     openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
     onWindowPositionChanged: (callback) =>
         registerManagedListener('setWindowPosition', callback),

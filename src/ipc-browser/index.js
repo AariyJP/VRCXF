@@ -840,6 +840,9 @@ const BrowserAppApi = new Proxy(
         async OpenFileSelectorDialog() {
             return '';
         },
+        async ImportDatabase() {
+            return false;
+        },
         async OnProcessStateChanged() {},
         async CheckGameRunning() {},
         async IsGameRunning() {
