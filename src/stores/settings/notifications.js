@@ -165,10 +165,7 @@ export const useNotificationsSettingsStore = defineStore(
                     'topCenter'
                 ),
                 configRepository.getString('VRCX_notificationTimeout', '3000'),
-                configRepository.getString(
-                    'VRCX_notificationLayout',
-                    'table'
-                )
+                configRepository.getString('VRCX_notificationLayout', 'table')
             ]);
 
             overlayToast.value = overlayToastConfig;

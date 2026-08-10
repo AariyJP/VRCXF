@@ -467,36 +467,38 @@ describe('useAuthStore login failure toast policy', () => {
     });
 
     test('removes lastUserLoggedIn when deleting the active saved account', async () => {
-        mocks.configRepository.getString.mockImplementation((key, defaultValue = '') => {
-            if (key === 'savedCredentials') {
-                return Promise.resolve(
-                    JSON.stringify({
-                        usr_me: {
-                            user: { id: 'usr_me', displayName: 'Tester' },
-                            loginParams: {
-                                username: 'tester@example.com',
-                                password: 'password',
-                                endpoint: '',
-                                websocket: ''
+        mocks.configRepository.getString.mockImplementation(
+            (key, defaultValue = '') => {
+                if (key === 'savedCredentials') {
+                    return Promise.resolve(
+                        JSON.stringify({
+                            usr_me: {
+                                user: { id: 'usr_me', displayName: 'Tester' },
+                                loginParams: {
+                                    username: 'tester@example.com',
+                                    password: 'password',
+                                    endpoint: '',
+                                    websocket: ''
+                                }
+                            },
+                            usr_other: {
+                                user: { id: 'usr_other', displayName: 'Other' },
+                                loginParams: {
+                                    username: 'other@example.com',
+                                    password: 'password',
+                                    endpoint: '',
+                                    websocket: ''
+                                }
                             }
-                        },
-                        usr_other: {
-                            user: { id: 'usr_other', displayName: 'Other' },
-                            loginParams: {
-                                username: 'other@example.com',
-                                password: 'password',
-                                endpoint: '',
-                                websocket: ''
-                            }
-                        }
-                    })
-                );
+                        })
+                    );
+                }
+                if (key === 'lastUserLoggedIn') {
+                    return Promise.resolve('usr_me');
+                }
+                return Promise.resolve(defaultValue);
             }
-            if (key === 'lastUserLoggedIn') {
-                return Promise.resolve('usr_me');
-            }
-            return Promise.resolve(defaultValue);
-        });
+        );
 
         const store = await createAuthStore();
         await store.deleteSavedLogin('usr_me');

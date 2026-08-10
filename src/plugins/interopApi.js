@@ -5,7 +5,8 @@ import vrcxJsonStorage from '../services/jsonStorage.js';
 
 export async function initInteropApi(isVrOverlay = false) {
     if (BROWSER) {
-        const { default: BrowserInterop } = await import('../ipc-browser/index.js');
+        const { default: BrowserInterop } =
+            await import('../ipc-browser/index.js');
         if (isVrOverlay) {
             window.AppApiVr = BrowserInterop.AppApiVr;
             return;
