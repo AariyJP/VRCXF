@@ -279,7 +279,6 @@
                     {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
                 </Button>
             </SettingsItem>
-            <p v-if="dbImport.error" class="text-sm text-destructive px-1">{{ dbImport.error }}</p>
             <input
                 v-if="BROWSER"
                 ref="dbFileInputRef"
@@ -450,6 +449,7 @@
     import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
+    import { toast } from 'vue-sonner';
 
     import VueJsonPretty from 'vue-json-pretty';
 
@@ -546,7 +546,7 @@
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
     const dbFileInputRef = ref(null);
-    const dbImport = reactive({ loading: false, error: '' });
+    const dbImport = reactive({ loading: false });
 
     const cacheSize = reactive({
         cachedUsers: 0,
@@ -601,8 +601,6 @@
     }
 
     async function importDesktopDatabase() {
-        dbImport.error = '';
-
         let filePath;
         if (LINUX) {
             filePath = await window.electron.openFileDialog([
@@ -623,10 +621,10 @@
         try {
             const imported = await AppApi.ImportDatabase(filePath);
             if (!imported) {
-                dbImport.error = '有効な SQLite データベースファイルではないか、読み込みに失敗しました。';
+                toast.error('有効な SQLite データベースファイルではないか、読み込みに失敗しました。');
             }
         } catch (err) {
-            dbImport.error = `インポートに失敗しました: ${err?.message ?? err}`;
+            toast.error(`インポートに失敗しました: ${err?.message ?? err}`);
         } finally {
             dbImport.loading = false;
         }
@@ -637,7 +635,6 @@
         if (!file) return;
 
         dbImport.loading = true;
-        dbImport.error = '';
 
         try {
             const buffer = await file.arrayBuffer();
@@ -646,7 +643,7 @@
             ];
             const bytes = new Uint8Array(buffer, 0, 16);
             if (!magic.every((b, i) => bytes[i] === b)) {
-                dbImport.error = '有効な SQLite データベースファイルではありません。';
+                toast.error('有効な SQLite データベースファイルではありません。');
                 return;
             }
 
@@ -668,7 +665,7 @@
 
             location.reload();
         } catch (err) {
-            dbImport.error = `インポートに失敗しました: ${err?.message ?? err}`;
+            toast.error(`インポートに失敗しました: ${err?.message ?? err}`);
         } finally {
             dbImport.loading = false;
             event.target.value = '';
