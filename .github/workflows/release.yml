@@ -70,10 +70,11 @@ jobs:
                   $manifest = $manifest.Replace('Version="0.0.0.0"', "Version=`"$msixVersion`"")
                   Set-Content -LiteralPath $manifestPath -Value $manifest -NoNewline
                   winapp pack build/Cef --manifest $manifestPath --output 'VRCXF_${{ needs.set_version.outputs.version }}.msix' --skip-pri
-            - run: |
-                  choco install nsis -y
-                  & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" Installer/installer.nsi
-                  Move-Item -LiteralPath Installer/VRCX_Setup.exe -Destination VRCXF_Setup.exe
+            - uses: joncloud/makensis-action@v5.0
+              with:
+                  script-file: Installer/installer.nsi
+                  additional-plugin-paths: Installer/Plugins
+            - run: Move-Item -LiteralPath Installer/VRCX_Setup.exe -Destination VRCXF_Setup.exe
             - uses: softprops/action-gh-release@v3
               with:
                   tag_name: '${{ needs.set_version.outputs.version }}'
@@ -96,7 +97,7 @@ jobs:
                   cache: pnpm
             - uses: actions/setup-dotnet@v5
               with:
-                  dotnet-version: '9.0.x'
+                  dotnet-version: '10.0.x'
             - uses: actions/cache@v5
               with:
                   path: |
@@ -146,7 +147,7 @@ jobs:
                   cache: pnpm
             - uses: actions/setup-dotnet@v5
               with:
-                  dotnet-version: '9.0.x'
+                  dotnet-version: '10.0.x'
             - uses: actions/cache@v5
               with:
                   path: |
