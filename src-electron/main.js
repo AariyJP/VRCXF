@@ -177,10 +177,12 @@ if (!gotTheLock) {
     });
 }
 
-ipcMain.handle('dialog:openFile', async () => {
+ipcMain.handle('dialog:openFile', async (_event, filters) => {
     const result = await dialog.showOpenDialog(mainWindow, {
         properties: ['openFile'],
-        filters: [{ name: 'Images', extensions: ['png'] }]
+        filters: filters?.length
+            ? filters
+            : [{ name: 'Images', extensions: ['png'] }]
     });
 
     if (!result.canceled && result.filePaths.length > 0) {

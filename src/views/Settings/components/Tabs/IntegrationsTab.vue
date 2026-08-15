@@ -65,11 +65,11 @@
                     " />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.discord_presence.discord_presence.join_button')">
+            <SettingsItem label="プロフィールURLを表示">
                 <Switch
                     :model-value="discordJoinButton"
                     :disabled="!discordActive"
-                    :ariaLabel="t('view.settings.discord_presence.discord_presence.join_button')"
+                    ariaLabel="プロフィールURLを表示"
                     @update:modelValue="
                         setDiscordJoinButton();
                         saveDiscordOption();

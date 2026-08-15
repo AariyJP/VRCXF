@@ -114,6 +114,74 @@ function hashColor(input) {
     return Math.abs(hash % 360);
 }
 
+function applyBrowserZoom(level) {
+    const numeric = Number(level);
+    if (!Number.isFinite(numeric)) {
+        return;
+    }
+    document.documentElement.style.zoom = String(1.2 ** numeric);
+}
+
+function base64ByteLength(base64) {
+    if (!base64) {
+        return 0;
+    }
+    const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+    return Math.floor((base64.length * 3) / 4) - padding;
+}
+
+function drawToBase64Png(source, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(source, 0, 0, width, height);
+    const dataUrl = canvas.toDataURL('image/png');
+    return dataUrl.slice(dataUrl.indexOf(',') + 1);
+}
+
+async function resizeBase64ImageToFitLimits(
+    base64data,
+    maxWidth = 2000,
+    maxHeight = 2000,
+    maxSize = 10_000_000
+) {
+    const bitmap = await createImageBitmap(
+        new Blob([decodeBase64(base64data)])
+    );
+    let width = bitmap.width;
+    let height = bitmap.height;
+
+    if (width > maxWidth) {
+        height = Math.round(height / (width / maxWidth));
+        width = maxWidth;
+    }
+    if (height > maxHeight) {
+        width = Math.round(width / (height / maxHeight));
+        height = maxHeight;
+    }
+
+    let output = drawToBase64Png(bitmap, width, height);
+    for (let i = 0; i < 250 && base64ByteLength(output) > maxSize; i += 1) {
+        if (width > height) {
+            const newWidth = width - 25;
+            height = Math.round(height / (width / newWidth));
+            width = newWidth;
+        } else {
+            const newHeight = height - 25;
+            width = Math.round(width / (height / newHeight));
+            height = newHeight;
+        }
+        output = drawToBase64Png(bitmap, width, height);
+    }
+
+    bitmap.close();
+
+    if (base64ByteLength(output) > maxSize) {
+        throw new Error('Failed to get image into target filesize.');
+    }
+    return output;
+}
+
 async function requestPersistentStorage() {
     try {
         if (
@@ -695,10 +763,13 @@ const BrowserAppApi = new Proxy(
         async SetVR() {},
         async SetZoom(value) {
             await BrowserVRCXStorage.Set('browserZoomLevel', value);
+            applyBrowserZoom(value);
         },
         async GetZoom() {
             const value = await BrowserVRCXStorage.Get('browserZoomLevel');
-            return parseInt(value || '0', 10) || 0;
+            const level = parseFloat(value || '0') || 0;
+            applyBrowserZoom(level);
+            return level;
         },
         async DesktopNotification(title, text, image) {
             await showDesktopNotification(title, text, image);
@@ -730,7 +801,17 @@ const BrowserAppApi = new Proxy(
             window.focus();
         },
         async SetUserAgent() {},
-        async SetTrayIconNotification() {},
+        async SetTrayIconNotification(notify) {
+            try {
+                if (notify) {
+                    await navigator.setAppBadge?.();
+                } else {
+                    await navigator.clearAppBadge?.();
+                }
+            } catch (error) {
+                void error;
+            }
+        },
         async OpenCalendarFile(icsContent) {
             const url = URL.createObjectURL(
                 new Blob([icsContent], { type: 'text/calendar' })
@@ -840,6 +921,9 @@ const BrowserAppApi = new Proxy(
         async OpenFileSelectorDialog() {
             return '';
         },
+        async ImportDatabase() {
+            return false;
+        },
         async OnProcessStateChanged() {},
         async CheckGameRunning() {},
         async IsGameRunning() {
@@ -885,7 +969,7 @@ const BrowserAppApi = new Proxy(
             return url;
         },
         async ResizeImageToFitLimits(base64data) {
-            return base64data;
+            return resizeBase64ImageToFitLimits(base64data);
         },
         async CropAllPrints() {},
         async CropPrintImage() {

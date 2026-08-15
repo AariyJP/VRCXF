@@ -125,8 +125,8 @@
                                 <ChevronDown
                                     class="size-4 shrink-0 transition-transform duration-200 ease-in-out"
                                     :class="{ '-rotate-90': row.collapsed }" />
-                                <span class="flex-none">{{ row.label }}</span>
-                                <span class="text-xs font-normal opacity-70">({{ row.count }})</span>
+                                <span class="min-w-0 truncate" :title="row.label">{{ row.label }}</span>
+                                <span class="shrink-0 text-xs font-normal opacity-70">({{ row.count }})</span>
                             </div>
                         </template>
 

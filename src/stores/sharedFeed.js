@@ -332,7 +332,9 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             });
         }
 
-        const parsedLocation = parseLocation(locationStore.lastLocation.location);
+        const parsedLocation = parseLocation(
+            locationStore.lastLocation.location
+        );
         const isPublicInstance =
             parsedLocation.accessType === 'public' ||
             (parsedLocation.accessType === 'group' &&

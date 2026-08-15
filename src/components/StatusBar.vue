@@ -167,8 +167,8 @@
                                         wsState.connected
                                             ? 'bg-status-online'
                                             : isWebSocketEnabled
-                                                ? 'bg-status-askme'
-                                                : 'bg-status-offline-alt'
+                                              ? 'bg-status-askme'
+                                              : 'bg-status-offline-alt'
                                     " />
                                 <span class="text-foreground text-[11px]">WebSocket</span>
                                 <canvas ref="wsCanvasRef" class="shrink-0 rounded-sm" />

@@ -403,9 +403,7 @@ export const useUserStore = defineStore('User', () => {
         }
     }
 
-    const isLocalUserVrcPlusSupporter = computed(
-        () => true
-    );
+    const isLocalUserVrcPlusSupporter = computed(() => true);
 
     watch(
         () => watchState.isLoggedIn,

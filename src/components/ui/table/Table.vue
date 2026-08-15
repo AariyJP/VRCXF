@@ -9,10 +9,7 @@
 
 <template>
     <div data-slot="table-container" class="relative w-full">
-        <table
-            data-slot="table"
-            :class="cn('w-full caption-bottom text-[13px]', props.class)"
-            :style="props.style">
+        <table data-slot="table" :class="cn('w-full caption-bottom text-[13px]', props.class)" :style="props.style">
             <slot />
         </table>
     </div>

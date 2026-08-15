@@ -165,7 +165,6 @@
     const { isGameRunning } = storeToRefs(useGameStore());
     const { checkCanInvite } = useInviteChecks();
 
-
     const launchModeLabel = computed(() =>
         launchDialog.value.desktop ? t('dialog.launch.start_as_desktop') : t('dialog.launch.launch')
     );
