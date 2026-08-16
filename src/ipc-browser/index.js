@@ -182,15 +182,8 @@ function drawToBase64Png(source, width, height) {
     return dataUrl.slice(dataUrl.indexOf(',') + 1);
 }
 
-async function resizeBase64ImageToFitLimits(
-    base64data,
-    maxWidth = 2000,
-    maxHeight = 2000,
-    maxSize = 10_000_000
-) {
-    const bitmap = await createImageBitmap(
-        new Blob([decodeBase64(base64data)])
-    );
+async function resizeBase64ImageToFitLimits(base64data, maxWidth = 2000, maxHeight = 2000, maxSize = 10_000_000) {
+    const bitmap = await createImageBitmap(new Blob([decodeBase64(base64data)]));
     let width = bitmap.width;
     let height = bitmap.height;
 
@@ -227,10 +220,7 @@ async function resizeBase64ImageToFitLimits(
 
 async function requestPersistentStorage() {
     try {
-        if (
-            navigator?.storage?.persist &&
-            !(await navigator.storage.persisted())
-        ) {
+        if (navigator?.storage?.persist && !(await navigator.storage.persisted())) {
             await navigator.storage.persist();
         }
     } catch (error) {
@@ -244,9 +234,7 @@ function reportPersistFailure(error) {
         return;
     }
     persistFailureNotified = true;
-    toast.error(
-        'ローカルデータベースの保存に失敗しました。最近の変更が失われる可能性があります。'
-    );
+    toast.error('ローカルデータベースの保存に失敗しました。最近の変更が失われる可能性があります。');
 }
 
 class BrowserSQLiteRuntime {
@@ -273,14 +261,8 @@ class BrowserSQLiteRuntime {
         await requestPersistentStorage();
         const stored = await getIndexedDbValue(sqliteKey).catch(() => null);
         const bytes =
-            stored instanceof Uint8Array
-                ? stored
-                : stored instanceof ArrayBuffer
-                  ? new Uint8Array(stored)
-                  : null;
-        this.db = bytes
-            ? new this.SQL.Database(bytes)
-            : new this.SQL.Database();
+            stored instanceof Uint8Array ? stored : stored instanceof ArrayBuffer ? new Uint8Array(stored) : null;
+        this.db = bytes ? new this.SQL.Database(bytes) : new this.SQL.Database();
     }
 
     async persistNow() {
@@ -355,8 +337,7 @@ class BrowserSQLiteRuntime {
                     this.schedulePersist();
                 }
             } else if (isCommit) {
-                const shouldPersist =
-                    this.persistDirty || this.transactionDirty;
+                const shouldPersist = this.persistDirty || this.transactionDirty;
                 this.inTransaction = false;
                 this.transactionDirty = false;
                 if (shouldPersist) {
@@ -546,12 +527,8 @@ function parseCookieHeader(cookieHeader) {
         .filter(Boolean)
         .map((entry) => {
             const separatorIndex = entry.indexOf('=');
-            const name =
-                separatorIndex === -1
-                    ? entry
-                    : entry.slice(0, separatorIndex).trim();
-            const value =
-                separatorIndex === -1 ? '' : entry.slice(separatorIndex + 1);
+            const name = separatorIndex === -1 ? entry : entry.slice(0, separatorIndex).trim();
+            const value = separatorIndex === -1 ? '' : entry.slice(separatorIndex + 1);
             return {
                 Name: name,
                 Value: value,
@@ -614,11 +591,7 @@ function isCookieExpired(cookie) {
 }
 
 function getCookieKey(cookie) {
-    return [
-        getCookieDomain(cookie).toLowerCase(),
-        getCookiePath(cookie),
-        getCookieName(cookie)
-    ].join('\u0000');
+    return [getCookieDomain(cookie).toLowerCase(), getCookiePath(cookie), getCookieName(cookie)].join('\u0000');
 }
 
 async function loadBrowserCookieJar() {
@@ -639,9 +612,7 @@ async function loadBrowserCookieJar() {
 }
 
 async function persistBrowserCookieJar() {
-    browserCookieJar = browserCookieJar.filter(
-        (cookie) => getCookieName(cookie) && !isCookieExpired(cookie)
-    );
+    browserCookieJar = browserCookieJar.filter((cookie) => getCookieName(cookie) && !isCookieExpired(cookie));
     await setIndexedDbValue(cookieJarKey, encodeJsonBase64(browserCookieJar));
 }
 
@@ -676,10 +647,7 @@ function parseSetCookie(setCookie) {
             attributeSeparatorIndex === -1
                 ? attribute.toLowerCase()
                 : attribute.slice(0, attributeSeparatorIndex).toLowerCase();
-        const value =
-            attributeSeparatorIndex === -1
-                ? ''
-                : attribute.slice(attributeSeparatorIndex + 1);
+        const value = attributeSeparatorIndex === -1 ? '' : attribute.slice(attributeSeparatorIndex + 1);
         if (name === 'path') {
             cookie.Path = value || '/';
         } else if (name === 'domain') {
@@ -689,9 +657,7 @@ function parseSetCookie(setCookie) {
         } else if (name === 'max-age') {
             const seconds = parseInt(value, 10);
             cookie.Expires =
-                seconds <= 0
-                    ? '1970-01-01T00:00:00.000Z'
-                    : new Date(Date.now() + seconds * 1000).toISOString();
+                seconds <= 0 ? '1970-01-01T00:00:00.000Z' : new Date(Date.now() + seconds * 1000).toISOString();
         } else if (name === 'secure') {
             cookie.Secure = true;
         } else if (name === 'httponly') {
@@ -703,9 +669,7 @@ function parseSetCookie(setCookie) {
 
 async function mergeBrowserCookies(cookies) {
     await loadBrowserCookieJar();
-    const cookieMap = new Map(
-        browserCookieJar.map((cookie) => [getCookieKey(cookie), cookie])
-    );
+    const cookieMap = new Map(browserCookieJar.map((cookie) => [getCookieKey(cookie), cookie]));
     for (const cookie of cookies) {
         if (!cookie || !getCookieName(cookie)) {
             continue;
@@ -740,10 +704,7 @@ function applyBrowserCookie(cookie) {
     if (expires && !Number.isNaN(expires.getTime())) {
         parts.push(`expires=${expires.toUTCString()}`);
     }
-    if (
-        (cookie?.Secure ?? cookie?.secure ?? false) &&
-        location.protocol === 'https:'
-    ) {
+    if ((cookie?.Secure ?? cookie?.secure ?? false) && location.protocol === 'https:') {
         parts.push('secure');
     }
     parts.push('SameSite=Lax');
@@ -756,9 +717,7 @@ async function buildRequest(options) {
     let method = options.method || 'GET';
     let body;
     const requestUrl = new URL(options.url, window.location.origin);
-    const isLocalApi =
-        requestUrl.origin === window.location.origin &&
-        requestUrl.pathname.startsWith('/api/1');
+    const isLocalApi = requestUrl.origin === window.location.origin && requestUrl.pathname.startsWith('/api/1');
     const isVrchatApi = requestUrl.origin === 'https://api.vrchat.cloud';
 
     if (options.uploadFilePUT) {
@@ -770,29 +729,19 @@ async function buildRequest(options) {
         if (options.fileMD5) {
             headers.set('Content-MD5', options.fileMD5);
         }
-    } else if (
-        options.uploadImage ||
-        options.uploadImageLegacy ||
-        options.uploadImagePrint
-    ) {
+    } else if (options.uploadImage || options.uploadImageLegacy || options.uploadImagePrint) {
         method = 'POST';
         const formData = new FormData();
         if (options.postData) {
             if (options.uploadImageLegacy) {
                 formData.append('data', options.postData);
             } else {
-                Object.entries(parseJsonSafe(options.postData, {})).forEach(
-                    ([key, value]) => {
-                        formData.append(key, value ?? '');
-                    }
-                );
+                Object.entries(parseJsonSafe(options.postData, {})).forEach(([key, value]) => {
+                    formData.append(key, value ?? '');
+                });
             }
         }
-        formData.append(
-            'image',
-            decodeImageBase64(options.imageData),
-            'image.png'
-        );
+        formData.append('image', decodeImageBase64(options.imageData), 'image.png');
         body = formData;
         headers.delete('Content-Type');
     } else if (options.body) {
@@ -808,11 +757,7 @@ async function buildRequest(options) {
 
     return {
         body,
-        credentials: isVrchatApi
-            ? 'include'
-            : isLocalApi
-              ? 'same-origin'
-              : 'omit',
+        credentials: isVrchatApi ? 'include' : isLocalApi ? 'same-origin' : 'omit',
         headers,
         method,
         mode: 'cors'
@@ -826,9 +771,7 @@ async function executeFetch(options) {
     if (setCookiesHeader) {
         try {
             const setCookies = decodeJsonBase64(setCookiesHeader);
-            await mergeBrowserCookies(
-                setCookies.map((setCookie) => parseSetCookie(setCookie))
-            );
+            await mergeBrowserCookies(setCookies.map((setCookie) => parseSetCookie(setCookie)));
         } catch (error) {
             void error;
         }
@@ -982,9 +925,7 @@ const BrowserAppApi = new Proxy(
             }
         },
         async OpenCalendarFile(icsContent) {
-            const url = URL.createObjectURL(
-                new Blob([icsContent], { type: 'text/calendar' })
-            );
+            const url = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar' }));
             window.open(url, '_blank', 'noopener');
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         },
@@ -995,11 +936,7 @@ const BrowserAppApi = new Proxy(
             window.open(url, '_blank', 'noopener');
         },
         async OpenDiscordProfile(discordId) {
-            window.open(
-                `https://discord.com/users/${discordId}`,
-                '_blank',
-                'noopener'
-            );
+            window.open(`https://discord.com/users/${discordId}`, '_blank', 'noopener');
         },
         async GetLaunchCommand() {
             return '';
@@ -1025,9 +962,7 @@ const BrowserAppApi = new Proxy(
             return true;
         },
         async GetColourBulk(userIds) {
-            return Object.fromEntries(
-                (userIds || []).map((userId) => [userId, hashColor(userId)])
-            );
+            return Object.fromEntries((userIds || []).map((userId) => [userId, hashColor(userId)]));
         },
         async SetAppLauncherSettings() {},
         async GetFileBase64() {
@@ -1193,15 +1128,7 @@ const BrowserAppApi = new Proxy(
         async XSNotification(title, content, timeout, opacity, image) {
             await showDesktopNotification(title, content, image);
         },
-        async OVRTNotification(
-            hudNotification,
-            wristNotification,
-            title,
-            body,
-            timeout,
-            opacity,
-            image
-        ) {
+        async OVRTNotification(hudNotification, wristNotification, title, body, timeout, opacity, image) {
             await showDesktopNotification(title, body, image);
         }
     },
