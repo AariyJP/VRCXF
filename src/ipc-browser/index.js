@@ -1,5 +1,6 @@
 import initSqlJs from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+import { toast } from 'vue-sonner';
 
 import { md5 } from './md5';
 
@@ -11,7 +12,11 @@ const sqliteKey = 'sqlite-db';
 const cookieJarKey = 'cookie-jar';
 const overlayQueue = new Map();
 
+const persistIntervalMs = 500;
+
 let indexedDbPromise;
+let indexedDbHandle;
+let persistFailureNotified = false;
 let browserCookieJar = [];
 let browserCookieJarReady;
 
@@ -20,6 +25,13 @@ function getBrowserLanguage() {
         return 'en-US';
     }
     return navigator.languages?.[0] || navigator.language || 'en-US';
+}
+
+function forgetIndexedDb(db) {
+    if (indexedDbHandle === db) {
+        indexedDbHandle = undefined;
+        indexedDbPromise = undefined;
+    }
 }
 
 function openIndexedDb() {
@@ -35,33 +47,51 @@ function openIndexedDb() {
                     request.result.createObjectStore(indexedDbStore);
                 }
             };
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+                indexedDbHandle = db;
+                db.onclose = () => forgetIndexedDb(db);
+                db.onversionchange = () => {
+                    forgetIndexedDb(db);
+                    db.close();
+                };
+                resolve(db);
+            };
             request.onerror = () => reject(request.error);
+        }).catch((error) => {
+            indexedDbPromise = undefined;
+            throw error;
         });
     }
     return indexedDbPromise;
 }
 
+async function withIndexedDbStore(mode, callback) {
+    for (let attempt = 0; ; attempt += 1) {
+        const db = await openIndexedDb();
+        try {
+            return await new Promise((resolve, reject) => {
+                const tx = db.transaction(indexedDbStore, mode);
+                const request = callback(tx.objectStore(indexedDbStore));
+                tx.oncomplete = () => resolve(request.result);
+                tx.onabort = () => reject(tx.error || request.error);
+                tx.onerror = () => reject(tx.error || request.error);
+            });
+        } catch (error) {
+            forgetIndexedDb(db);
+            if (attempt > 0) {
+                throw error;
+            }
+        }
+    }
+}
+
 async function getIndexedDbValue(key) {
-    const db = await openIndexedDb();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(indexedDbStore, 'readonly');
-        const store = tx.objectStore(indexedDbStore);
-        const request = store.get(key);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
+    return withIndexedDbStore('readonly', (store) => store.get(key));
 }
 
 async function setIndexedDbValue(key, value) {
-    const db = await openIndexedDb();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(indexedDbStore, 'readwrite');
-        const store = tx.objectStore(indexedDbStore);
-        const request = store.put(value, key);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
+    await withIndexedDbStore('readwrite', (store) => store.put(value, key));
 }
 
 function decodeBase64(base64) {
@@ -100,10 +130,15 @@ function normalizeSqlArgs(args) {
     if (!args) {
         return undefined;
     }
-    if (args instanceof Map) {
-        return Object.fromEntries(args.entries());
+    if (Array.isArray(args)) {
+        return args.map((value) => (value === undefined ? null : value));
     }
-    return args;
+    const entries = args instanceof Map ? args.entries() : Object.entries(args);
+    const normalized = {};
+    for (const [key, value] of entries) {
+        normalized[key] = value === undefined ? null : value;
+    }
+    return normalized;
 }
 
 function hashColor(input) {
@@ -196,11 +231,24 @@ async function requestPersistentStorage() {
     }
 }
 
+function reportPersistFailure(error) {
+    console.error('ローカルデータベースの保存に失敗しました', error);
+    if (persistFailureNotified) {
+        return;
+    }
+    persistFailureNotified = true;
+    toast.error(
+        'ローカルデータベースの保存に失敗しました。最近の変更が失われる可能性があります。'
+    );
+}
+
 class BrowserSQLiteRuntime {
     constructor() {
         this.db = null;
         this.SQL = null;
         this.inTransaction = false;
+        this.persistDirty = false;
+        this.persistTimer = null;
         this.queue = Promise.resolve();
         this.ready = this.init();
     }
@@ -228,7 +276,32 @@ class BrowserSQLiteRuntime {
     }
 
     async persistNow() {
-        await setIndexedDbValue(sqliteKey, this.db.export());
+        if (this.persistTimer !== null) {
+            clearTimeout(this.persistTimer);
+            this.persistTimer = null;
+        }
+        if (!this.persistDirty) {
+            return;
+        }
+        this.persistDirty = false;
+        try {
+            await setIndexedDbValue(sqliteKey, this.db.export());
+            persistFailureNotified = false;
+        } catch (error) {
+            this.persistDirty = true;
+            reportPersistFailure(error);
+        }
+    }
+
+    schedulePersist() {
+        this.persistDirty = true;
+        if (this.persistTimer !== null) {
+            return;
+        }
+        this.persistTimer = setTimeout(() => {
+            this.persistTimer = null;
+            this.enqueue(() => this.persistNow());
+        }, persistIntervalMs);
     }
 
     async execute(sql, args) {
@@ -263,7 +336,7 @@ class BrowserSQLiteRuntime {
                 !this.inTransaction &&
                 !/^PRAGMA\s+OPTIMIZE\b/.test(statement)
             ) {
-                await this.persistNow();
+                this.schedulePersist();
             }
             return rowsModified;
         });
@@ -271,6 +344,18 @@ class BrowserSQLiteRuntime {
 }
 
 const browserSQLiteRuntime = new BrowserSQLiteRuntime();
+
+if (typeof document !== 'undefined') {
+    const flushPersist = () => {
+        browserSQLiteRuntime.enqueue(() => browserSQLiteRuntime.persistNow());
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            flushPersist();
+        }
+    });
+    window.addEventListener('pagehide', flushPersist);
+}
 
 function getStorageKeys() {
     try {
