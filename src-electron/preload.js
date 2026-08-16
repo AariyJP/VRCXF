@@ -29,14 +29,12 @@ function registerManagedListener(channel, callback, mapKey = channel) {
     };
 }
 
+contextBridge.exposeInMainWorld('LINUX', true);
+contextBridge.exposeInMainWorld('WINDOWS', false);
+
 contextBridge.exposeInMainWorld('interopApi', {
     callDotNetMethod: (className, methodName, args) => {
-        return ipcRenderer.invoke(
-            'callDotNetMethod',
-            className,
-            methodName,
-            args
-        );
+        return ipcRenderer.invoke('callDotNetMethod', className, methodName, args);
     }
 });
 
@@ -50,35 +48,19 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.invoke('app:setTrayIconNotification', notify),
     openFileDialog: (filters) => ipcRenderer.invoke('dialog:openFile', filters),
     openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
-    onWindowPositionChanged: (callback) =>
-        registerManagedListener('setWindowPosition', callback),
-    onWindowSizeChanged: (callback) =>
-        registerManagedListener('setWindowSize', callback),
-    onWindowStateChange: (callback) =>
-        registerManagedListener('setWindowState', callback),
-    onBrowserFocus: (callback) =>
-        registerManagedListener('onBrowserFocus', callback),
-    desktopNotification: (title, body, icon) =>
-        ipcRenderer.invoke('notification:showNotification', title, body, icon),
+    onWindowPositionChanged: (callback) => registerManagedListener('setWindowPosition', callback),
+    onWindowSizeChanged: (callback) => registerManagedListener('setWindowSize', callback),
+    onWindowStateChange: (callback) => registerManagedListener('setWindowState', callback),
+    onBrowserFocus: (callback) => registerManagedListener('onBrowserFocus', callback),
+    desktopNotification: (title, body, icon) => ipcRenderer.invoke('notification:showNotification', title, body, icon),
     restartApp: () => ipcRenderer.invoke('app:restart'),
     getOverlayWindow: () => ipcRenderer.invoke('app:getOverlayWindow'),
     updateVr: (active, hmdOverlay, wristOverlay, menuButton, overlayHand) =>
-        ipcRenderer.invoke(
-            'app:updateVr',
-            active,
-            hmdOverlay,
-            wristOverlay,
-            menuButton,
-            overlayHand
-        ),
+        ipcRenderer.invoke('app:updateVr', active, hmdOverlay, wristOverlay, menuButton, overlayHand),
     ipcRenderer: {
         on(channel, func) {
             if (validChannels.includes(channel)) {
-                return registerManagedListener(
-                    channel,
-                    (_event, ...args) => func(...args),
-                    `ipcRenderer:${channel}`
-                );
+                return registerManagedListener(channel, (_event, ...args) => func(...args), `ipcRenderer:${channel}`);
             }
 
             return undefined;

@@ -143,16 +143,11 @@
                         </SelectContent>
                     </Select>
 
-                    <div v-if="selectedBannerType === 'color'" class="flex items-center gap-1">
-                        <input
-                            type="color"
-                            class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                            :value="bannerColorValue"
+                    <div v-if="selectedBannerType === 'color'" class="flex items-center gap-2">
+                        <ColorPickerButton
+                            :model-value="bannerColorValue"
                             :disabled="editProfileDialog.loading"
-                            @input="handleBannerColorInput" />
-                        <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                            {{ bannerColorValue }}
-                        </span>
+                            @update:model-value="handleBannerColorInput" />
                     </div>
                     <div v-else-if="selectedBannerType === 'avatarBanner'">
                         <img
@@ -346,51 +341,36 @@
                         :maxlength="12"
                         :placeholder="t('dialog.edit_profile.theme_name_placeholder')">
                     </InputGroupField>
-                    <div class="grid gap-2 sm:grid-cols-3">
-                        <label class="space-y-1">
-                            <span class="text-xs text-muted-foreground">Button</span>
-                            <div class="flex items-center gap-1">
-                                <input
-                                    type="color"
-                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                                    :value="themeButtonColorValue"
+                    <div class="flex gap-2">
+                        <div class="space-y-1">
+                            <span class="text-xs text-muted-foreground">{{ t('dialog.edit_profile.button') }}</span>
+                            <div class="flex items-center gap-2">
+                                <ColorPickerButton
+                                    :model-value="themeButtonColorValue"
                                     :disabled="editProfileDialog.loading"
-                                    @input="handleThemeButtonColorInput" />
-                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                                    {{ themeButtonColorValue }}
-                                </span>
+                                    @update:model-value="handleThemeButtonColorInput" />
                             </div>
-                        </label>
+                        </div>
 
-                        <label class="space-y-1">
-                            <span class="text-xs text-muted-foreground">Icon</span>
-                            <div class="flex items-center gap-1">
-                                <input
-                                    type="color"
-                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                                    :value="themeIconColorValue"
+                        <div class="space-y-1">
+                            <span class="text-xs text-muted-foreground">{{ t('dialog.edit_profile.icon') }}</span>
+                            <div class="flex items-center gap-2">
+                                <ColorPickerButton
+                                    :model-value="themeIconColorValue"
                                     :disabled="editProfileDialog.loading"
-                                    @input="handleThemeIconColorInput" />
-                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                                    {{ themeIconColorValue }}
-                                </span>
+                                    @update:model-value="handleThemeIconColorInput" />
                             </div>
-                        </label>
+                        </div>
 
-                        <label class="space-y-1">
-                            <span class="text-xs text-muted-foreground">Subtext</span>
-                            <div class="flex items-center gap-1">
-                                <input
-                                    type="color"
-                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                                    :value="themeSubtextColorValue"
+                        <div class="space-y-1">
+                            <span class="text-xs text-muted-foreground">{{ t('dialog.edit_profile.subtext') }}</span>
+                            <div class="flex items-center gap-2">
+                                <ColorPickerButton
+                                    :model-value="themeSubtextColorValue"
                                     :disabled="editProfileDialog.loading"
-                                    @input="handleThemeSubtextColorInput" />
-                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                                    {{ themeSubtextColorValue }}
-                                </span>
+                                    @update:model-value="handleThemeSubtextColorInput" />
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </section>
 
@@ -418,40 +398,30 @@
                         </Select>
                     </div>
 
-                    <div v-if="editProfileDialog.backgroundType === 'gradient'" class="grid gap-2 sm:grid-cols-3">
-                        <label class="space-y-1">
-                            <span class="text-xs text-muted-foreground">{{
-                                t('dialog.edit_profile.gradient_top')
-                            }}</span>
-                            <div class="flex items-center gap-1">
-                                <input
-                                    type="color"
-                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                                    :value="backgroundGradientTopColorValue"
+                    <div v-if="editProfileDialog.backgroundType === 'gradient'" class="flex gap-2">
+                        <div class="space-y-1">
+                            <span class="text-xs text-muted-foreground">
+                                {{ t('dialog.edit_profile.gradient_top') }}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <ColorPickerButton
+                                    :model-value="backgroundGradientTopColorValue"
                                     :disabled="editProfileDialog.loading"
-                                    @input="handleBackgroundGradientTopColorInput" />
-                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                                    {{ backgroundGradientTopColorValue }}
-                                </span>
+                                    @update:model-value="handleBackgroundGradientTopColorInput" />
                             </div>
-                        </label>
+                        </div>
 
-                        <label class="space-y-1">
-                            <span class="text-xs text-muted-foreground">{{
-                                t('dialog.edit_profile.gradient_bottom')
-                            }}</span>
-                            <div class="flex items-center gap-1">
-                                <input
-                                    type="color"
-                                    class="h-8 w-12 cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 disabled:cursor-not-allowed [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-md [&::-moz-color-swatch]:border-0"
-                                    :value="backgroundGradientBottomColorValue"
+                        <div class="space-y-1">
+                            <span class="text-xs text-muted-foreground">
+                                {{ t('dialog.edit_profile.gradient_bottom') }}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <ColorPickerButton
+                                    :model-value="backgroundGradientBottomColorValue"
                                     :disabled="editProfileDialog.loading"
-                                    @input="handleBackgroundGradientBottomColorInput" />
-                                <span class="w-20 text-xs font-mono text-muted-foreground uppercase">
-                                    {{ backgroundGradientBottomColorValue }}
-                                </span>
+                                    @update:model-value="handleBackgroundGradientBottomColorInput" />
                             </div>
-                        </label>
+                        </div>
                     </div>
 
                     <div v-if="editProfileDialog.backgroundType === 'texture'" class="space-y-2">
@@ -543,6 +513,7 @@
 
     import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Button } from '@/components/ui/button';
+    import ColorPickerButton from '@/components/ColorPickerButton.vue';
     import {
         InputGroupAction,
         InputGroupButton,
@@ -715,7 +686,7 @@
     }
 
     function handleBannerColorInput(event) {
-        const normalized = normalizeColor(event?.target?.value);
+        const normalized = normalizeColor(event);
         if (!normalized) {
             return;
         }
@@ -758,7 +729,7 @@
     }
 
     function handleBackgroundGradientTopColorInput(event) {
-        const normalized = normalizeColor(event?.target?.value);
+        const normalized = normalizeColor(event);
         if (!normalized) {
             return;
         }
@@ -768,7 +739,7 @@
     }
 
     function handleBackgroundGradientBottomColorInput(event) {
-        const normalized = normalizeColor(event?.target?.value);
+        const normalized = normalizeColor(event);
         if (!normalized) {
             return;
         }
@@ -792,19 +763,19 @@
 
     function handleThemeButtonColorInput(event) {
         const D = props.editProfileDialog;
-        D.themeButtonColor = normalizeColor(event?.target?.value);
+        D.themeButtonColor = normalizeColor(event);
         handleThemeInput();
     }
 
     function handleThemeIconColorInput(event) {
         const D = props.editProfileDialog;
-        D.themeIconColor = normalizeColor(event?.target?.value);
+        D.themeIconColor = normalizeColor(event);
         handleThemeInput();
     }
 
     function handleThemeSubtextColorInput(event) {
         const D = props.editProfileDialog;
-        D.themeSubtextColor = normalizeColor(event?.target?.value);
+        D.themeSubtextColor = normalizeColor(event);
         handleThemeInput();
     }
 

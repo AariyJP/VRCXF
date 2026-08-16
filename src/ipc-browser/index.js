@@ -1,6 +1,7 @@
-import SparkMD5 from 'spark-md5';
 import initSqlJs from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+
+import { md5 } from './md5';
 
 const storagePrefix = 'vrcxf-browser:storage:';
 const metaKey = 'vrcxf-browser:storage:keys';
@@ -869,10 +870,7 @@ const BrowserAppApi = new Proxy(
             return true;
         },
         async MD5File(blob) {
-            const bytes = decodeBase64(blob);
-            return rawStringToBase64(
-                SparkMD5.ArrayBuffer.hash(bytes.buffer, true)
-            );
+            return toBase64(md5(decodeBase64(blob)));
         },
         async SignFile(blob) {
             return blob;

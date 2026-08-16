@@ -936,7 +936,9 @@
                     "vrc_profile_backgrounds": "VRChat Profile Backgrounds",
                     "vrc_profile_backgrounds_description": "Show profile backgrounds in user dialog, e.g. color gradient or VRC+ background.",
                     "vrc_profile_backgrounds_opacity": "Profile Background Opacity",
-                    "vrc_profile_backgrounds_opacity_description": "Higher values will impact text readability."
+                    "vrc_profile_backgrounds_opacity_description": "Higher values will impact text readability.",
+                    "vrc_profile_cosmetics": "Profile Cosmetics",
+                    "cosmetics_description": "Shows icon frame and profile effects"
                 },
                 "display": {
                     "header": "Display"
@@ -1620,13 +1622,14 @@
                 "copy_name": "Copy Name",
                 "youtube_preview": "Youtube Preview",
                 "author_tags": "Author Tags",
+                "more_info": "More Info",
                 "players": "Players",
                 "favorites": "Favorites",
                 "visits": "Visits",
                 "capacity": "Capacity",
                 "heat": "Heat",
                 "popularity": "Popularity",
-                "created_at": "Created At",
+                "created": "Created",
                 "last_updated": "Last Updated",
                 "publication_date": "Publication Date",
                 "labs_publication_date": "Labs Publication Date",
@@ -1635,7 +1638,8 @@
                 "platform": "Platform",
                 "last_visited": "Last Visited",
                 "visit_count": "Visit Count",
-                "time_spent": "Time Spent"
+                "time_spent": "Time Spent",
+                "description": "Description"
             },
             "json": {
                 "header": "JSON"
@@ -1867,7 +1871,9 @@
             "banner_type_color": "Color",
             "banner_type_avatar_banner": "Avatar Image",
             "banner_type_custom_image": "Custom Image",
+            "button": "Button",
             "icon": "Icon",
+            "subtext": "Subtext",
             "profile_theme": "Profile Theme",
             "theme_name_placeholder": "Theme name",
             "create_theme": "Create Theme",

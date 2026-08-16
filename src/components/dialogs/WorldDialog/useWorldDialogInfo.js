@@ -17,14 +17,7 @@ import { database } from '../../../services/database';
  * @returns {object} info composable API
  */
 export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
-    const memo = computed({
-        get() {
-            return worldDialog.value.memo;
-        },
-        set(value) {
-            worldDialog.value.memo = value;
-        }
-    });
+    const { memo, onWorldMemoChange } = useWorldMemo(worldDialog);
 
     const isTimeInLabVisible = computed(() => {
         return (
@@ -57,13 +50,9 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
 
     const worldTags = computed(() => {
         return worldDialog.value.ref?.tags
-            .filter((tag) => tag.startsWith('author_tag'))
+            ?.filter((tag) => tag.startsWith('author_tag'))
             .map((tag) => tag.replace('author_tag_', ''))
             .join(', ');
-    });
-
-    const timeSpent = computed(() => {
-        return timeToText(worldDialog.value.timeSpent);
     });
 
     const worldDialogPlatform = computed(() => {
@@ -87,10 +76,14 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
                 } else if (unityPackage.platform) {
                     platform = unityPackage.platform;
                 }
-                platforms.unshift(`${platform}/${unityPackage.unityVersion}`);
+                const platformWithVersion = `${platform}/${unityPackage.unityVersion}`;
+                if (platforms.includes(platformWithVersion)) {
+                    continue;
+                }
+                platforms.unshift(platformWithVersion);
             }
         }
-        return platforms.join(', ');
+        return platforms.join('\n');
     });
 
     const worldDialogPlatformCreatedAt = computed(() => {
@@ -118,23 +111,6 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         }
         return newest;
     });
-
-    /**
-     *
-     */
-    function onWorldMemoChange() {
-        const worldId = worldDialog.value.id;
-        const memo = worldDialog.value.memo;
-        if (memo) {
-            database.setWorldMemo({
-                worldId,
-                editedAt: new Date().toJSON(),
-                memo
-            });
-        } else {
-            database.deleteWorldMemo(worldId);
-        }
-    }
 
     /**
      *
@@ -187,7 +163,6 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         timeInLab,
         favoriteRate,
         worldTags,
-        timeSpent,
         worldDialogPlatform,
         worldDialogPlatformCreatedAt,
         onWorldMemoChange,
@@ -196,5 +171,42 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         copyWorldName,
         commaNumber,
         formatDateFilter
+    };
+}
+
+/**
+ * @param {import('vue').Ref} worldDialog - reactive ref to the world dialog state
+ * @returns {object} memo composable API
+ */
+export function useWorldMemo(worldDialog) {
+    const memo = computed({
+        get() {
+            return worldDialog.value.memo;
+        },
+        set(value) {
+            worldDialog.value.memo = value;
+        }
+    });
+
+    /**
+     *
+     */
+    function onWorldMemoChange() {
+        const worldId = worldDialog.value.id;
+        const memo = worldDialog.value.memo;
+        if (memo) {
+            database.setWorldMemo({
+                worldId,
+                editedAt: new Date().toJSON(),
+                memo
+            });
+        } else {
+            database.deleteWorldMemo(worldId);
+        }
+    }
+
+    return {
+        memo,
+        onWorldMemoChange
     };
 }
