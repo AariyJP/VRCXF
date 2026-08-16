@@ -465,12 +465,20 @@
                             </DropdownMenuContent>
                         </DropdownMenu>
                         <TooltipWrapper content="Scroll to bottom" side="top">
-                            <Button size="icon-sm" variant="ghost" @click="scrollBrowserConsoleToBottom">
+                            <Button
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label="Scroll to bottom"
+                                @click="scrollBrowserConsoleToBottom">
                                 <ArrowDownToLine class="size-4" />
                             </Button>
                         </TooltipWrapper>
                         <TooltipWrapper content="Clear console" side="top">
-                            <Button size="icon-sm" variant="ghost" @click="clearBrowserConsoleLogs">
+                            <Button
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label="Clear console"
+                                @click="clearBrowserConsoleLogs">
                                 <Trash2 class="size-4" />
                             </Button>
                         </TooltipWrapper>

@@ -2,6 +2,10 @@ import { ref } from 'vue';
 
 const maxEntries = 500;
 const levels = ['debug', 'log', 'info', 'warn', 'error'];
+const ignoredGlobalErrors = new Set([
+    'ResizeObserver loop completed with undelivered notifications.',
+    'ResizeObserver loop limit exceeded'
+]);
 const stateKey = Symbol.for('vrcxf.browserConsoleLog');
 const existingState = Reflect.get(globalThis, stateKey);
 const state = existingState ?? {
@@ -75,7 +79,11 @@ function initBrowserConsoleLog() {
     });
 
     globalThis.addEventListener('error', (event) => {
-        append('error', [event.error ?? event.message]);
+        const error = event.error ?? event.message;
+        const message = error instanceof Error ? error.message : String(error ?? '');
+        if (!ignoredGlobalErrors.has(message)) {
+            append('error', [error]);
+        }
     });
     globalThis.addEventListener('unhandledrejection', (event) => {
         append('error', ['Unhandled promise rejection', event.reason]);

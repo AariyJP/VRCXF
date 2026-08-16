@@ -22,9 +22,10 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 
 コードタスクを始める前に:
 
-1. `mcp_serena_check_onboarding_performed` を確認
-2. `mcp_serena_list_memories` で関連メモリを確認
-3. 可能なときは常にシンボル単位の探索/編集を使う
+1. `mcp__serena__initial_instructions` を未読なら読む
+2. `mcp__serena__activate_project` で `VRCXF` を有効化する
+3. `mcp__serena__list_memories` で関連メモリを確認する
+4. 可能なときは常にシンボル単位の探索/編集を使う
 
 ## ⚠ 必須: クロスプラットフォーム実装
 
@@ -34,12 +35,12 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 
 - **Windows**: CEF (CefSharp) — `Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`、`Dotnet/VRCX-Cef.csproj`
 - **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`、`Dotnet/VRCX-Electron.csproj`
-- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`PLATFORM=browser`(`BROWSER` フラグ)。`npm run dev-browser` で Vite + Cloudflare Wrangler Pages (port 8788) を起動し Edge 等で開ける。リリースアセットにも含める（iOS/Android の CI がダウンロードして利用するため）
+- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`functions/`、`PLATFORM=browser` (`BROWSER` フラグ)。`pnpm dev-browser` は Vite のみを起動し、VRChat API 用 Cloudflare Pages Functions は別プロセスで動かす。リリースアセットにも含める
 
 分岐パターン:
 
 - **Frontend JS**: `WINDOWS` / `LINUX` / `BROWSER` で分岐
-- **ネイティブ API 呼び出し**: Windows は `CefSharp.BindObjectAsync` 経由のグローバル直接呼び出し、macOS/Linux は `window.interopApi.callDotNetMethod` 経由のプロキシ、Browser は `src/ipc-browser/index.js` のブラウザ内モック実装（fetch + Cookie 中継、sql.js on IndexedDB 等）
+- **ネイティブ API 呼び出し**: Windows は `CefSharp.BindObjectAsync` 経由のグローバル直接呼び出し、macOS/Linux は `window.interopApi.callDotNetMethod` 経由のプロキシ、Browser は `src/ipc-browser/index.js` のブラウザ内モック実装（fetch + Cookie 中継、sql.js + IndexedDB、ブラウザストレージ等）
 - **Interop ブートストラップ**: `src/plugins/interopApi.js` がグローバルを初期化。macOS/Linux は `src/ipc-electron/interopApi.js` が Electron 側プロキシヘルパーを公開、Browser は `src/ipc-browser/index.js` を動的 import して同名グローバルにモックを割り当てる
 - **WebApi 実行**: `src/services/webapi.js` は `LINUX` のときのみ `WebApi.ExecuteJson()`、それ以外（Windows/Browser）は `WebApi.Execute()`（`{Item1, Item2}` 形式）に分岐。Browser のモックもこの形式で応答を返す
 - **.NET 側**: 共通ロジックは `Dotnet/AppApi/Common/`、プラットフォーム固有コードは `Dotnet/AppApi/Cef/` と `Dotnet/AppApi/Electron/`（Browser は .NET 側の実装を持たない）
@@ -52,6 +53,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 3. `window.electron.*` を使う場合は、必要に応じて Windows 互換パスを提供する
 4. .NET コードを変更したら `Dotnet/VRCX-Cef.csproj` と `Dotnet/VRCX-Electron.csproj` の両方がビルド可能な状態を保つ
 5. Browser ターゲットに影響するネイティブ API を追加/変更する場合は `src/ipc-browser/index.js` のモックも合わせて更新する（ネイティブ依存機能はスタブのままで構わない）
+6. Browser の REST / WebSocket 中継を変更する場合は `functions/api/1/[[path]].ts` と `functions/ws/[[path]].ts` も確認する
 
 ## 技術スタック
 
@@ -90,12 +92,14 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 - **Browser IPC ヘルパー** (`src/ipc-browser/`) — Browser ターゲットのネイティブ API モック
 - **公開静的アセット** (`src/public/`)
 - **アプリシェル CSS の分割**: `src/styles/globals.css` と `src/app.css`
+- **Web Worker** (`src/workers/`) — Activity の重い計算をレンダラから分離
+- **Cloudflare Pages Functions** (`functions/`) — Browser 版の VRChat REST / WebSocket 中継
 
 ## ディレクトリ構成
 
 ```text
 src/
-  app.js                  # initPlugins -> initPiniaPlugins -> createApp -> pinia/i18n/VueQuery -> initComponents -> initRouter -> initSentry -> mount
+  app.js                  # Console捕捉 -> plugins/Pinia/WebSocket設定 -> Vue作成 -> router/Sentry -> mount
   App.vue                 # ルートシェル: TooltipProvider, MacOSTitleBar, RouterView, Toaster, ダイアログモーダル, アップデータ
   app.css                 # レイアウト/アプリシェル用 CSS
   index.html              # メインエントリ
@@ -105,13 +109,13 @@ src/
   components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
   ipc-electron/           # レンダラ向け Electron interop ヘルパー
-  ipc-browser/            # Browser ターゲット向けネイティブ API モック (index.js)
+  ipc-browser/            # Browser 向け API モック、sql.js/IndexedDB、Cookie、MD5
   lib/                    # 共通ライブラリヘルパー
   localization/           # i18n JSON ファイル
   plugins/                # ブートストラッププラグイン (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
   public/                 # Vite がコピーする静的アセット
   queries/                # Vue Query クライアント、key、キャッシュヘルパー、エンティティクエリ
-  services/               # サービス類 (request, websocket, webapi, database, config, sqlite, appConfig, jsonStorage, watchState, confusables)
+  services/               # request/websocket/database/config/security/DevTools Console 等
   shared/
     constants/            # 共通定数
     utils/                # 共通ユーティリティとそのテスト
@@ -133,14 +137,20 @@ src/
     Sidebar/              # サイドバー UI とテスト
     ...                   # Feed, FriendsLocations, GameLog, Search, Favorites, Charts, Notifications, Tools, Settings 他
   vr/                     # VR オーバーレイ UI
+  workers/                # Activity 計算用 Web Worker とランナー
 src-electron/
   main.js                 # Electron メインプロセス
   preload.js              # preload ブリッジ
   InteropApi.js           # .NET interop エントリ
+build-scripts/
   download-dotnet-runtime.js
   patch-node-api-dotnet.js
   patch-package-version.js
   rename-builds.js
+  generate-third-party-licenses.js
+functions/
+  api/1/[[path]].ts       # Browser 版 REST プロキシ
+  ws/[[path]].ts          # Browser 版 WebSocket プロキシ
 Dotnet/
   AppApi/Common/          # 共通ネイティブ API サーフェス
   AppApi/Cef/             # Windows 専用 API レイヤ
@@ -151,6 +161,7 @@ Dotnet/
   VRCX-Cef.csproj         # Windows ビルド
   VRCX-Electron.csproj    # Electron x64 ビルド
   VRCX-Electron-arm64.csproj
+electron-builder.config.js # Electron パッケージ設定
 ```
 
 ## ルート
@@ -210,7 +221,7 @@ Dotnet/
 - Vue Query クライアントは `src/queries/client.js`
 - アプリ起動時に `src/app.js` で `VueQueryPlugin` を install
 - デフォルトオプション: retry 1 回、ウィンドウフォーカスでは refetch しない、reconnect 時は refetch
-- 直接 REST アクセスとリクエスト重複排除は引き続き `src/service/request.js` の `request()` が担当
+- 直接 REST アクセスとリクエスト重複排除は引き続き `src/services/request.js` の `request()` が担当
 
 ## ストアパターン
 
@@ -223,6 +234,9 @@ Dotnet/
 
 - `src/services/config.js`: `config:` プレフィックスキーの SQLite ベース config repository
 - `VRCXStorage`: ファイル基盤のネイティブストレージ
+- Browser では `VRCXStorage` をブラウザストレージで代替し、SQLite 本体と Cookie jar は IndexedDB に保存する
+- Browser SQLite は実際の DML / DDL 変更だけを検出し、`persistIntervalMs` の短い間隔でまとめて保存する。トランザクション中は保存せず、COMMIT 後に変更がある場合だけ保存対象にする
+- Browser のページ非表示・離脱時と `AppApi.RestartApplication()` 実行時は待機中の DB 保存を即時 flush する。IndexedDB への保存成功時は DevTools Console に `IndexedDBに保存しました。` と表示する
 
 代表的な config キー:
 
@@ -260,6 +274,7 @@ Dotnet/
 - `worldFavorites`
 - `mutualGraph`
 - `activityV2`
+- `printFavorites`
 - `tableAlter`
 - `tableFixes`
 - `tableSize`
@@ -274,30 +289,28 @@ Dotnet/
 
 ## 開発コマンド
 
-ローカル開発では `pnpm`、CI では `npm` を使用する。
+ローカルでは `pnpm` を使用する。利用可能なスクリプトは `package.json` を正本とし、現在の主要スクリプトは以下。
 
 ```bash
 pnpm dev
-pnpm dev-linux
 pnpm dev-browser
 pnpm test
 pnpm test:coverage
 pnpm prod
-pnpm prod-linux
 pnpm prod-browser
-pnpm preview-cloudflare
 pnpm build-electron
 pnpm build-electron-arm64
 pnpm start-electron
 pnpm localization
-pnpm dotnet-win
-pnpm dotnet-arm64
 pnpm lint
 pnpm lint:eslint
 pnpm lint:oxlint
 pnpm typecheck:js
+pnpm typecheck:vue
+pnpm typecheck:node
 pnpm format
 pnpm format:check
+pnpm build:licenses
 ```
 
 ## .NET ビルド
@@ -346,13 +359,25 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
-- `BROWSER` ターゲット（`npm run dev-browser` / `prod-browser`）は Cloudflare Wrangler Pages 経由で一般ブラウザ (Edge 等) から動かすビルド。`src/ipc-browser/index.js` が `WebApi`(fetch + Cookie 中継)や `SQLite`(sql.js on IndexedDB) を実装するが、`LogWatcher`/`Discord`/ゲーム起動/レジストリ操作/スクリーンショット等のネイティブ依存機能はスタブのため動作しない
+- `pnpm dev-browser` は Vite 開発サーバーだけを起動する。`src/vite.config.js` の `/api/1` プロキシ先である Cloudflare Pages Functions は別途起動が必要
+- `BROWSER` ターゲットでは `src/ipc-browser/index.js` が `WebApi`（fetch + Cookie 中継）、`SQLite`（sql.js + IndexedDB）、設定ストレージ、DB インポートを実装する。DB インポートは SQLite ヘッダーと `PRAGMA quick_check` を検証してから IndexedDB と実行中 DB を置き換える
+- `LogWatcher` / `Discord` / ゲーム起動 / レジストリ操作 / スクリーンショット等のネイティブ依存機能は Browser ではスタブのため動作しない
+- Diagnostics の DevTools Console は Browser 専用ではなく全プラットフォーム共通。`src/app.js` から `src/services/browserConsoleLog.js` を無条件 import し、console API、グローバルエラー、未処理 Promise rejection を最大 500 件までメモリ内だけに保持する。コマンド実行欄はあるがログの永続化は行わない
+- Browser 版の「アプリをダウンロード」は Cloudflare API を経由せず、`src/shared/constants/link.js` の Microsoft Store URL を直接開く
 - VR オーバーレイは Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
 - Windows CEF 版は framework-dependent としてビルドし、.NET ランタイムを配布物へ同梱しない。`--self-contained` を付けないこと。
 - `build-scripts/build-all.ps1` は **どのディレクトリからでも**実行できる（スクリプト先頭の `cd "$PSScriptRoot/.."` でリポジトリルートに移動する）。`-NoCI` と `-BuildArm64` のスイッチを取る。ただし `-NoCI` を付けても `node_modules` は削除される（upstream の実装に合わせているため）。
+- 現在の `build-scripts/build-all.ps1` の Linux/macOS 経路は `package.json` に存在しない `prod-linux` を呼ぶため、その経路を使う前に両者の整合を確認する
 - framework-dependent への切り替え後などに古い成果物が混在して.NETランタイム要求ダイアログが表示される場合は、リポジトリ直下の `build/` を全削除してから `build-scripts/build-all.ps1` を再実行する。
 - `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
-- 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、upstream 同期マージ
+- 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、Browser 機能の拡充、Diagnostics 強化、upstream 同期マージ
+
+## フォーク固有のブランディング
+
+- Windows の実行ファイル名、インストール先、Application ID、URI スキーム、アンインストールキーは互換性維持のため `VRCX` / `vrcx` のまま
+- Windows のインストーラー表示名、Publisher、URI の表示名、デスクトップとスタートメニューのショートカット名は `VRCXF` / `AariyJP`
+- アンインストール時は `VRCXF.lnk` だけを削除し、`VRCX.lnk` には触れない
+- NSIS インストーラーの PE `ProductName` は `VRCXF` だが、.NET アプリ本体の AssemblyTitle / Product は `VRCX` のまま
 
 ## GitHub 情報取得
 

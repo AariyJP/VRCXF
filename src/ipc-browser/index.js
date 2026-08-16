@@ -15,7 +15,7 @@ const sqliteHeader = new Uint8Array([
 ]);
 const overlayQueue = new Map();
 
-const persistIntervalMs = 500;
+const persistIntervalMs = 2000;
 
 let indexedDbPromise;
 let indexedDbHandle;
@@ -144,6 +144,10 @@ function normalizeSqlArgs(args) {
     return normalized;
 }
 
+function getSchemaVersion(db) {
+    return db.exec('PRAGMA schema_version')[0]?.values?.[0]?.[0] ?? 0;
+}
+
 function hashColor(input) {
     let hash = 0;
     for (let i = 0; i < input.length; i += 1) {
@@ -250,6 +254,7 @@ class BrowserSQLiteRuntime {
         this.db = null;
         this.SQL = null;
         this.inTransaction = false;
+        this.transactionDirty = false;
         this.persistDirty = false;
         this.persistTimer = null;
         this.queue = Promise.resolve();
@@ -283,7 +288,7 @@ class BrowserSQLiteRuntime {
             clearTimeout(this.persistTimer);
             this.persistTimer = null;
         }
-        if (!this.persistDirty) {
+        if (!this.persistDirty || this.inTransaction) {
             return;
         }
         this.persistDirty = false;
@@ -329,17 +334,37 @@ class BrowserSQLiteRuntime {
         await this.ready;
         return this.enqueue(async () => {
             const statement = sql.trim().replace(/;+$/, '').toUpperCase();
+            const isBegin = /^BEGIN\b/.test(statement);
+            const isCommit = /^(COMMIT|END)\b/.test(statement);
+            const isRollback = /^ROLLBACK\b/.test(statement);
+            const isDataChange = /^(INSERT|UPDATE|DELETE|REPLACE)\b/.test(statement);
+            const isSchemaChange = /^(CREATE|DROP|ALTER)\b/.test(statement);
+            const schemaVersion = isSchemaChange ? getSchemaVersion(this.db) : null;
             this.db.run(sql, normalizeSqlArgs(args));
             const rowsModified = this.db.getRowsModified();
-            if (/^BEGIN\b/.test(statement)) {
+            const changed =
+                (isDataChange && rowsModified > 0) || (isSchemaChange && getSchemaVersion(this.db) !== schemaVersion);
+
+            if (isBegin) {
                 this.inTransaction = true;
-            } else if (/^(COMMIT|END|ROLLBACK)\b/.test(statement)) {
+                this.transactionDirty = false;
+            } else if (isRollback) {
                 this.inTransaction = false;
-            }
-            if (
-                !this.inTransaction &&
-                !/^PRAGMA\s+OPTIMIZE\b/.test(statement)
-            ) {
+                this.transactionDirty = false;
+                if (this.persistDirty) {
+                    this.schedulePersist();
+                }
+            } else if (isCommit) {
+                const shouldPersist =
+                    this.persistDirty || this.transactionDirty;
+                this.inTransaction = false;
+                this.transactionDirty = false;
+                if (shouldPersist) {
+                    this.schedulePersist();
+                }
+            } else if (this.inTransaction) {
+                this.transactionDirty ||= changed;
+            } else if (changed) {
                 this.schedulePersist();
             }
             return rowsModified;
@@ -391,6 +416,7 @@ class BrowserSQLiteRuntime {
             }
             this.persistDirty = false;
             this.inTransaction = false;
+            this.transactionDirty = false;
             this.db.close();
             this.db = importedDb;
             persistFailureNotified = false;
