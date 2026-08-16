@@ -709,7 +709,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
                         if (!ok) return;
 
                         sentryErrorReporting.value = true;
-                        configRepository.setBool('VRCX_SentryEnabled', true);
+                        await configRepository.setBool('VRCX_SentryEnabled', true);
 
                         VRCXUpdaterStore.restartVRCX(false);
                     });

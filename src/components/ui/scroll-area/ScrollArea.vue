@@ -23,7 +23,8 @@
     const viewportEl = ref(null);
 
     function setViewportEl(el) {
-        viewportEl.value = el?.$el ?? el ?? null;
+        const viewportElement = el?.viewportElement;
+        viewportEl.value = viewportElement?.value ?? viewportElement ?? el?.$el ?? el ?? null;
     }
 
     defineExpose({ viewportEl, update: () => {} });

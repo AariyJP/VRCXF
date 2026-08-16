@@ -10,6 +10,9 @@ const indexedDbName = 'vrcxf-browser';
 const indexedDbStore = 'runtime';
 const sqliteKey = 'sqlite-db';
 const cookieJarKey = 'cookie-jar';
+const sqliteHeader = new Uint8Array([
+    0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00
+]);
 const overlayQueue = new Map();
 
 const persistIntervalMs = 500;
@@ -286,6 +289,7 @@ class BrowserSQLiteRuntime {
         this.persistDirty = false;
         try {
             await setIndexedDbValue(sqliteKey, this.db.export());
+            console.log('IndexedDBに保存しました。');
             persistFailureNotified = false;
         } catch (error) {
             this.persistDirty = true;
@@ -339,6 +343,58 @@ class BrowserSQLiteRuntime {
                 this.schedulePersist();
             }
             return rowsModified;
+        });
+    }
+
+    async importDatabase(source) {
+        await this.ready;
+        return this.enqueue(async () => {
+            let bytes = null;
+            if (source instanceof Uint8Array) {
+                bytes = source;
+            } else if (source instanceof ArrayBuffer) {
+                bytes = new Uint8Array(source);
+            }
+            if (
+                !bytes ||
+                bytes.length < sqliteHeader.length ||
+                !sqliteHeader.every((value, index) => bytes[index] === value)
+            ) {
+                return false;
+            }
+
+            let importedDb;
+            try {
+                importedDb = new this.SQL.Database(bytes);
+                const quickCheck = importedDb.exec('PRAGMA quick_check');
+                if (quickCheck[0]?.values?.[0]?.[0] !== 'ok') {
+                    importedDb.close();
+                    return false;
+                }
+            } catch {
+                importedDb?.close();
+                return false;
+            }
+
+            try {
+                await setIndexedDbValue(sqliteKey, importedDb.export());
+                console.log('IndexedDBに保存しました。');
+            } catch (error) {
+                importedDb.close();
+                reportPersistFailure(error);
+                return false;
+            }
+
+            if (this.persistTimer !== null) {
+                clearTimeout(this.persistTimer);
+                this.persistTimer = null;
+            }
+            this.persistDirty = false;
+            this.inTransaction = false;
+            this.db.close();
+            this.db = importedDb;
+            persistFailureNotified = false;
+            return true;
         });
     }
 }
@@ -861,6 +917,7 @@ const BrowserAppApi = new Proxy(
             await showDesktopNotification(title, text, image);
         },
         async RestartApplication() {
+            await browserSQLiteRuntime.enqueue(() => browserSQLiteRuntime.persistNow());
             window.location.reload();
         },
         async CheckForUpdateExe() {
@@ -1004,8 +1061,8 @@ const BrowserAppApi = new Proxy(
         async OpenFileSelectorDialog() {
             return '';
         },
-        async ImportDatabase() {
-            return false;
+        async ImportDatabase(source) {
+            return browserSQLiteRuntime.importDatabase(source);
         },
         async OnProcessStateChanged() {},
         async CheckGameRunning() {},

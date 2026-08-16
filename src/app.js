@@ -1,6 +1,7 @@
 import { VueQueryPlugin } from '@tanstack/vue-query';
 import { createApp } from 'vue';
 
+import './services/browserConsoleLog';
 import {
     i18n,
     initComponents,

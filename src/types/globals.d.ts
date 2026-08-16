@@ -246,7 +246,7 @@ declare global {
             defaultExt?: string,
             defaultFilter?: string
         ): Promise<string>;
-        ImportDatabase(sourcePath: string): Promise<boolean>;
+        ImportDatabase(source: string | ArrayBuffer): Promise<boolean>;
 
         // Game Handler
         OnProcessStateChanged(monitoredProcess: any): Promise<void>;

@@ -3,7 +3,7 @@ const links = {
     troubleshootingAuthUserConnectionIssues:
         'https://github.com/vrcx-team/VRCX/wiki/Troubleshooting#401-authuser--connection-issues',
     github: 'https://github.com/AariyJP/VRCXF',
-    download: '/api/download',
+    download: 'https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full',
     discord: 'https://vrcx.app/discord'
 };
 

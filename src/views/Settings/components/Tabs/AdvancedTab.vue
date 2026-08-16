@@ -209,7 +209,7 @@
                 ></span>
             </div>
 
-            <SettingsItem :label="t('view.settings.advanced.advanced.cache_debug.show_console')">
+            <SettingsItem v-if="!BROWSER" :label="t('view.settings.advanced.advanced.cache_debug.show_console')">
                 <Button size="sm" variant="outline" @click="showConsole">{{
                     t('view.settings.advanced.advanced.cache_debug.show_console')
                 }}</Button>
@@ -274,6 +274,7 @@
                 ></span>
             </div>
 
+            <Separator class="my-2" />
             <SettingsItem label="データベースをインポート">
                 <Button size="sm" variant="outline" :disabled="dbImport.loading" @click="triggerDbImport">
                     {{ dbImport.loading ? 'インポート中...' : 'ファイルを選択' }}
@@ -422,6 +423,119 @@
                 :dynamic-height="false"
                 virtual
                 show-icon />
+
+            <div class="mt-2 border-t pt-3">
+                <div
+                    class="overflow-hidden rounded-md border bg-zinc-50 font-[monospace,var(--font-primary-cjk)] text-xs dark:bg-zinc-900">
+                    <div class="flex items-center gap-2 bg-zinc-100 p-1.5 dark:bg-zinc-800">
+                        <span class="shrink-0 px-1 font-sans text-sm font-medium">DevTools Console</span>
+                        <InputGroupSearch
+                            v-model="browserConsoleFilter"
+                            class="h-7 min-w-0 flex-1 bg-zinc-50 font-sans shadow-none dark:bg-zinc-900"
+                            input-class="font-sans text-xs"
+                            placeholder="Filter" />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    class="h-7 w-36 justify-between bg-zinc-50 px-2 font-sans text-xs dark:bg-zinc-900">
+                                    <span class="flex items-center gap-1.5">
+                                        <ListFilter class="size-3.5 text-cyan-500" />
+                                        {{ browserConsoleLevelLabel }}
+                                    </span>
+                                    <ChevronDown class="size-3.5 opacity-50" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" class="w-44 bg-zinc-50 dark:bg-zinc-900">
+                                <DropdownMenuItem @select="resetBrowserConsoleLevels">
+                                    <ListFilter class="size-4 text-cyan-500" />
+                                    <span class="text-cyan-500">Default</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuCheckboxItem
+                                    v-for="option in browserConsoleLevelOptions"
+                                    :key="option.value"
+                                    :model-value="isBrowserConsoleLevelEnabled(option.value)"
+                                    @select.prevent
+                                    @update:modelValue="setBrowserConsoleLevel(option.value, $event)">
+                                    <component :is="option.icon" class="size-4" :class="option.class" />
+                                    <span :class="option.class">{{ option.label }}</span>
+                                </DropdownMenuCheckboxItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <TooltipWrapper content="Scroll to bottom" side="top">
+                            <Button size="icon-sm" variant="ghost" @click="scrollBrowserConsoleToBottom">
+                                <ArrowDownToLine class="size-4" />
+                            </Button>
+                        </TooltipWrapper>
+                        <TooltipWrapper content="Clear console" side="top">
+                            <Button size="icon-sm" variant="ghost" @click="clearBrowserConsoleLogs">
+                                <Trash2 class="size-4" />
+                            </Button>
+                        </TooltipWrapper>
+                    </div>
+                    <Separator />
+                    <div :style="{ height: `${browserConsoleHeight}px` }">
+                        <ScrollArea ref="browserConsoleOutputRef" class="h-full">
+                            <template v-for="(entry, index) in filteredBrowserConsoleLogs" :key="entry.id">
+                                <div
+                                    class="flex min-w-0 gap-2 px-2 py-1"
+                                    :class="getBrowserConsoleEntryClass(entry.level)">
+                                    <span class="flex w-4 shrink-0 justify-center pt-0.5">
+                                        <Info v-if="entry.level === 'info'" class="size-3.5 text-blue-500" />
+                                        <TriangleAlert
+                                            v-else-if="entry.level === 'warn'"
+                                            class="size-3.5 text-amber-500" />
+                                        <CircleX
+                                            v-else-if="entry.level === 'error'"
+                                            class="size-3.5 text-red-700 dark:text-red-300" />
+                                        <span v-else-if="entry.level === 'command'" class="text-blue-500">&gt;</span>
+                                        <span v-else-if="entry.level === 'result'" class="text-blue-500">&lt;</span>
+                                    </span>
+                                    <span class="min-w-0 flex-1 whitespace-pre-wrap break-all">{{
+                                        entry.message
+                                    }}</span>
+                                    <span class="shrink-0 pr-3 text-muted-foreground">{{
+                                        formatBrowserConsoleTime(entry.time)
+                                    }}</span>
+                                </div>
+                                <Separator v-if="index < filteredBrowserConsoleLogs.length - 1" />
+                            </template>
+                            <div
+                                v-if="filteredBrowserConsoleLogs.length === 0"
+                                class="px-3 py-4 text-center text-muted-foreground">
+                                ログはありません。
+                            </div>
+                        </ScrollArea>
+                    </div>
+                    <div
+                        role="separator"
+                        tabindex="0"
+                        aria-label="Resize console"
+                        aria-orientation="horizontal"
+                        :aria-valuemin="browserConsoleMinHeight"
+                        :aria-valuemax="browserConsoleMaxHeight"
+                        :aria-valuenow="browserConsoleHeight"
+                        class="group flex h-4 touch-none cursor-ns-resize items-center justify-center border-y bg-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-zinc-800"
+                        @pointerdown="startBrowserConsoleResize"
+                        @keydown="handleBrowserConsoleResizeKeydown">
+                        <span
+                            class="h-1 w-12 rounded-full bg-zinc-400 transition-colors group-hover:bg-primary group-focus-visible:bg-primary dark:bg-zinc-500" />
+                    </div>
+                    <form @submit.prevent="executeBrowserConsole">
+                        <InputGroup class="rounded-none border-0 bg-zinc-50 shadow-none dark:bg-zinc-900">
+                            <InputGroupAddon class="pl-2 text-blue-500">&gt;</InputGroupAddon>
+                            <InputGroupInput
+                                v-model="browserConsoleCommand"
+                                class="h-9 px-2 text-xs"
+                                autocomplete="off"
+                                aria-label="Console command"
+                                @keydown="handleBrowserConsoleKeydown" />
+                        </InputGroup>
+                    </form>
+                </div>
+            </div>
         </SettingsGroup>
 
         <template v-if="branch === 'Nightly'">
@@ -440,10 +554,31 @@
 </template>
 
 <script setup>
-    import { Trash2, TriangleAlert } from 'lucide-vue-next';
-    import { computed, reactive, ref } from 'vue';
+    import {
+        ArrowDownToLine,
+        Bug,
+        ChevronDown,
+        CircleX,
+        Info,
+        ListFilter,
+        Trash2,
+        TriangleAlert
+    } from 'lucide-vue-next';
+    import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';
+    import {
+        DropdownMenu,
+        DropdownMenuCheckboxItem,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuSeparator,
+        DropdownMenuTrigger
+    } from '@/components/ui/dropdown-menu';
+    import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupSearch } from '@/components/ui/input-group';
+    import { ScrollArea } from '@/components/ui/scroll-area';
+    import { Separator } from '@/components/ui/separator';
     import { Switch } from '@/components/ui/switch';
+    import { TooltipWrapper } from '@/components/ui/tooltip';
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { Alert, AlertDescription } from '@/components/ui/alert';
     import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -470,6 +605,11 @@
     import { authRequest, queryRequest } from '@/api';
     import { disableGameLogDialog } from '@/coordinators/gameLogCoordinator';
     import { clearVRCXCache } from '@/coordinators/vrcxCoordinator';
+    import {
+        browserConsoleLogs,
+        clearBrowserConsoleLogs,
+        executeBrowserConsoleCommand
+    } from '@/services/browserConsoleLog';
     import { openExternalLink } from '@/shared/utils';
 
     import PhotonSettings from '../PhotonSettings.vue';
@@ -547,6 +687,45 @@
     const isPurgeDialogVisible = ref(false);
     const dbFileInputRef = ref(null);
     const dbImport = reactive({ loading: false });
+    const browserConsoleCommand = ref('');
+    const browserConsoleFilter = ref('');
+    const browserConsoleMinHeight = 160;
+    const browserConsoleMaxHeight = 720;
+    const browserConsoleHeight = ref(320);
+    const browserConsoleLevelOptions = [
+        { value: 'debug', label: 'Verbose', icon: Bug, class: 'text-violet-500' },
+        { value: 'info', label: 'Info', icon: Info, class: 'text-blue-500' },
+        { value: 'warn', label: 'Warnings', icon: TriangleAlert, class: 'text-amber-500' },
+        { value: 'error', label: 'Errors', icon: CircleX, class: 'text-red-700 dark:text-red-300' }
+    ];
+    const defaultBrowserConsoleLevels = ['info', 'warn', 'error'];
+    const browserConsoleLevels = ref([...defaultBrowserConsoleLevels]);
+    const browserConsoleLevelLabel = computed(() => {
+        const levels = browserConsoleLevels.value ?? defaultBrowserConsoleLevels;
+        const isDefault =
+            levels.length === defaultBrowserConsoleLevels.length &&
+            defaultBrowserConsoleLevels.every((level) => levels.includes(level));
+        if (isDefault) {
+            return 'Default levels';
+        }
+        return levels.length === 0 ? 'No levels' : `${levels.length} levels`;
+    });
+    const browserConsoleOutputRef = ref(null);
+    const browserConsoleHistory = [];
+    let browserConsoleHistoryIndex = 0;
+    let browserConsoleDraft = '';
+    let stopBrowserConsoleResize;
+    const filteredBrowserConsoleLogs = computed(() => {
+        const filter = browserConsoleFilter.value.trim().toLocaleLowerCase();
+        const levels = browserConsoleLevels.value ?? defaultBrowserConsoleLevels;
+        return browserConsoleLogs.value.filter((entry) => {
+            const isCommand = entry.level === 'command' || entry.level === 'result';
+            const level = entry.level === 'log' ? 'info' : entry.level;
+            const matchesLevel = isCommand || levels.includes(level);
+            const matchesText = !filter || entry.message.toLocaleLowerCase().includes(filter);
+            return matchesLevel && matchesText;
+        });
+    });
 
     const cacheSize = reactive({
         cachedUsers: 0,
@@ -558,6 +737,129 @@
     });
 
     const isLinux = computed(() => LINUX);
+
+    async function executeBrowserConsole() {
+        const command = browserConsoleCommand.value.trim();
+        if (!command) {
+            return;
+        }
+
+        browserConsoleHistory.push(command);
+        browserConsoleHistoryIndex = browserConsoleHistory.length;
+        browserConsoleDraft = '';
+        browserConsoleCommand.value = '';
+        await executeBrowserConsoleCommand(command);
+    }
+
+    function handleBrowserConsoleKeydown(event) {
+        if (event.ctrlKey && event.key.toLocaleLowerCase() === 'l') {
+            event.preventDefault();
+            clearBrowserConsoleLogs();
+            return;
+        }
+        if (event.key === 'ArrowUp') {
+            if (browserConsoleHistory.length === 0) {
+                return;
+            }
+            event.preventDefault();
+            if (browserConsoleHistoryIndex === browserConsoleHistory.length) {
+                browserConsoleDraft = browserConsoleCommand.value;
+            }
+            browserConsoleHistoryIndex = Math.max(0, browserConsoleHistoryIndex - 1);
+            browserConsoleCommand.value = browserConsoleHistory[browserConsoleHistoryIndex];
+            return;
+        }
+        if (event.key === 'ArrowDown') {
+            if (browserConsoleHistoryIndex === browserConsoleHistory.length) {
+                return;
+            }
+            event.preventDefault();
+            browserConsoleHistoryIndex += 1;
+            browserConsoleCommand.value =
+                browserConsoleHistoryIndex === browserConsoleHistory.length
+                    ? browserConsoleDraft
+                    : browserConsoleHistory[browserConsoleHistoryIndex];
+        }
+    }
+
+    function getBrowserConsoleEntryClass(level) {
+        if (level === 'warn') {
+            return 'bg-amber-500/10 text-amber-700 dark:text-amber-300';
+        }
+        if (level === 'error') {
+            return 'bg-red-500/10 text-red-700 dark:bg-red-950/40 dark:text-red-300';
+        }
+        if (level === 'command' || level === 'result') {
+            return 'text-blue-700 dark:text-blue-300';
+        }
+        return '';
+    }
+
+    function formatBrowserConsoleTime(time) {
+        return new Date(time).toLocaleTimeString(undefined, { hour12: false });
+    }
+
+    function resetBrowserConsoleLevels() {
+        browserConsoleLevels.value = [...defaultBrowserConsoleLevels];
+    }
+
+    function isBrowserConsoleLevelEnabled(level) {
+        return browserConsoleLevels.value?.includes(level) ?? false;
+    }
+
+    function setBrowserConsoleLevel(level, enabled) {
+        const levels = browserConsoleLevels.value ?? [];
+        browserConsoleLevels.value = enabled
+            ? [...new Set([...levels, level])]
+            : levels.filter((value) => value !== level);
+    }
+
+    async function scrollBrowserConsoleToBottom() {
+        await nextTick();
+        const viewport = browserConsoleOutputRef.value?.viewportEl;
+        const output = viewport?.value ?? viewport;
+        if (output) {
+            output.scrollTop = output.scrollHeight;
+        }
+    }
+
+    function setBrowserConsoleHeight(height) {
+        browserConsoleHeight.value = Math.min(browserConsoleMaxHeight, Math.max(browserConsoleMinHeight, height));
+    }
+
+    function startBrowserConsoleResize(event) {
+        event.preventDefault();
+        stopBrowserConsoleResize?.();
+        const startY = event.clientY;
+        const startHeight = browserConsoleHeight.value;
+        const handlePointerMove = (pointerEvent) => {
+            setBrowserConsoleHeight(startHeight + pointerEvent.clientY - startY);
+        };
+        const handlePointerUp = () => stopBrowserConsoleResize?.();
+        stopBrowserConsoleResize = () => {
+            globalThis.removeEventListener('pointermove', handlePointerMove);
+            globalThis.removeEventListener('pointerup', handlePointerUp);
+            stopBrowserConsoleResize = undefined;
+        };
+        globalThis.addEventListener('pointermove', handlePointerMove);
+        globalThis.addEventListener('pointerup', handlePointerUp);
+    }
+
+    function handleBrowserConsoleResizeKeydown(event) {
+        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+            return;
+        }
+        event.preventDefault();
+        setBrowserConsoleHeight(browserConsoleHeight.value + (event.key === 'ArrowDown' ? 20 : -20));
+    }
+
+    onBeforeUnmount(() => stopBrowserConsoleResize?.());
+
+    watch(
+        [() => browserConsoleLogs.value.at(-1)?.id, browserConsoleFilter, browserConsoleLevels],
+        scrollBrowserConsoleToBottom,
+        { immediate: true }
+    );
 
     function handlePurge() {
         const days = selectedPurgePeriod.value === 'all' ? null : parseInt(selectedPurgePeriod.value, 10);
@@ -638,30 +940,11 @@
 
         try {
             const buffer = await file.arrayBuffer();
-            const magic = [
-                0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00
-            ];
-            const bytes = new Uint8Array(buffer, 0, 16);
-            if (!magic.every((b, i) => bytes[i] === b)) {
-                toast.error('有効な SQLite データベースファイルではありません。');
+            const imported = await AppApi.ImportDatabase(buffer);
+            if (!imported) {
+                toast.error('有効な SQLite データベースファイルではないか、読み込みに失敗しました。');
                 return;
             }
-
-            await new Promise((resolve, reject) => {
-                const req = indexedDB.open('vrcxf-browser', 1);
-                req.onupgradeneeded = () => {
-                    if (!req.result.objectStoreNames.contains('runtime')) {
-                        req.result.createObjectStore('runtime');
-                    }
-                };
-                req.onsuccess = () => {
-                    const tx = req.result.transaction('runtime', 'readwrite');
-                    const put = tx.objectStore('runtime').put(buffer, 'sqlite-db');
-                    put.onsuccess = () => resolve();
-                    put.onerror = () => reject(put.error);
-                };
-                req.onerror = () => reject(req.error);
-            });
 
             location.reload();
         } catch (err) {
