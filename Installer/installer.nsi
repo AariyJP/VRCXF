@@ -20,7 +20,7 @@
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
     VIAddVersionKey "FileVersion" "${PRODUCT_DISPLAY_VERSION}"
-    VIAddVersionKey "ProductName" "VRCX"
+    VIAddVersionKey "ProductName" "VRCXF"
     VIAddVersionKey "ProductVersion" "${PRODUCT_DISPLAY_VERSION}"
     VIAddVersionKey "LegalCopyright" "Copyright vrcx-team, pypy, natsumi"
     VIAddVersionKey "FileDescription" "Friendship management tool for VRChat"
@@ -143,7 +143,7 @@ Function .onInstSuccess
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\VRCX.lnk" "$INSTDIR\VRCX.exe"
+    CreateShortcut "$DESKTOP\VRCXF.lnk" "$INSTDIR\VRCX.exe"
 FunctionEnd
 
 Function launchVRCX
@@ -174,8 +174,8 @@ Section "Install" SecInstall
 
     WriteRegStr HKLM "Software\VRCX" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "VRCX"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "vrcx-team"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "VRCXF"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "AariyJP"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${PRODUCT_DISPLAY_VERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayArch" "x64"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "InstallLocation" "$INSTDIR"
@@ -189,16 +189,16 @@ Section "Install" SecInstall
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
     StrCmp $3 "true" noShortcut
-        CreateShortCut "$SMPROGRAMS\VRCX.lnk" "$INSTDIR\VRCX.exe"
-        ApplicationID::Set "$SMPROGRAMS\VRCX.lnk" "VRCX"
+        CreateShortCut "$SMPROGRAMS\VRCXF.lnk" "$INSTDIR\VRCX.exe"
+        ApplicationID::Set "$SMPROGRAMS\VRCXF.lnk" "VRCX"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
-    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "VRCX"
+    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "VRCXF"
     WriteRegStr HKCU "Software\Classes\vrcx" "URL Protocol" ""
     WriteRegExpandStr HKCU "Software\Classes\vrcx\DefaultIcon" "" "$INSTDIR\VRCX.ico"
     WriteRegStr HKCU "Software\Classes\vrcx\shell" "" "open"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "VRCX"
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "VRCXF"
     WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\VRCX.exe" /uri="%1" /params="%2 %3 %4"'
 SectionEnd
 
@@ -222,7 +222,7 @@ Section "Uninstall"
     DeleteRegKey HKCU "Software\Classes\vrcx"
 
     ${IfNot} ${Silent}
-        Delete "$SMPROGRAMS\VRCX.lnk"
-        Delete "$DESKTOP\VRCX.lnk"
+        Delete "$SMPROGRAMS\VRCXF.lnk"
+        Delete "$DESKTOP\VRCXF.lnk"
     ${EndIf}
 SectionEnd
