@@ -46,7 +46,7 @@
             </div>
         </div>
         <ul
-            class="mt-2 flex flex-col items-stretch overflow-auto md:min-h-0 md:flex-1 md:flex-row md:flex-wrap md:items-start"
+            class="mt-2 flex flex-col items-stretch overflow-auto md:min-h-0 md:flex-1 md:flex-row md:flex-wrap md:content-start md:items-start"
             style="min-width: 130px">
             <li
                 v-for="user in filteredMutualFriends"
