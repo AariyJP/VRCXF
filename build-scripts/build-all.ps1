@@ -62,12 +62,12 @@ if ($IsWindows) {
 }
 if ($IsLinux -or $IsMacOS) {
     if ($BuildArm64) {
-        npm run prod-linux
-        npm run build-electron-arm64
+        pnpm prod
+        pnpm build-electron-arm64
     }
     else {
-        npm run prod-linux
-        npm run build-electron
+        pnpm prod
+        pnpm build-electron
     }
 }
 
