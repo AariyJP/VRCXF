@@ -223,8 +223,8 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         autoDeleteOldPrints.value = autoDeleteOldPrintsConfig;
         notificationOpacity.value = notificationOpacityConfig;
         saveInstanceEmoji.value = saveInstanceEmojiConfig;
-        vrcRegistryAutoBackup.value = vrcRegistryAutoBackupConfig;
-        vrcRegistryAskRestore.value = vrcRegistryAskRestoreConfig;
+        vrcRegistryAutoBackup.value = !BROWSER && vrcRegistryAutoBackupConfig;
+        vrcRegistryAskRestore.value = !BROWSER && vrcRegistryAskRestoreConfig;
         sentryErrorReporting.value = sentryErrorReportingConfig === 'true';
 
         handleSetAppLauncherSettings();
