@@ -105,8 +105,7 @@ export default defineConfig(({ mode }) => {
 
     const nightly = mode === 'development' || version.split('-').at(-1).length === 7;
 
-    const outDirName =
-        process.env.PLATFORM === 'browser' ? 'html-browser' : 'html';
+    const outDirName = process.env.PLATFORM === 'browser' ? 'html-browser' : 'html';
 
     /** @type {import('vite').UserConfig} */
     return {
@@ -164,9 +163,6 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
-            BROWSER: JSON.stringify(process.env.PLATFORM === 'browser'),
-            LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
-            WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
             VERSION: JSON.stringify(version),
             NIGHTLY: JSON.stringify(nightly)
         },
