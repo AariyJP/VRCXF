@@ -35,7 +35,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 
 - **Windows**: CEF (CefSharp) — `Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`、`Dotnet/VRCX-Cef.csproj`
 - **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`、`Dotnet/VRCX-Electron.csproj`
-- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`functions/`、`PLATFORM=browser` (`BROWSER` フラグ)。`pnpm dev` は Vite のみを起動し、REST 中継用 Cloudflare Pages Functions は別プロセスで動かす。リリースアセットにも含める
+- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`functions/`、`BROWSER` フラグ（`index.html` のランタイム判定）。`pnpm dev` は Vite のみを起動し、REST 中継用 Cloudflare Pages Functions は別プロセスで動かす。リリースアセットにも含める
 
 分岐パターン:
 
@@ -104,7 +104,7 @@ src/
   app.css                 # レイアウト/アプリシェル用 CSS
   index.html              # メインエントリ
   vr.html                 # VR オーバーレイエントリ
-  vite.config.js          # Vite 設定 (outDir ../build/html、PLATFORM=browser のみ ../build/html-browser)
+  vite.config.js          # Vite 設定 (outDir ../build/html)
   api/                    # VRChat API ラッパー
   components/             # 共通コンポーネントとダイアログ
   composables/            # Vue composables
@@ -292,11 +292,9 @@ electron-builder.config.js # Electron パッケージ設定
 
 ```bash
 pnpm dev
-pnpm dev-browser
 pnpm test
 pnpm test:coverage
 pnpm prod
-pnpm prod-browser
 pnpm build-electron
 pnpm build-electron-arm64
 pnpm start-electron
@@ -354,7 +352,7 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 - `src/vite.config.js` は Chrome ベースの build target と LightningCSS を使用
 - `src/public/` は Vite によってビルド出力にコピーされる
-- Browser ターゲット (`PLATFORM=browser`) の出力先は Cef/Electron と分離して `build/html-browser`。`build-scripts/generate-third-party-licenses.js` と `wrangler.toml` (`pages_build_output_dir`) も同じディレクトリを参照する。`prod-browser` は `build:licenses` にも `PLATFORM=browser` を渡す必要がある（別プロセスで環境変数が引き継がれないため）
+- フロントエンドのビルド成果物は全ターゲット共通で `build/html`。`pnpm prod` ひとつで Cef/Electron/Browser のいずれにも使える。`build-scripts/generate-third-party-licenses.js` と `wrangler.toml` (`pages_build_output_dir`) も同じディレクトリを参照する
 - リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ

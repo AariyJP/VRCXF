@@ -23,7 +23,7 @@
 - Windows で CEF/CefSharp 148
 - SQLite
 - node-api-dotnet
-- Browser（開発/検証用、配布対象外）: `PLATFORM=browser`(`BROWSER` フラグ)。.NET ランタイムなしでフロントエンドのみを一般ブラウザで動かす。`npm run dev-browser` で Vite + Cloudflare Wrangler Pages(port 8788)を起動
+- Browser: `BROWSER` フラグ（`index.html` のランタイム判定）。.NET ランタイムなしでフロントエンドのみを一般ブラウザで動かす。`npm run dev` で Vite を起動し、Cloudflare Wrangler Pages(port 8788)は別プロセスで動かす
 
 ## 主要ディレクトリ
 

@@ -105,8 +105,6 @@ export default defineConfig(({ mode }) => {
 
     const nightly = mode === 'development' || version.split('-').at(-1).length === 7;
 
-    const outDirName = process.env.PLATFORM === 'browser' ? 'html-browser' : 'html';
-
     /** @type {import('vite').UserConfig} */
     return {
         base: '',
@@ -126,8 +124,8 @@ export default defineConfig(({ mode }) => {
                             name: version
                         },
                         sourcemaps: {
-                            assets: `./build/${outDirName}/**`,
-                            filesToDeleteAfterUpload: `./build/${outDirName}/**/*.js.map`,
+                            assets: './build/html/**',
+                            filesToDeleteAfterUpload: './build/html/**/*.js.map',
                             ignore: []
                         }
                     })
@@ -179,7 +177,7 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             target: 'chrome145',
-            outDir: `../build/${outDirName}`,
+            outDir: '../build/html',
             license: true,
             emptyOutDir: true,
             copyPublicDir: true,

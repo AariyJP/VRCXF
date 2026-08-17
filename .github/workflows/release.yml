@@ -187,9 +187,9 @@ jobs:
             - run: |
                   echo '${{ needs.set_version.outputs.version }}' > Version
                   pnpm i --frozen-lockfile --prefer-offline
-            - run: pnpm prod-browser
+            - run: pnpm prod
             - run: |
-                  cd build/html-browser
+                  cd build/html
                   7z a -tzip ../../VRCXF_browser.zip * -mx=7 -xr0!*.log
             - uses: softprops/action-gh-release@v3
               with:
