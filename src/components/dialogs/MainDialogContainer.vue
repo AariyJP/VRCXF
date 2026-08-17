@@ -51,7 +51,6 @@
 
     const { previousInstancesInfoDialog, previousInstancesListDialog } = storeToRefs(instanceStore);
     const { popoutEnabled } = storeToRefs(appearanceSettingsStore);
-    const isInAppDialog = computed(() => BROWSER || !popoutEnabled.value);
 
     const previousIds = ref({
         userDialog: {
@@ -141,8 +140,8 @@
             }
         }
     });
-    const dialogContentComponent = computed(() => (isInAppDialog.value ? DialogContent : 'div'));
-    const dialogContentProps = computed(() => (isInAppDialog.value ? { showCloseButton: false } : {}));
+    const dialogContentComponent = computed(() => (popoutEnabled.value ? 'div' : DialogContent));
+    const dialogContentProps = computed(() => (popoutEnabled.value ? {} : { showCloseButton: false }));
 
     const shouldShowBreadcrumbs = computed(() => dialogCrumbs.value.length > 1);
     const shouldCollapseBreadcrumbs = computed(() => dialogCrumbs.value.length > 5);
@@ -161,7 +160,7 @@
     });
     const windowTitle = computed(() => dialogCrumbs.value.at(-1)?.label);
     const dialogContentClass = computed(() => {
-        if (!isInAppDialog.value) {
+        if (popoutEnabled.value) {
             return 'flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
         }
 
@@ -237,7 +236,7 @@
     });
 
     function handleDialogOpen(value) {
-        if (isInAppDialog.value && !value) {
+        if (!popoutEnabled.value && !value) {
             uiStore.closeMainDialog();
         }
     }
@@ -246,11 +245,11 @@
 <template>
     <WindowTeleport
         :open="isOpen"
-        :disabled="isInAppDialog"
+        :disabled="!popoutEnabled"
         :focus-key="uiStore.dialogFocusRequest"
         :title="windowTitle"
         @close="uiStore.closeMainDialog">
-        <Dialog v-if="isOpen" :open="isOpen" :modal="isInAppDialog" @update:open="handleDialogOpen">
+        <Dialog v-if="isOpen" :open="isOpen" :modal="!popoutEnabled" @update:open="handleDialogOpen">
             <component
                 :is="dialogContentComponent"
                 v-bind="dialogContentProps"
