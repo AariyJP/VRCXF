@@ -32,7 +32,7 @@
         },
         title: {
             type: String,
-            required: true
+            default: ''
         },
         width: {
             type: Number,
