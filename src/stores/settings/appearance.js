@@ -64,6 +64,7 @@ export const useAppearanceSettingsStore = defineStore(
         const displayVRCProfileThemes = ref(false);
         const displayVRCProfileBackgrounds = ref(false);
         const profileBackgroundOpacity = ref(0.5);
+        const displayVRCProfileCosmetics = ref(false);
         const hideNicknames = ref(false);
         const showInstanceIdInLocation = ref(false);
         const isAgeGatedInstancesVisible = ref(false);
@@ -121,6 +122,7 @@ export const useAppearanceSettingsStore = defineStore(
         const accessibleStatusIndicators = ref(false);
         const showNewDashboardButton = ref(true);
         const feedEnabled = ref(true);
+        const popoutEnabled = ref(false);
         const tableLimitsDialog = ref({
             visible: false,
             maxTableSize: 500,
@@ -155,6 +157,7 @@ export const useAppearanceSettingsStore = defineStore(
                 displayVRCProfileThemesConfig,
                 displayVRCProfileBackgroundsConfig,
                 profileBackgroundOpacityConfig,
+                displayVRCProfileCosmeticsConfig,
                 hideNicknamesConfig,
                 showInstanceIdInLocationConfig,
                 isAgeGatedInstancesVisibleConfig,
@@ -186,6 +189,7 @@ export const useAppearanceSettingsStore = defineStore(
                 accessibleStatusIndicatorsConfig,
                 showNewDashboardButtonConfig,
                 feedEnabledConfig,
+                popoutEnabledConfig,
                 appFontFamilyConfig,
                 customFontFamilyConfig,
                 appCjkFontPackConfig,
@@ -199,6 +203,10 @@ export const useAppearanceSettingsStore = defineStore(
                     false
                 ),
                 configRepository.getFloat('VRCX_profileBackgroundOpacity', 0.5),
+                configRepository.getBool(
+                    'VRCX_displayVRCProfileCosmetics',
+                    false
+                ),
                 configRepository.getBool('VRCX_hideNicknames', false),
                 configRepository.getBool(
                     'VRCX_showInstanceIdInLocation',
@@ -267,6 +275,7 @@ export const useAppearanceSettingsStore = defineStore(
                 ),
                 configRepository.getBool('VRCX_showNewDashboardButton', true),
                 configRepository.getBool('VRCX_feedEnabled', true),
+                configRepository.getBool('VRCX_popoutEnabled', false),
                 configRepository.getString(
                     'VRCX_fontFamily',
                     APP_FONT_DEFAULT_KEY
@@ -320,6 +329,7 @@ export const useAppearanceSettingsStore = defineStore(
             displayVRCProfileBackgrounds.value =
                 displayVRCProfileBackgroundsConfig;
             profileBackgroundOpacity.value = profileBackgroundOpacityConfig;
+            displayVRCProfileCosmetics.value = displayVRCProfileCosmeticsConfig;
             hideNicknames.value = hideNicknamesConfig;
             showInstanceIdInLocation.value = showInstanceIdInLocationConfig;
             isAgeGatedInstancesVisible.value = isAgeGatedInstancesVisibleConfig;
@@ -391,6 +401,7 @@ export const useAppearanceSettingsStore = defineStore(
             accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
             showNewDashboardButton.value = showNewDashboardButtonConfig;
             feedEnabled.value = feedEnabledConfig;
+            popoutEnabled.value = !BROWSER && popoutEnabledConfig;
 
             applyAccessibleStatusClass();
 
@@ -656,6 +667,18 @@ export const useAppearanceSettingsStore = defineStore(
         function setProfileBackgroundOpacity(value) {
             profileBackgroundOpacity.value = value;
             configRepository.setFloat('VRCX_profileBackgroundOpacity', value);
+        }
+
+        /**
+         *
+         */
+        function setDisplayVRCProfileCosmetics() {
+            displayVRCProfileCosmetics.value =
+                !displayVRCProfileCosmetics.value;
+            configRepository.setBool(
+                'VRCX_displayVRCProfileCosmetics',
+                displayVRCProfileCosmetics.value
+            );
         }
 
         /**
@@ -1023,6 +1046,11 @@ export const useAppearanceSettingsStore = defineStore(
             configRepository.setBool('VRCX_feedEnabled', feedEnabled.value);
         }
 
+        function setPopoutEnabled() {
+            popoutEnabled.value = !popoutEnabled.value;
+            configRepository.setBool('VRCX_popoutEnabled', popoutEnabled.value);
+        }
+
         /**
          * @param {object} color
          */
@@ -1228,6 +1256,7 @@ export const useAppearanceSettingsStore = defineStore(
             displayVRCProfileThemes,
             displayVRCProfileBackgrounds,
             profileBackgroundOpacity,
+            displayVRCProfileCosmetics,
             hideNicknames,
             showInstanceIdInLocation,
             isAgeGatedInstancesVisible,
@@ -1263,6 +1292,7 @@ export const useAppearanceSettingsStore = defineStore(
             accessibleStatusIndicators,
             showNewDashboardButton,
             feedEnabled,
+            popoutEnabled,
             tableLimitsDialog,
             TABLE_MAX_SIZE_MIN,
             TABLE_MAX_SIZE_MAX,
@@ -1274,6 +1304,7 @@ export const useAppearanceSettingsStore = defineStore(
             setDisplayVRCProfileThemes,
             setDisplayVRCProfileBackgrounds,
             setProfileBackgroundOpacity,
+            setDisplayVRCProfileCosmetics,
             setHideNicknames,
             setShowInstanceIdInLocation,
             setIsAgeGatedInstancesVisible,
@@ -1303,6 +1334,7 @@ export const useAppearanceSettingsStore = defineStore(
             toggleAccessibleStatusIndicators,
             setShowNewDashboardButton,
             setFeedEnabled,
+            setPopoutEnabled,
             setTableDensity,
             setTrustColor,
             tryInitUserColours,

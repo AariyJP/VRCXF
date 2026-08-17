@@ -92,25 +92,20 @@ function getAssetFilename({ name }) {
     return 'assets/i18n/[name][extname]';
 }
 
+/**
+ * @param ConfigEnv configEnv
+ * @returns {import('vite').UserConfig}
+ */
 export default defineConfig(({ mode }) => {
-    const { SENTRY_AUTH_TOKEN: sentryAuthToken } = loadEnv(
-        mode,
-        process.cwd(),
-        ''
-    );
+    const { SENTRY_AUTH_TOKEN: sentryAuthToken } = loadEnv(mode, process.cwd(), '');
 
     const buildAndUploadSourceMaps = !!sentryAuthToken;
 
-    const version = fs
-        .readFileSync(new URL('../Version', import.meta.url), 'utf-8')
-        .trim();
+    const version = fs.readFileSync(new URL('../Version', import.meta.url), 'utf-8').trim();
 
-    const nightly =
-        mode === 'development' || version.split('-').at(-1).length === 7;
+    const nightly = mode === 'development' || version.split('-').at(-1).length === 7;
 
-    const outDirName =
-        process.env.PLATFORM === 'browser' ? 'html-browser' : 'html';
-
+    /** @type {import('vite').UserConfig} */
     return {
         base: '',
         plugins: [
@@ -129,8 +124,8 @@ export default defineConfig(({ mode }) => {
                             name: version
                         },
                         sourcemaps: {
-                            assets: `./build/${outDirName}/**`,
-                            filesToDeleteAfterUpload: `./build/${outDirName}/**/*.js.map`,
+                            assets: './build/html/**',
+                            filesToDeleteAfterUpload: './build/html/**/*.js.map',
                             ignore: []
                         }
                     })
@@ -166,9 +161,6 @@ export default defineConfig(({ mode }) => {
             ]
         },
         define: {
-            BROWSER: JSON.stringify(process.env.PLATFORM === 'browser'),
-            LINUX: JSON.stringify(process.env.PLATFORM === 'linux'),
-            WINDOWS: JSON.stringify(process.env.PLATFORM === 'windows'),
             VERSION: JSON.stringify(version),
             NIGHTLY: JSON.stringify(nightly)
         },
@@ -180,28 +172,22 @@ export default defineConfig(({ mode }) => {
                     target: 'http://127.0.0.1:8788',
                     changeOrigin: true,
                     secure: false
-                },
-                '/ws': {
-                    target: 'wss://pipeline.vrchat.cloud',
-                    changeOrigin: true,
-                    ws: true,
-                    rewrite: (path) => path.replace(/^\/ws/, '') || '/'
                 }
             }
         },
         build: {
             target: 'chrome145',
-            outDir: `../build/${outDirName}`,
+            outDir: '../build/html',
             license: true,
             emptyOutDir: true,
             copyPublicDir: true,
             reportCompressedSize: false,
             chunkSizeWarningLimit: 5000,
             sourcemap: buildAndUploadSourceMaps ? 'hidden' : false,
-            assetsInlineLimit(filePath) {
-                if (isFont(filePath)) return 0;
-                if (filePath.endsWith('.json')) return 0;
-                return 40960;
+            assetsInlineLimit(filePath, content) {
+                if (isFont(filePath)) return false;
+                if (filePath.endsWith('.json')) return false;
+                return content.length <= 40960;
             },
             rolldownOptions: {
                 preserveEntrySignatures: false,

@@ -23,6 +23,7 @@
 - Windows で CEF/CefSharp 148
 - SQLite
 - node-api-dotnet
+- Browser: `BROWSER` フラグ（`index.html` のランタイム判定）。.NET ランタイムなしでフロントエンドのみを一般ブラウザで動かす。`npm run dev` で Vite を起動し、Cloudflare Wrangler Pages(port 8788)は別プロセスで動かす
 
 ## 主要ディレクトリ
 
@@ -30,6 +31,7 @@
 - `src/components/`: 共通コンポーネントとダイアログ
 - `src/composables/`: Vue composables
 - `src/ipc-electron/`: レンダラ向け Electron IPC ヘルパー
+- `src/ipc-browser/`: Browser 検証ターゲット向けネイティブ API モック (`index.js` のみ。fetch+Cookie中継の `WebApi`、sql.js on IndexedDB の `SQLite` 等。`LogWatcher`/`Discord`/ゲーム起動/レジストリ/スクショ等はスタブ)
 - `src/plugins/`: ブートストラッププラグイン (`dayjs`、`i18n`、`interopApi`、`noty`、`router`、`sentry`、`ui`)
 - `src/public/`: Vite がコピーする静的アセット
 - `src/queries/`: Vue Query クライアント、key、cache、query ヘルパー

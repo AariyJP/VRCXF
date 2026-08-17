@@ -24,23 +24,7 @@ import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
 
 const toolRoutes = BROWSER
-    ? [
-          {
-              path: 'tools',
-              name: 'tools',
-              redirect: { name: 'feed' }
-          },
-          {
-              path: 'tools/gallery',
-              name: 'gallery',
-              redirect: { name: 'feed' }
-          },
-          {
-              path: 'tools/screenshot-metadata',
-              name: 'screenshot-metadata',
-              redirect: { name: 'feed' }
-          }
-      ]
+    ? []
     : [
           { path: 'tools', name: 'tools', component: Tools },
           {
@@ -54,6 +38,34 @@ const toolRoutes = BROWSER
               name: 'screenshot-metadata',
               component: ScreenshotMetadata,
               meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
+          }
+      ];
+
+const chartRoutes = BROWSER
+    ? []
+    : [
+          {
+              path: 'charts',
+              name: 'charts',
+              redirect: { name: 'charts-instance' }
+          },
+          {
+              path: 'charts/instance',
+              name: 'charts-instance',
+              component: () =>
+                  import('./../views/Charts/components/InstanceActivity.vue')
+          },
+          {
+              path: 'charts/mutual',
+              name: 'charts-mutual',
+              component: () =>
+                  import('./../views/Charts/components/MutualFriends.vue')
+          },
+          {
+              path: 'charts/hot-worlds',
+              name: 'charts-hot-worlds',
+              component: () =>
+                  import('./../views/Charts/components/HotWorlds.vue')
           }
       ];
 
@@ -77,7 +89,15 @@ const routes = [
                 component: FriendsLocations
             },
             { path: 'game-log', name: 'game-log', component: GameLog },
-            { path: 'player-list', name: 'player-list', component: PlayerList },
+            ...(BROWSER
+                ? []
+                : [
+                      {
+                          path: 'player-list',
+                          name: 'player-list',
+                          component: PlayerList
+                      }
+                  ]),
             { path: 'search', name: 'search', component: Search },
             {
                 path: 'dashboard/:id',
@@ -126,33 +146,7 @@ const routes = [
                 name: 'friend-list',
                 component: FriendList
             },
-            {
-                path: 'charts',
-                name: 'charts',
-                redirect: { name: 'charts-instance' },
-                meta: { browserDisabled: true }
-            },
-            {
-                path: 'charts/instance',
-                name: 'charts-instance',
-                component: () =>
-                    import('./../views/Charts/components/InstanceActivity.vue'),
-                meta: { browserDisabled: true }
-            },
-            {
-                path: 'charts/mutual',
-                name: 'charts-mutual',
-                component: () =>
-                    import('./../views/Charts/components/MutualFriends.vue'),
-                meta: { browserDisabled: true }
-            },
-            {
-                path: 'charts/hot-worlds',
-                name: 'charts-hot-worlds',
-                component: () =>
-                    import('./../views/Charts/components/HotWorlds.vue'),
-                meta: { browserDisabled: true }
-            },
+            ...chartRoutes,
             ...toolRoutes,
             {
                 path: 'settings',
@@ -179,7 +173,14 @@ router.beforeEach((to) => {
         return false;
     }
 
-    if (BROWSER && to.matched.some((record) => record.meta?.browserDisabled)) {
+    if (
+        BROWSER &&
+        (to.path === '/player-list' ||
+            to.path === '/tools' ||
+            to.path.startsWith('/tools/') ||
+            to.path === '/charts' ||
+            to.path.startsWith('/charts/'))
+    ) {
         return { name: 'feed' };
     }
 

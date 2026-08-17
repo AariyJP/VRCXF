@@ -65,6 +65,7 @@
 
     import { useGalleryStore, useUserStore } from '../../../stores';
     import { vrcPlusIconRequest, vrcPlusImageRequest } from '../../../api';
+    import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
     import { computed, watch } from 'vue';
 
     const { t } = useI18n();
@@ -121,7 +122,7 @@
      *
      */
     function displayGalleryUpload() {
-        document.getElementById('GalleryUploadButton').click();
+        queryAcrossWindows('#GalleryUploadButton')?.click();
     }
 
     /**
@@ -130,7 +131,7 @@
      */
     function onFileChangeGallery(e) {
         const clearFile = function () {
-            const fileInput = /** @type{HTMLInputElement} */ (document.querySelector('#GalleryUploadButton'));
+            const fileInput = /** @type{HTMLInputElement} */ (queryAcrossWindows('#GalleryUploadButton'));
             if (fileInput) {
                 fileInput.value = '';
             }

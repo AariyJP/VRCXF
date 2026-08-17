@@ -223,8 +223,8 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
         autoDeleteOldPrints.value = autoDeleteOldPrintsConfig;
         notificationOpacity.value = notificationOpacityConfig;
         saveInstanceEmoji.value = saveInstanceEmojiConfig;
-        vrcRegistryAutoBackup.value = vrcRegistryAutoBackupConfig;
-        vrcRegistryAskRestore.value = vrcRegistryAskRestoreConfig;
+        vrcRegistryAutoBackup.value = !BROWSER && vrcRegistryAutoBackupConfig;
+        vrcRegistryAskRestore.value = !BROWSER && vrcRegistryAskRestoreConfig;
         sentryErrorReporting.value = sentryErrorReportingConfig === 'true';
 
         handleSetAppLauncherSettings();
@@ -709,7 +709,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
                         if (!ok) return;
 
                         sentryErrorReporting.value = true;
-                        configRepository.setBool('VRCX_SentryEnabled', true);
+                        await configRepository.setBool('VRCX_SentryEnabled', true);
 
                         VRCXUpdaterStore.restartVRCX(false);
                     });

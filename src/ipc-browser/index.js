@@ -1,6 +1,8 @@
-import SparkMD5 from 'spark-md5';
 import initSqlJs from 'sql.js';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+import { toast } from 'vue-sonner';
+
+import { md5 } from './md5';
 
 const storagePrefix = 'vrcxf-browser:storage:';
 const metaKey = 'vrcxf-browser:storage:keys';
@@ -8,9 +10,16 @@ const indexedDbName = 'vrcxf-browser';
 const indexedDbStore = 'runtime';
 const sqliteKey = 'sqlite-db';
 const cookieJarKey = 'cookie-jar';
+const sqliteHeader = new Uint8Array([
+    0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00
+]);
 const overlayQueue = new Map();
 
+const persistIntervalMs = 2000;
+
 let indexedDbPromise;
+let indexedDbHandle;
+let persistFailureNotified = false;
 let browserCookieJar = [];
 let browserCookieJarReady;
 
@@ -19,6 +28,13 @@ function getBrowserLanguage() {
         return 'en-US';
     }
     return navigator.languages?.[0] || navigator.language || 'en-US';
+}
+
+function forgetIndexedDb(db) {
+    if (indexedDbHandle === db) {
+        indexedDbHandle = undefined;
+        indexedDbPromise = undefined;
+    }
 }
 
 function openIndexedDb() {
@@ -34,33 +50,51 @@ function openIndexedDb() {
                     request.result.createObjectStore(indexedDbStore);
                 }
             };
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+                indexedDbHandle = db;
+                db.onclose = () => forgetIndexedDb(db);
+                db.onversionchange = () => {
+                    forgetIndexedDb(db);
+                    db.close();
+                };
+                resolve(db);
+            };
             request.onerror = () => reject(request.error);
+        }).catch((error) => {
+            indexedDbPromise = undefined;
+            throw error;
         });
     }
     return indexedDbPromise;
 }
 
+async function withIndexedDbStore(mode, callback) {
+    for (let attempt = 0; ; attempt += 1) {
+        const db = await openIndexedDb();
+        try {
+            return await new Promise((resolve, reject) => {
+                const tx = db.transaction(indexedDbStore, mode);
+                const request = callback(tx.objectStore(indexedDbStore));
+                tx.oncomplete = () => resolve(request.result);
+                tx.onabort = () => reject(tx.error || request.error);
+                tx.onerror = () => reject(tx.error || request.error);
+            });
+        } catch (error) {
+            forgetIndexedDb(db);
+            if (attempt > 0) {
+                throw error;
+            }
+        }
+    }
+}
+
 async function getIndexedDbValue(key) {
-    const db = await openIndexedDb();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(indexedDbStore, 'readonly');
-        const store = tx.objectStore(indexedDbStore);
-        const request = store.get(key);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
+    return withIndexedDbStore('readonly', (store) => store.get(key));
 }
 
 async function setIndexedDbValue(key, value) {
-    const db = await openIndexedDb();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(indexedDbStore, 'readwrite');
-        const store = tx.objectStore(indexedDbStore);
-        const request = store.put(value, key);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
+    await withIndexedDbStore('readwrite', (store) => store.put(value, key));
 }
 
 function decodeBase64(base64) {
@@ -99,10 +133,19 @@ function normalizeSqlArgs(args) {
     if (!args) {
         return undefined;
     }
-    if (args instanceof Map) {
-        return Object.fromEntries(args.entries());
+    if (Array.isArray(args)) {
+        return args.map((value) => (value === undefined ? null : value));
     }
-    return args;
+    const entries = args instanceof Map ? args.entries() : Object.entries(args);
+    const normalized = {};
+    for (const [key, value] of entries) {
+        normalized[key] = value === undefined ? null : value;
+    }
+    return normalized;
+}
+
+function getSchemaVersion(db) {
+    return db.exec('PRAGMA schema_version')[0]?.values?.[0]?.[0] ?? 0;
 }
 
 function hashColor(input) {
@@ -112,14 +155,6 @@ function hashColor(input) {
         hash |= 0;
     }
     return Math.abs(hash % 360);
-}
-
-function applyBrowserZoom(level) {
-    const numeric = Number(level);
-    if (!Number.isFinite(numeric)) {
-        return;
-    }
-    document.documentElement.style.zoom = String(1.2 ** numeric);
 }
 
 function base64ByteLength(base64) {
@@ -139,15 +174,8 @@ function drawToBase64Png(source, width, height) {
     return dataUrl.slice(dataUrl.indexOf(',') + 1);
 }
 
-async function resizeBase64ImageToFitLimits(
-    base64data,
-    maxWidth = 2000,
-    maxHeight = 2000,
-    maxSize = 10_000_000
-) {
-    const bitmap = await createImageBitmap(
-        new Blob([decodeBase64(base64data)])
-    );
+async function resizeBase64ImageToFitLimits(base64data, maxWidth = 2000, maxHeight = 2000, maxSize = 10_000_000) {
+    const bitmap = await createImageBitmap(new Blob([decodeBase64(base64data)]));
     let width = bitmap.width;
     let height = bitmap.height;
 
@@ -184,10 +212,7 @@ async function resizeBase64ImageToFitLimits(
 
 async function requestPersistentStorage() {
     try {
-        if (
-            navigator?.storage?.persist &&
-            !(await navigator.storage.persisted())
-        ) {
+        if (navigator?.storage?.persist && !(await navigator.storage.persisted())) {
             await navigator.storage.persist();
         }
     } catch (error) {
@@ -195,11 +220,23 @@ async function requestPersistentStorage() {
     }
 }
 
+function reportPersistFailure(error) {
+    console.error('ローカルデータベースの保存に失敗しました', error);
+    if (persistFailureNotified) {
+        return;
+    }
+    persistFailureNotified = true;
+    toast.error('ローカルデータベースの保存に失敗しました。最近の変更が失われる可能性があります。');
+}
+
 class BrowserSQLiteRuntime {
     constructor() {
         this.db = null;
         this.SQL = null;
         this.inTransaction = false;
+        this.transactionDirty = false;
+        this.persistDirty = false;
+        this.persistTimer = null;
         this.queue = Promise.resolve();
         this.ready = this.init();
     }
@@ -216,18 +253,38 @@ class BrowserSQLiteRuntime {
         await requestPersistentStorage();
         const stored = await getIndexedDbValue(sqliteKey).catch(() => null);
         const bytes =
-            stored instanceof Uint8Array
-                ? stored
-                : stored instanceof ArrayBuffer
-                  ? new Uint8Array(stored)
-                  : null;
-        this.db = bytes
-            ? new this.SQL.Database(bytes)
-            : new this.SQL.Database();
+            stored instanceof Uint8Array ? stored : stored instanceof ArrayBuffer ? new Uint8Array(stored) : null;
+        this.db = bytes ? new this.SQL.Database(bytes) : new this.SQL.Database();
     }
 
     async persistNow() {
-        await setIndexedDbValue(sqliteKey, this.db.export());
+        if (this.persistTimer !== null) {
+            clearTimeout(this.persistTimer);
+            this.persistTimer = null;
+        }
+        if (!this.persistDirty || this.inTransaction) {
+            return;
+        }
+        this.persistDirty = false;
+        try {
+            await setIndexedDbValue(sqliteKey, this.db.export());
+            console.log('IndexedDBに保存しました。');
+            persistFailureNotified = false;
+        } catch (error) {
+            this.persistDirty = true;
+            reportPersistFailure(error);
+        }
+    }
+
+    schedulePersist() {
+        this.persistDirty = true;
+        if (this.persistTimer !== null) {
+            return;
+        }
+        this.persistTimer = setTimeout(() => {
+            this.persistTimer = null;
+            this.enqueue(() => this.persistNow());
+        }, persistIntervalMs);
     }
 
     async execute(sql, args) {
@@ -251,25 +308,109 @@ class BrowserSQLiteRuntime {
         await this.ready;
         return this.enqueue(async () => {
             const statement = sql.trim().replace(/;+$/, '').toUpperCase();
+            const isBegin = /^BEGIN\b/.test(statement);
+            const isCommit = /^(COMMIT|END)\b/.test(statement);
+            const isRollback = /^ROLLBACK\b/.test(statement);
+            const isDataChange = /^(INSERT|UPDATE|DELETE|REPLACE)\b/.test(statement);
+            const isSchemaChange = /^(CREATE|DROP|ALTER)\b/.test(statement);
+            const schemaVersion = isSchemaChange ? getSchemaVersion(this.db) : null;
             this.db.run(sql, normalizeSqlArgs(args));
             const rowsModified = this.db.getRowsModified();
-            if (/^BEGIN\b/.test(statement)) {
+            const changed =
+                (isDataChange && rowsModified > 0) || (isSchemaChange && getSchemaVersion(this.db) !== schemaVersion);
+
+            if (isBegin) {
                 this.inTransaction = true;
-            } else if (/^(COMMIT|END|ROLLBACK)\b/.test(statement)) {
+                this.transactionDirty = false;
+            } else if (isRollback) {
                 this.inTransaction = false;
-            }
-            if (
-                !this.inTransaction &&
-                !/^PRAGMA\s+OPTIMIZE\b/.test(statement)
-            ) {
-                await this.persistNow();
+                this.transactionDirty = false;
+                if (this.persistDirty) {
+                    this.schedulePersist();
+                }
+            } else if (isCommit) {
+                const shouldPersist = this.persistDirty || this.transactionDirty;
+                this.inTransaction = false;
+                this.transactionDirty = false;
+                if (shouldPersist) {
+                    this.schedulePersist();
+                }
+            } else if (this.inTransaction) {
+                this.transactionDirty ||= changed;
+            } else if (changed) {
+                this.schedulePersist();
             }
             return rowsModified;
+        });
+    }
+
+    async importDatabase(source) {
+        await this.ready;
+        return this.enqueue(async () => {
+            let bytes = null;
+            if (source instanceof Uint8Array) {
+                bytes = source;
+            } else if (source instanceof ArrayBuffer) {
+                bytes = new Uint8Array(source);
+            }
+            if (
+                !bytes ||
+                bytes.length < sqliteHeader.length ||
+                !sqliteHeader.every((value, index) => bytes[index] === value)
+            ) {
+                return false;
+            }
+
+            let importedDb;
+            try {
+                importedDb = new this.SQL.Database(bytes);
+                const quickCheck = importedDb.exec('PRAGMA quick_check');
+                if (quickCheck[0]?.values?.[0]?.[0] !== 'ok') {
+                    importedDb.close();
+                    return false;
+                }
+            } catch {
+                importedDb?.close();
+                return false;
+            }
+
+            try {
+                await setIndexedDbValue(sqliteKey, importedDb.export());
+                console.log('IndexedDBに保存しました。');
+            } catch (error) {
+                importedDb.close();
+                reportPersistFailure(error);
+                return false;
+            }
+
+            if (this.persistTimer !== null) {
+                clearTimeout(this.persistTimer);
+                this.persistTimer = null;
+            }
+            this.persistDirty = false;
+            this.inTransaction = false;
+            this.transactionDirty = false;
+            this.db.close();
+            this.db = importedDb;
+            persistFailureNotified = false;
+            return true;
         });
     }
 }
 
 const browserSQLiteRuntime = new BrowserSQLiteRuntime();
+
+if (typeof document !== 'undefined') {
+    const flushPersist = () => {
+        browserSQLiteRuntime.enqueue(() => browserSQLiteRuntime.persistNow());
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            flushPersist();
+        }
+    });
+    window.addEventListener('pagehide', flushPersist);
+}
 
 function getStorageKeys() {
     try {
@@ -378,12 +519,8 @@ function parseCookieHeader(cookieHeader) {
         .filter(Boolean)
         .map((entry) => {
             const separatorIndex = entry.indexOf('=');
-            const name =
-                separatorIndex === -1
-                    ? entry
-                    : entry.slice(0, separatorIndex).trim();
-            const value =
-                separatorIndex === -1 ? '' : entry.slice(separatorIndex + 1);
+            const name = separatorIndex === -1 ? entry : entry.slice(0, separatorIndex).trim();
+            const value = separatorIndex === -1 ? '' : entry.slice(separatorIndex + 1);
             return {
                 Name: name,
                 Value: value,
@@ -446,11 +583,7 @@ function isCookieExpired(cookie) {
 }
 
 function getCookieKey(cookie) {
-    return [
-        getCookieDomain(cookie).toLowerCase(),
-        getCookiePath(cookie),
-        getCookieName(cookie)
-    ].join('\u0000');
+    return [getCookieDomain(cookie).toLowerCase(), getCookiePath(cookie), getCookieName(cookie)].join('\u0000');
 }
 
 async function loadBrowserCookieJar() {
@@ -471,9 +604,7 @@ async function loadBrowserCookieJar() {
 }
 
 async function persistBrowserCookieJar() {
-    browserCookieJar = browserCookieJar.filter(
-        (cookie) => getCookieName(cookie) && !isCookieExpired(cookie)
-    );
+    browserCookieJar = browserCookieJar.filter((cookie) => getCookieName(cookie) && !isCookieExpired(cookie));
     await setIndexedDbValue(cookieJarKey, encodeJsonBase64(browserCookieJar));
 }
 
@@ -508,10 +639,7 @@ function parseSetCookie(setCookie) {
             attributeSeparatorIndex === -1
                 ? attribute.toLowerCase()
                 : attribute.slice(0, attributeSeparatorIndex).toLowerCase();
-        const value =
-            attributeSeparatorIndex === -1
-                ? ''
-                : attribute.slice(attributeSeparatorIndex + 1);
+        const value = attributeSeparatorIndex === -1 ? '' : attribute.slice(attributeSeparatorIndex + 1);
         if (name === 'path') {
             cookie.Path = value || '/';
         } else if (name === 'domain') {
@@ -521,9 +649,7 @@ function parseSetCookie(setCookie) {
         } else if (name === 'max-age') {
             const seconds = parseInt(value, 10);
             cookie.Expires =
-                seconds <= 0
-                    ? '1970-01-01T00:00:00.000Z'
-                    : new Date(Date.now() + seconds * 1000).toISOString();
+                seconds <= 0 ? '1970-01-01T00:00:00.000Z' : new Date(Date.now() + seconds * 1000).toISOString();
         } else if (name === 'secure') {
             cookie.Secure = true;
         } else if (name === 'httponly') {
@@ -535,9 +661,7 @@ function parseSetCookie(setCookie) {
 
 async function mergeBrowserCookies(cookies) {
     await loadBrowserCookieJar();
-    const cookieMap = new Map(
-        browserCookieJar.map((cookie) => [getCookieKey(cookie), cookie])
-    );
+    const cookieMap = new Map(browserCookieJar.map((cookie) => [getCookieKey(cookie), cookie]));
     for (const cookie of cookies) {
         if (!cookie || !getCookieName(cookie)) {
             continue;
@@ -572,10 +696,7 @@ function applyBrowserCookie(cookie) {
     if (expires && !Number.isNaN(expires.getTime())) {
         parts.push(`expires=${expires.toUTCString()}`);
     }
-    if (
-        (cookie?.Secure ?? cookie?.secure ?? false) &&
-        location.protocol === 'https:'
-    ) {
+    if ((cookie?.Secure ?? cookie?.secure ?? false) && location.protocol === 'https:') {
         parts.push('secure');
     }
     parts.push('SameSite=Lax');
@@ -588,9 +709,7 @@ async function buildRequest(options) {
     let method = options.method || 'GET';
     let body;
     const requestUrl = new URL(options.url, window.location.origin);
-    const isLocalApi =
-        requestUrl.origin === window.location.origin &&
-        requestUrl.pathname.startsWith('/api/1');
+    const isLocalApi = requestUrl.origin === window.location.origin && requestUrl.pathname.startsWith('/api/1');
     const isVrchatApi = requestUrl.origin === 'https://api.vrchat.cloud';
 
     if (options.uploadFilePUT) {
@@ -602,29 +721,19 @@ async function buildRequest(options) {
         if (options.fileMD5) {
             headers.set('Content-MD5', options.fileMD5);
         }
-    } else if (
-        options.uploadImage ||
-        options.uploadImageLegacy ||
-        options.uploadImagePrint
-    ) {
+    } else if (options.uploadImage || options.uploadImageLegacy || options.uploadImagePrint) {
         method = 'POST';
         const formData = new FormData();
         if (options.postData) {
             if (options.uploadImageLegacy) {
                 formData.append('data', options.postData);
             } else {
-                Object.entries(parseJsonSafe(options.postData, {})).forEach(
-                    ([key, value]) => {
-                        formData.append(key, value ?? '');
-                    }
-                );
+                Object.entries(parseJsonSafe(options.postData, {})).forEach(([key, value]) => {
+                    formData.append(key, value ?? '');
+                });
             }
         }
-        formData.append(
-            'image',
-            decodeImageBase64(options.imageData),
-            'image.png'
-        );
+        formData.append('image', decodeImageBase64(options.imageData), 'image.png');
         body = formData;
         headers.delete('Content-Type');
     } else if (options.body) {
@@ -640,11 +749,7 @@ async function buildRequest(options) {
 
     return {
         body,
-        credentials: isVrchatApi
-            ? 'include'
-            : isLocalApi
-              ? 'same-origin'
-              : 'omit',
+        credentials: isVrchatApi ? 'include' : isLocalApi ? 'same-origin' : 'omit',
         headers,
         method,
         mode: 'cors'
@@ -658,9 +763,7 @@ async function executeFetch(options) {
     if (setCookiesHeader) {
         try {
             const setCookies = decodeJsonBase64(setCookiesHeader);
-            await mergeBrowserCookies(
-                setCookies.map((setCookie) => parseSetCookie(setCookie))
-            );
+            await mergeBrowserCookies(setCookies.map((setCookie) => parseSetCookie(setCookie)));
         } catch (error) {
             void error;
         }
@@ -761,20 +864,15 @@ const BrowserAppApi = new Proxy(
     {
         async ShowDevTools() {},
         async SetVR() {},
-        async SetZoom(value) {
-            await BrowserVRCXStorage.Set('browserZoomLevel', value);
-            applyBrowserZoom(value);
-        },
+        async SetZoom() {},
         async GetZoom() {
-            const value = await BrowserVRCXStorage.Get('browserZoomLevel');
-            const level = parseFloat(value || '0') || 0;
-            applyBrowserZoom(level);
-            return level;
+            return 0;
         },
         async DesktopNotification(title, text, image) {
             await showDesktopNotification(title, text, image);
         },
         async RestartApplication() {
+            await browserSQLiteRuntime.enqueue(() => browserSQLiteRuntime.persistNow());
             window.location.reload();
         },
         async CheckForUpdateExe() {
@@ -813,9 +911,7 @@ const BrowserAppApi = new Proxy(
             }
         },
         async OpenCalendarFile(icsContent) {
-            const url = URL.createObjectURL(
-                new Blob([icsContent], { type: 'text/calendar' })
-            );
+            const url = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar' }));
             window.open(url, '_blank', 'noopener');
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         },
@@ -826,11 +922,7 @@ const BrowserAppApi = new Proxy(
             window.open(url, '_blank', 'noopener');
         },
         async OpenDiscordProfile(discordId) {
-            window.open(
-                `https://discord.com/users/${discordId}`,
-                '_blank',
-                'noopener'
-            );
+            window.open(`https://discord.com/users/${discordId}`, '_blank', 'noopener');
         },
         async GetLaunchCommand() {
             return '';
@@ -856,9 +948,7 @@ const BrowserAppApi = new Proxy(
             return true;
         },
         async GetColourBulk(userIds) {
-            return Object.fromEntries(
-                (userIds || []).map((userId) => [userId, hashColor(userId)])
-            );
+            return Object.fromEntries((userIds || []).map((userId) => [userId, hashColor(userId)]));
         },
         async SetAppLauncherSettings() {},
         async GetFileBase64() {
@@ -869,10 +959,7 @@ const BrowserAppApi = new Proxy(
             return true;
         },
         async MD5File(blob) {
-            const bytes = decodeBase64(blob);
-            return rawStringToBase64(
-                SparkMD5.ArrayBuffer.hash(bytes.buffer, true)
-            );
+            return toBase64(md5(decodeBase64(blob)));
         },
         async SignFile(blob) {
             return blob;
@@ -921,8 +1008,8 @@ const BrowserAppApi = new Proxy(
         async OpenFileSelectorDialog() {
             return '';
         },
-        async ImportDatabase() {
-            return false;
+        async ImportDatabase(source) {
+            return browserSQLiteRuntime.importDatabase(source);
         },
         async OnProcessStateChanged() {},
         async CheckGameRunning() {},
@@ -1027,15 +1114,7 @@ const BrowserAppApi = new Proxy(
         async XSNotification(title, content, timeout, opacity, image) {
             await showDesktopNotification(title, content, image);
         },
-        async OVRTNotification(
-            hudNotification,
-            wristNotification,
-            title,
-            body,
-            timeout,
-            opacity,
-            image
-        ) {
+        async OVRTNotification(hudNotification, wristNotification, title, body, timeout, opacity, image) {
             await showDesktopNotification(title, body, image);
         }
     },

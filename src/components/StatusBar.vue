@@ -254,7 +254,7 @@
                         </template>
 
                         <TooltipWrapper
-                            v-if="visibility.zoom"
+                            v-if="visibility.zoom && WINDOWS"
                             :content="t('status_bar.zoom_tooltip')"
                             side="top"
                             :disabled="zoomEditing">
@@ -342,7 +342,7 @@
                     {{ t('status_bar.app_uptime_short') }}
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
-                    v-if="!isMacOS"
+                    v-if="WINDOWS"
                     :model-value="visibility.zoom"
                     @select.prevent
                     @update:model-value="toggleVisibility('zoom')">
@@ -746,7 +746,9 @@
         }
     });
 
-    initGetZoomLevel();
+    if (WINDOWS) {
+        initGetZoomLevel();
+    }
 
     watch(
         () => visibility.ws,

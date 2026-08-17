@@ -9,6 +9,7 @@ npm test
 npm run test:coverage
 npm run prod
 npm run prod-linux
+npm run preview-cloudflare
 npm run build-electron
 npm run build-electron-arm64
 npm run start-electron
@@ -60,6 +61,7 @@ git log --oneline --decorate -n 20
 
 ## 補足
 
+- Browser ターゲット専用のスクリプトは無い。`dev` / `prod` の成果物がそのまま全ターゲットで動き、`BROWSER` フラグは `index.html` のランタイム判定で決まる。ネイティブ API は `src/ipc-browser/` のモックが代替する
 - 現プロジェクトに `npm run dev:test` は存在しない
 - 可能な限り Shell より Serena / 純正ツールを優先する
 - commit / push はユーザーが行うため、エージェント側で走らせない

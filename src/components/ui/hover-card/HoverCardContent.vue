@@ -1,5 +1,6 @@
 <script setup>
     import { HoverCardContent, HoverCardPortal, useForwardProps } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -34,10 +35,12 @@
     const delegatedProps = reactiveOmit(props, 'class');
 
     const forwardedProps = useForwardProps(delegatedProps);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <HoverCardPortal>
+    <HoverCardPortal :to="portalTo">
         <HoverCardContent
             data-slot="hover-card-content"
             v-bind="{ ...$attrs, ...forwardedProps }"

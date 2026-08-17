@@ -502,6 +502,16 @@
                                         @click="deletePrint(image.id)">
                                         <Trash2 />
                                     </Button>
+                                    <Button
+                                        size="icon-sm"
+                                        variant="ghost"
+                                        class="rounded-full ml-auto"
+                                        @click="toggleFavoritePrint(image.id)">
+                                        <Star
+                                            :class="favoritePrintIds.has(image.id)
+                                                ? 'text-yellow-500 fill-yellow-500'
+                                                : 'hover:text-yellow-500'" />
+                                    </Button>
                                 </ItemFooter>
                             </div>
                         </Item>
@@ -590,7 +600,7 @@
 </template>
 
 <script setup>
-    import { ArrowLeft, Check, Gift, RefreshCw, Trash2, Upload, X } from 'lucide-vue-next';
+    import { ArrowLeft, Check, Gift, RefreshCw, Trash2, Upload, X, Star } from 'lucide-vue-next';
     import {
         NumberField,
         NumberFieldContent,
@@ -633,9 +643,11 @@
     import { handleImageUploadInput } from '../../coordinators/imageUploadCoordinator';
     import { emojiAnimationStyleList, emojiAnimationStyleUrl } from '../../shared/constants';
     import { AppDebug } from '../../services/appConfig';
+    import { queryAcrossWindows } from '../../lib/activeWindowTracker';
 
     import Emoji from '../../components/Emoji.vue';
     import ImageCropDialog from '../../components/dialogs/ImageCropDialog.vue';
+    import { database } from '../../services/database';
 
     const { t } = useI18n();
     const router = useRouter();
@@ -649,6 +661,7 @@
         printCropBorder,
         stickerTable,
         printTable,
+        favoritePrintIds,
         emojiTable,
         inventoryTable
     } = storeToRefs(useGalleryStore());
@@ -658,6 +671,7 @@
         refreshVRCPlusIconsTable,
         refreshStickerTable,
         refreshPrintTable,
+        refreshPrintFavorites,
         refreshEmojiTable,
         getInventory,
         handleStickerAdd,
@@ -765,7 +779,7 @@
      * @param {string} id
      */
     function triggerFileInput(id) {
-        document.getElementById(id)?.click();
+        queryAcrossWindows(`#${id}`)?.click();
     }
 
     /**
@@ -1184,9 +1198,25 @@
      * @param printId
      */
     function deletePrint(printId) {
+        if (favoritePrintIds.value.has(printId)) {
+            toast.warning('This print is in your favorites', {
+                description: 'Please remove it from your favorites before deleting it.'
+            });
+            return;
+        }
         vrcPlusImageRequest.deletePrint(printId).then((args) => {
             removeItemById(printTable.value, args.printId);
         });
+    }
+
+    async function toggleFavoritePrint(printId) {
+        if (favoritePrintIds.value.has(printId)) {
+            await database.removePrintFromFavorites(printId);
+            favoritePrintIds.value.delete(printId);
+        } else {
+            await database.addPrintToFavorites(printId);
+            favoritePrintIds.value.add(printId);
+        }
     }
 
     async function handleDropGallery(event) {

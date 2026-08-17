@@ -54,10 +54,13 @@ namespace VRCX
                 MenuHandler = new CustomMenuHandler(),
                 DownloadHandler = new CustomDownloadHandler(),
                 RequestHandler = new CustomRequestHandler(),
+                LifeSpanHandler = new CefCustomLifeSpanHandler(),
+                KeyboardHandler = new CefCustomKeyboardHandler(),
                 BrowserSettings =
                 {
                     DefaultEncoding = "UTF-8",
                 },
+                RenderProcessMessageHandler = PlatformRenderProcessMessageHandler.Instance,
                 Dock = DockStyle.Fill
             };
             Browser.IsBrowserInitializedChanged += (_, _) =>

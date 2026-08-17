@@ -17,10 +17,12 @@ import {
 } from '../api';
 import { AppDebug } from '../services/appConfig';
 import { handleImageUploadInput } from '../coordinators/imageUploadCoordinator';
+import { queryAllAcrossWindows } from '../lib/activeWindowTracker';
 import { router } from '../plugins/router';
 import { useAdvancedSettingsStore } from './settings/advanced';
 import { useModalStore } from './modal';
 import { watchState } from '../services/watchState';
+import { database } from '../services/database';
 
 import * as workerTimers from 'worker-timers';
 
@@ -69,6 +71,8 @@ export const useGalleryStore = defineStore('Gallery', () => {
     const instanceStickersCache = ref([]);
 
     const printTable = ref([]);
+
+    const favoritePrintIds = ref(new Set());
 
     const emojiTable = ref([]);
 
@@ -150,6 +154,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
         refreshEmojiTable();
         refreshStickerTable();
         refreshPrintTable();
+        refreshPrintFavorites(),
         getInventory();
     }
 
@@ -218,9 +223,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
      *
      */
     function clearInviteImageUpload() {
-        const buttonList = document.querySelectorAll(
-            '.inviteImageUploadButton'
-        );
+        const buttonList = queryAllAcrossWindows('.inviteImageUploadButton');
         buttonList.forEach((button) => (button.value = ''));
         uploadImage.value = '';
     }
@@ -322,6 +325,14 @@ export const useGalleryStore = defineStore('Gallery', () => {
         } finally {
             galleryDialogPrintsLoading.value = false;
         }
+    }
+
+    async function refreshPrintFavorites() {
+        const favorites = await database.getPrintFavorites();
+
+        favoritePrintIds.value = new Set(
+            favorites.map((favorite) => favorite.printId)
+    );
     }
 
     /**
@@ -465,6 +476,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
             return;
         }
         await refreshPrintTable();
+        await refreshPrintFavorites();
         const printLimit = 64 - 2; // 2 reserved for new prints
         const printCount = printTable.value.length;
         if (printCount <= printLimit) {
@@ -475,11 +487,17 @@ export const useGalleryStore = defineStore('Gallery', () => {
             return;
         }
         const idList = [];
-        for (let i = 0; i < deleteCount; i++) {
-            const print = printTable.value[printCount - 1 - i];
-            idList.push(print.id);
+        for (let i = printCount - 1; i >= 0 && idList.length < deleteCount; i--) {
+            const print = printTable.value[i];
+            if (favoritePrintIds.value.has(print.id)) {
+                continue;
+            }
+            idList.push(print.id)
         }
-        console.log(`Deleting ${deleteCount} old prints`, idList);
+        console.log(`Deleting ${idList.length} old prints`, idList);
+        if (idList.length < deleteCount) {
+            console.log(`Unable to automatically delete enough old prints because ${deleteCount - idList.length} print(s) are protected by favorites.`);
+        }
         try {
             for (const printId of idList) {
                 await vrcPlusImageRequest.deletePrint(printId);
@@ -651,6 +669,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
         stickerTable,
         instanceStickersCache,
         printTable,
+        favoritePrintIds,
         emojiTable,
         inventoryTable,
         fullscreenImageDialog,
@@ -665,6 +684,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
         refreshStickerTable,
         trySaveStickerToFile,
         refreshPrintTable,
+        refreshPrintFavorites,
         queueSavePrintToFile,
         refreshEmojiTable,
         getInventory,

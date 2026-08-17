@@ -62,11 +62,11 @@ if ($IsWindows) {
 }
 if ($IsLinux -or $IsMacOS) {
     if ($BuildArm64) {
-        pnpm prod-linux
+        pnpm prod
         pnpm build-electron-arm64
     }
     else {
-        pnpm prod-linux
+        pnpm prod
         pnpm build-electron
     }
 }

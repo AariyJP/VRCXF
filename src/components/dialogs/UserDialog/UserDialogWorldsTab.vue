@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col rounded-xl bg-(--profile-card) p-2 md:h-full md:min-h-0 md:overflow-hidden">
-        <div class="shrink-0" style="display: flex; align-items: center; justify-content: space-between">
+        <div class="shrink-0 flex flex-wrap items-center justify-between gap-2">
             <div style="display: flex; align-items: center">
                 <Button
                     class="rounded-full"
@@ -19,7 +19,7 @@
                 <Input v-model="searchQuery" class="h-8 mr-2 w-32" placeholder="Search worlds" @click.stop />
             </div>
             <div style="display: flex; align-items: center">
-                <span class="mr-1">{{ t('dialog.user.worlds.sort_by') }}</span>
+                <span class="mr-1 shrink-0 whitespace-nowrap">{{ t('dialog.user.worlds.sort_by') }}</span>
                 <Select
                     :model-value="userDialogWorldSortingKey"
                     :disabled="userDialog.isWorldsLoading"
@@ -38,7 +38,7 @@
                 </Select>
             </div>
             <div style="display: flex; align-items: center">
-                <span class="ml-2 mr-1">{{ t('dialog.user.worlds.order_by') }}</span>
+                <span class="mr-1 shrink-0 whitespace-nowrap">{{ t('dialog.user.worlds.order_by') }}</span>
                 <Select
                     :model-value="userDialogWorldOrderKey"
                     :disabled="userDialog.isWorldsLoading"

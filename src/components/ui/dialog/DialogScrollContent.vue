@@ -5,12 +5,17 @@
         DialogDescription,
         DialogOverlay,
         DialogPortal,
-        useForwardPropsEmits,
+        useForwardProps,
         VisuallyHidden
     } from 'reka-ui';
-    import { inject, onBeforeUnmount, ref, watch } from 'vue';
+    import { inject, ref } from 'vue';
     import { X } from 'lucide-vue-next';
-    import { acquireModalPortalLayer } from '@/lib/modalPortalLayers';
+    import {
+        useCrossWindowDismissGuard,
+        useGuardedOutsideEmit,
+        useModalPortalLayer,
+        usePortalDocument
+    } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -38,27 +43,30 @@
 
     const delegatedProps = reactiveOmit(props, 'class');
 
-    const forwarded = useForwardPropsEmits(delegatedProps, emits);
+    const forwarded = useForwardProps(delegatedProps);
 
     const injectedOpen = inject(DIALOG_OPEN_INJECTION_KEY, null);
     const open = injectedOpen ?? ref(true);
 
-    const portalLayer = acquireModalPortalLayer();
-    const portalTo = portalLayer.element;
+    const portalDoc = usePortalDocument(open);
+    const crossWindowGuard = useCrossWindowDismissGuard(portalDoc);
+    const emitOutside = useGuardedOutsideEmit(portalDoc, emits);
 
-    watch(
-        open,
-        (isOpen) => {
-            if (isOpen) {
-                portalLayer.bringToFront();
-            }
-        },
-        { immediate: true }
-    );
+    function onPointerDownOutside(event) {
+        crossWindowGuard(event);
+        if (event.defaultPrevented) {
+            return;
+        }
+        const originalEvent = event.detail.originalEvent;
+        const target = originalEvent.target;
+        if (originalEvent.offsetX > target.clientWidth || originalEvent.offsetY > target.clientHeight) {
+            event.preventDefault();
+            return;
+        }
+        emits('pointerDownOutside', event);
+    }
 
-    onBeforeUnmount(() => {
-        portalLayer.release();
-    });
+    const portalTo = useModalPortalLayer(open, portalDoc);
 </script>
 
 <template>
@@ -73,15 +81,12 @@
                     )
                 "
                 v-bind="{ ...$attrs, ...forwarded }"
-                @pointer-down-outside="
-                    (event) => {
-                        const originalEvent = event.detail.originalEvent;
-                        const target = originalEvent.target;
-                        if (originalEvent.offsetX > target.clientWidth || originalEvent.offsetY > target.clientHeight) {
-                            event.preventDefault();
-                        }
-                    }
-                ">
+                @pointer-down-outside="onPointerDownOutside"
+                @focus-outside="emitOutside('focusOutside', $event)"
+                @interact-outside="emitOutside('interactOutside', $event)"
+                @escape-key-down="emits('escapeKeyDown', $event)"
+                @open-auto-focus="emits('openAutoFocus', $event)"
+                @close-auto-focus="emits('closeAutoFocus', $event)">
                 <slot />
 
                 <VisuallyHidden as-child>

@@ -10,6 +10,9 @@
     <Configurations>Debug;Release</Configurations>
     <Platforms>ARM64</Platforms>
     <PlatformTarget>ARM64</PlatformTarget>
+    <RuntimeIdentifiers>linux-x64;linux-arm64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND $([MSBuild]::IsOSPlatform('OSX'))">osx-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">linux-arm64</RuntimeIdentifier>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <AssemblyTitle>VRCX</AssemblyTitle>

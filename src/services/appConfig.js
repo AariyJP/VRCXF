@@ -19,12 +19,8 @@ const AppDebug = reactive({
     dontLogMeOut: false,
     endpointDomain: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
     endpointDomainVrchat: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
-    websocketDomain: BROWSER
-        ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
-        : 'wss://pipeline.vrchat.cloud',
-    websocketDomainVrchat: BROWSER
-        ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
-        : 'wss://pipeline.vrchat.cloud'
+    websocketDomain: 'wss://pipeline.vrchat.cloud',
+    websocketDomainVrchat: 'wss://pipeline.vrchat.cloud'
 });
 
 window.$debug = AppDebug;

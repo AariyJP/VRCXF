@@ -138,13 +138,6 @@ export const useGameLogStore = defineStore('GameLog', () => {
                 } else {
                     gameLogTableLookup();
                 }
-            } else {
-                gameLogTableData.value = [];
-                sessionsSegments.value = [];
-                sessionsRawLocations.value = [];
-                sessionsRawEvents.value = [];
-                sessionsCursor.value = null;
-                sessionsHasMore.value = true;
             }
         },
         { immediate: true, deep: true }
