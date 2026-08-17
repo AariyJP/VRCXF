@@ -427,11 +427,11 @@
             <div class="mt-2 border-t pt-3">
                 <div
                     class="overflow-hidden rounded-md border bg-zinc-50 font-[monospace,var(--font-primary-cjk)] text-xs dark:bg-zinc-900">
-                    <div class="flex items-center gap-2 bg-zinc-100 p-1.5 dark:bg-zinc-800">
+                    <div class="flex flex-wrap items-center gap-2 bg-zinc-100 p-1.5 dark:bg-zinc-800">
                         <span class="shrink-0 px-1 font-sans text-sm font-medium">DevTools Console</span>
                         <InputGroupSearch
                             v-model="browserConsoleFilter"
-                            class="h-7 min-w-0 flex-1 bg-zinc-50 font-sans shadow-none dark:bg-zinc-900"
+                            class="h-7 min-w-0 flex-1 basis-48 bg-zinc-50 font-sans shadow-none dark:bg-zinc-900"
                             input-class="font-sans text-xs"
                             placeholder="Filter" />
                         <DropdownMenu>
@@ -464,24 +464,26 @@
                                 </DropdownMenuCheckboxItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <TooltipWrapper content="Scroll to bottom" side="top">
-                            <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label="Scroll to bottom"
-                                @click="scrollBrowserConsoleToBottom">
-                                <ArrowDownToLine class="size-4" />
-                            </Button>
-                        </TooltipWrapper>
-                        <TooltipWrapper content="Clear console" side="top">
-                            <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label="Clear console"
-                                @click="clearBrowserConsoleLogs">
-                                <Trash2 class="size-4" />
-                            </Button>
-                        </TooltipWrapper>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <TooltipWrapper content="Scroll to bottom" side="top">
+                                <Button
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    aria-label="Scroll to bottom"
+                                    @click="scrollBrowserConsoleToBottom">
+                                    <ArrowDownToLine class="size-4" />
+                                </Button>
+                            </TooltipWrapper>
+                            <TooltipWrapper content="Clear console" side="top">
+                                <Button
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    aria-label="Clear console"
+                                    @click="clearBrowserConsoleLogs">
+                                    <Trash2 class="size-4" />
+                                </Button>
+                            </TooltipWrapper>
+                        </div>
                     </div>
                     <Separator />
                     <div :style="{ height: `${browserConsoleHeight}px` }">
