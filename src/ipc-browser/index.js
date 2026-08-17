@@ -157,14 +157,6 @@ function hashColor(input) {
     return Math.abs(hash % 360);
 }
 
-function applyBrowserZoom(level) {
-    const numeric = Number(level);
-    if (!Number.isFinite(numeric)) {
-        return;
-    }
-    document.documentElement.style.zoom = String(1.2 ** numeric);
-}
-
 function base64ByteLength(base64) {
     if (!base64) {
         return 0;
@@ -872,15 +864,9 @@ const BrowserAppApi = new Proxy(
     {
         async ShowDevTools() {},
         async SetVR() {},
-        async SetZoom(value) {
-            await BrowserVRCXStorage.Set('browserZoomLevel', value);
-            applyBrowserZoom(value);
-        },
+        async SetZoom() {},
         async GetZoom() {
-            const value = await BrowserVRCXStorage.Get('browserZoomLevel');
-            const level = parseFloat(value || '0') || 0;
-            applyBrowserZoom(level);
-            return level;
+            return 0;
         },
         async DesktopNotification(title, text, image) {
             await showDesktopNotification(title, text, image);
