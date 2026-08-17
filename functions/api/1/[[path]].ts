@@ -40,10 +40,7 @@ function cloneHeaders(request: Request, skipHeaders: string[]): Headers {
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
         const normalized = key.toLowerCase();
-        if (
-            !skipHeaders.includes(normalized) &&
-            shouldForwardHeader(normalized)
-        ) {
+        if (!skipHeaders.includes(normalized) && shouldForwardHeader(normalized)) {
             headers.set(key, value);
         }
     }
@@ -53,18 +50,13 @@ function cloneHeaders(request: Request, skipHeaders: string[]): Headers {
 function rewriteSetCookies(headers: Headers): string[] {
     const raw = headers.getSetCookie ? headers.getSetCookie() : [];
     return raw.map((cookie) =>
-        cookie
-            .replace(/;\s*domain=[^;]*/gi, '')
-            .replace(/;\s*samesite=none/gi, '; SameSite=Lax')
+        cookie.replace(/;\s*domain=[^;]*/gi, '').replace(/;\s*samesite=none/gi, '; SameSite=Lax')
     );
 }
 
-export async function onRequest({
-    request
-}: EventContext<unknown, string, unknown>): Promise<Response> {
+export async function onRequest({ request }: EventContext<unknown, string, unknown>): Promise<Response> {
     const url = new URL(request.url);
-    const requestCookieHeader =
-        decodeHeaderValue(request.headers.get('x-vrcx-cookie')) ?? '';
+    const requestCookieHeader = decodeHeaderValue(request.headers.get('x-vrcx-cookie')) ?? '';
     const targetUrl = `${VRCHAT_API_BASE}${url.pathname}${url.search}`;
 
     const reqHeaders = cloneHeaders(request, ['origin', 'referer']);
@@ -88,10 +80,7 @@ export async function onRequest({
         for (const cookie of rewritten) {
             resHeaders.append('set-cookie', cookie);
         }
-        resHeaders.set(
-            'x-vrcx-set-cookies',
-            encodeHeaderValue(JSON.stringify(rewritten))
-        );
+        resHeaders.set('x-vrcx-set-cookies', encodeHeaderValue(JSON.stringify(rewritten)));
     }
 
     return new Response(upstream.body, {
