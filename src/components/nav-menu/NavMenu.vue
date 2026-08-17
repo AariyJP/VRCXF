@@ -29,7 +29,8 @@
                                                 <SidebarMenuButton
                                                     :is-active="activeMenuIndex === item.index"
                                                     :tooltip="getItemTooltip(item)"
-                                                    @click="handleMenuItemClick(item)">
+                                                    @click="handleMenuItemClick(item)"
+                                                    @mouseup.middle.prevent.stop="handleMiddleClick(item)">
                                                     <i
                                                         :class="item.icon"
                                                         class="inline-flex size-6 items-center justify-center text-lg relative">
@@ -93,6 +94,7 @@
                                         @collapsed-dropdown-open-change="handleCollapsedDropdownOpenChange"
                                         @collapsed-submenu-select="handleCollapsedSubmenuSelect"
                                         @submenu-click="handleSubmenuClick"
+                                        @middle-click="handleMiddleClick"
                                         @clear-notifications="clearAllNotifications"
                                         @edit-dashboard="handleEditDashboard"
                                         @delete-dashboard="handleDeleteDashboard"
@@ -144,11 +146,13 @@
             :is-applying-theme-color="isApplyingThemeColor"
             :theme-display-name="themeDisplayName"
             :theme-color-display-name="themeColorDisplayName"
+            :popout-enabled="popoutEnabled"
             @show-changelog="showChangeLogDialog"
             @support-link="handleSupportLink"
             @toggle-theme="handleThemeToggle"
             @show-vrcx-update-dialog="showVRCXUpdateDialog"
             @settings-click="handleSettingsClick"
+            @popout-current="handlePopoutCurrent"
             @theme-select="handleThemeSelect"
             @theme-color-select="handleThemeColorSelect"
             @table-density-select="handleTableDensitySelect"
@@ -246,7 +250,8 @@
         tableDensity,
         isDarkMode,
         isNavCollapsed: isCollapsed,
-        showNewDashboardButton
+        showNewDashboardButton,
+        popoutEnabled
     } = storeToRefs(appearanceSettingsStore);
 
     const {
@@ -445,6 +450,43 @@
 
     const handleMenuItemClick = (item) => {
         triggerNavAction(item);
+    };
+
+    const handlePopoutCurrent = () => {
+        if (!popoutEnabled.value) {
+            return;
+        }
+        const route = router.currentRoute.value;
+        if (!route?.name) {
+            return;
+        }
+        const findByRoute = (items) => {
+            for (const entry of items) {
+                if (
+                    entry.routeName === route.name &&
+                    (!entry.routeParams?.id || String(entry.routeParams.id) === String(route.params?.id ?? ''))
+                ) {
+                    return entry;
+                }
+                if (entry.children?.length) {
+                    const found = findByRoute(entry.children);
+                    if (found) {
+                        return found;
+                    }
+                }
+            }
+            return null;
+        };
+        const item = findByRoute(menuItems.value);
+        const title = item ? (item.titleIsCustom ? item.title : t(item.title || '')) : String(route.name);
+        uiStore.addPopout(route.name, route.params, title);
+    };
+
+    const handleMiddleClick = (item) => {
+        if (!popoutEnabled.value || !item.routeName) {
+            return;
+        }
+        uiStore.addPopout(item.routeName, item.routeParams, item.titleIsCustom ? item.title : t(item.title || ''));
     };
 
     const toggleNavCollapse = () => {

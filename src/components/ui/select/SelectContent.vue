@@ -1,5 +1,6 @@
 <script setup>
     import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -40,10 +41,12 @@
     const delegatedProps = reactiveOmit(props, 'class');
 
     const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <SelectPortal>
+    <SelectPortal :to="portalTo">
         <SelectContent
             data-slot="select-content"
             v-bind="{ ...$attrs, ...forwarded }"

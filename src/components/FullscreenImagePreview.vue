@@ -113,11 +113,11 @@
 <script setup>
     import { Copy, Download, RefreshCcw, RotateCcw, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-vue-next';
     import { useEventListener } from '@vueuse/core';
-    import { computed, onBeforeUnmount, ref, watch } from 'vue';
+    import { computed, ref, watch } from 'vue';
     import { DialogContent as RekaDialogContent, DialogOverlay as RekaDialogOverlay, DialogPortal } from 'reka-ui';
     import { Button } from '@/components/ui/button';
     import { Dialog } from '@/components/ui/dialog';
-    import { acquireModalPortalLayer } from '@/lib/modalPortalLayers';
+    import { useModalPortalLayer, usePortalDocument } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -133,8 +133,6 @@
     const { t } = useI18n();
 
     const viewerEl = ref(null);
-    const portalLayer = acquireModalPortalLayer();
-    const portalTo = portalLayer.element;
 
     const scale = ref(1);
     const rotate = ref(0); // deg
@@ -155,6 +153,8 @@
             fullscreenImageDialog.value.visible = v;
         }
     });
+    const portalDoc = usePortalDocument(open);
+    const portalTo = useModalPortalLayer(open, portalDoc);
 
     function clamp(n, min, max) {
         return Math.min(max, Math.max(min, n));
@@ -276,15 +276,11 @@
         () => open.value,
         (v) => {
             if (v) {
-                portalLayer.bringToFront();
                 resetTransform();
             }
-        }
+        },
+        { immediate: true }
     );
-
-    onBeforeUnmount(() => {
-        portalLayer.release();
-    });
 
     watch(
         () => imageUrl.value,

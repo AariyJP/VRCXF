@@ -645,6 +645,7 @@
     import { avatarRequest } from '../../../api';
     import { database } from '../../../services/database';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
+    import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
     import { handleImageUploadInput } from '../../../coordinators/imageUploadCoordinator';
     import { runDeleteVRChatCacheFlow as deleteVRChatCache } from '../../../coordinators/gameCoordinator';
     import {
@@ -997,7 +998,7 @@
      *
      */
     function displayAvatarGalleryUpload() {
-        document.getElementById('AvatarGalleryUploadButton').click();
+        queryAcrossWindows('#AvatarGalleryUploadButton')?.click();
     }
 
     /**

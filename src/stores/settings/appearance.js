@@ -122,6 +122,7 @@ export const useAppearanceSettingsStore = defineStore(
         const accessibleStatusIndicators = ref(false);
         const showNewDashboardButton = ref(true);
         const feedEnabled = ref(true);
+        const popoutEnabled = ref(false);
         const tableLimitsDialog = ref({
             visible: false,
             maxTableSize: 500,
@@ -188,6 +189,7 @@ export const useAppearanceSettingsStore = defineStore(
                 accessibleStatusIndicatorsConfig,
                 showNewDashboardButtonConfig,
                 feedEnabledConfig,
+                popoutEnabledConfig,
                 appFontFamilyConfig,
                 customFontFamilyConfig,
                 appCjkFontPackConfig,
@@ -273,6 +275,7 @@ export const useAppearanceSettingsStore = defineStore(
                 ),
                 configRepository.getBool('VRCX_showNewDashboardButton', true),
                 configRepository.getBool('VRCX_feedEnabled', true),
+                configRepository.getBool('VRCX_popoutEnabled', false),
                 configRepository.getString(
                     'VRCX_fontFamily',
                     APP_FONT_DEFAULT_KEY
@@ -398,6 +401,7 @@ export const useAppearanceSettingsStore = defineStore(
             accessibleStatusIndicators.value = accessibleStatusIndicatorsConfig;
             showNewDashboardButton.value = showNewDashboardButtonConfig;
             feedEnabled.value = feedEnabledConfig;
+            popoutEnabled.value = popoutEnabledConfig;
 
             applyAccessibleStatusClass();
 
@@ -1042,6 +1046,11 @@ export const useAppearanceSettingsStore = defineStore(
             configRepository.setBool('VRCX_feedEnabled', feedEnabled.value);
         }
 
+        function setPopoutEnabled() {
+            popoutEnabled.value = !popoutEnabled.value;
+            configRepository.setBool('VRCX_popoutEnabled', popoutEnabled.value);
+        }
+
         /**
          * @param {object} color
          */
@@ -1283,6 +1292,7 @@ export const useAppearanceSettingsStore = defineStore(
             accessibleStatusIndicators,
             showNewDashboardButton,
             feedEnabled,
+            popoutEnabled,
             tableLimitsDialog,
             TABLE_MAX_SIZE_MIN,
             TABLE_MAX_SIZE_MAX,
@@ -1324,6 +1334,7 @@ export const useAppearanceSettingsStore = defineStore(
             toggleAccessibleStatusIndicators,
             setShowNewDashboardButton,
             setFeedEnabled,
+            setPopoutEnabled,
             setTableDensity,
             setTrustColor,
             tryInitUserColours,

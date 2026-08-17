@@ -1,6 +1,7 @@
 <script setup>
     import { reactiveOmit } from '@vueuse/core';
     import { ContextMenuContent, ContextMenuPortal, useForwardPropsEmits } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
 
     defineOptions({
@@ -38,10 +39,12 @@
     const delegatedProps = reactiveOmit(props, 'class');
 
     const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <ContextMenuPortal>
+    <ContextMenuPortal :to="portalTo">
         <ContextMenuContent
             data-slot="context-menu-content"
             v-bind="{ ...$attrs, ...forwarded }"

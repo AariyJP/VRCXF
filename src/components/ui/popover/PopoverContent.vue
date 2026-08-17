@@ -1,5 +1,6 @@
 <script setup>
     import { PopoverContent, PopoverPortal, useForwardPropsEmits } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -43,10 +44,12 @@
     const delegatedProps = reactiveOmit(props, 'class');
 
     const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <PopoverPortal>
+    <PopoverPortal :to="portalTo">
         <PopoverContent
             data-slot="popover-content"
             v-bind="{ ...$attrs, ...forwarded }"

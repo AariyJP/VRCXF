@@ -1,5 +1,6 @@
 <script setup>
     import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from 'reka-ui';
+    import { usePortalTarget } from '@/composables/usePortalDocument';
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
@@ -42,10 +43,12 @@
     const delegatedProps = reactiveOmit(props, 'class');
 
     const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+    const portalTo = usePortalTarget();
 </script>
 
 <template>
-    <DropdownMenuPortal>
+    <DropdownMenuPortal :to="portalTo">
         <DropdownMenuContent
             data-slot="dropdown-menu-content"
             v-bind="{ ...$attrs, ...forwarded }"
