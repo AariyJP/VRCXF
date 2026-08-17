@@ -35,7 +35,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 
 - **Windows**: CEF (CefSharp) — `Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`、`Dotnet/VRCX-Cef.csproj`
 - **macOS/Linux**: Electron + node-api-dotnet — `src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`、`Dotnet/VRCX-Electron.csproj`
-- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`functions/`、`PLATFORM=browser` (`BROWSER` フラグ)。`pnpm dev-browser` は Vite のみを起動し、VRChat API 用 Cloudflare Pages Functions は別プロセスで動かす。リリースアセットにも含める
+- **Browser**: .NET ランタイムを介さずフロントエンドのみを一般的な Web ブラウザで動かすターゲット — `src/ipc-browser/`、`functions/`、`PLATFORM=browser` (`BROWSER` フラグ)。`pnpm dev` は Vite のみを起動し、REST 中継用 Cloudflare Pages Functions は別プロセスで動かす。リリースアセットにも含める
 
 分岐パターン:
 
@@ -53,7 +53,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 3. `window.electron.*` を使う場合は、必要に応じて Windows 互換パスを提供する
 4. .NET コードを変更したら `Dotnet/VRCX-Cef.csproj` と `Dotnet/VRCX-Electron.csproj` の両方がビルド可能な状態を保つ
 5. Browser ターゲットに影響するネイティブ API を追加/変更する場合は `src/ipc-browser/index.js` のモックも合わせて更新する（ネイティブ依存機能はスタブのままで構わない）
-6. Browser の REST / WebSocket 中継を変更する場合は `functions/api/1/[[path]].ts` と `functions/ws/[[path]].ts` も確認する
+6. Browser の REST 中継を変更する場合は `functions/api/1/[[path]].ts` も確認する。WebSocket は CORS の対象外なので中継を持たず、全ターゲットが `wss://pipeline.vrchat.cloud` へ直接接続する
 
 ## 技術スタック
 
@@ -93,7 +93,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 - **公開静的アセット** (`src/public/`)
 - **アプリシェル CSS の分割**: `src/styles/globals.css` と `src/app.css`
 - **Web Worker** (`src/workers/`) — Activity の重い計算をレンダラから分離
-- **Cloudflare Pages Functions** (`functions/`) — Browser 版の VRChat REST / WebSocket 中継
+- **Cloudflare Pages Functions** (`functions/`) — Browser 版の VRChat REST 中継
 
 ## ディレクトリ構成
 
@@ -149,8 +149,7 @@ build-scripts/
   rename-builds.js
   generate-third-party-licenses.js
 functions/
-  api/1/[[path]].ts       # Browser 版 REST プロキシ
-  ws/[[path]].ts          # Browser 版 WebSocket プロキシ
+  api/1/[[path]].ts       # Browser 版 VRChat REST プロキシ
 Dotnet/
   AppApi/Common/          # 共通ネイティブ API サーフェス
   AppApi/Cef/             # Windows 専用 API レイヤ
@@ -250,8 +249,8 @@ electron-builder.config.js # Electron パッケージ設定
 
 ## VRChat API
 
-- REST エンドポイントベース: `https://api.vrchat.cloud/api/1`
-- WebSocket ベース: `wss://pipeline.vrchat.cloud`
+- REST エンドポイントベース: `https://api.vrchat.cloud/api/1`（Browser のみ同一オリジンの `/api/1` を経由。VRChat が CORS ヘッダーを返さないため）
+- WebSocket ベース: `wss://pipeline.vrchat.cloud`（Browser も直接接続する。WebSocket は同一オリジンポリシーの対象外で、pipeline は `Origin` を検証しない。認証は `?auth=` クエリのみで Cookie は不要）
 - リクエスト経路: `src/services/request.js` → `src/services/webapi.js` → ネイティブ `WebApi`
 - `src/services/request.js` に GET 重複排除ウィンドウと 404/403 抑制ウィンドウがある（具体値は同ファイルを参照）
 
@@ -359,7 +358,7 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - リリース CI は Browser ビルドを `VRCXF_browser.zip` としてリリースアセットに含める（`.github/workflows/release.yml`）
 - `NIGHTLY` は development 時または version suffix が 7 文字の hash のとき true
 - `window.electron` は macOS/Linux のみ
-- `pnpm dev-browser` は Vite 開発サーバーだけを起動する。`src/vite.config.js` の `/api/1` プロキシ先である Cloudflare Pages Functions は別途起動が必要
+- `pnpm dev` は Vite 開発サーバーだけを起動する。`src/vite.config.js` の `/api/1` プロキシ先である Cloudflare Pages Functions (`npx wrangler pages dev`、既定で 8788 番) は別途起動が必要。ビルド成果物が無くても起動できる
 - `BROWSER` ターゲットでは `src/ipc-browser/index.js` が `WebApi`（fetch + Cookie 中継）、`SQLite`（sql.js + IndexedDB）、設定ストレージ、DB インポートを実装する。DB インポートは SQLite ヘッダーと `PRAGMA quick_check` を検証してから IndexedDB と実行中 DB を置き換える
 - `LogWatcher` / `Discord` / ゲーム起動 / レジストリ操作 / スクリーンショット等のネイティブ依存機能は Browser ではスタブのため動作しない
 - Diagnostics の DevTools Console は Browser 専用ではなく全プラットフォーム共通。`src/app.js` から `src/services/browserConsoleLog.js` を無条件 import し、console API、グローバルエラー、未処理 Promise rejection を最大 500 件までメモリ内だけに保持する。コマンド実行欄はあるがログの永続化は行わない

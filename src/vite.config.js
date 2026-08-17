@@ -174,12 +174,6 @@ export default defineConfig(({ mode }) => {
                     target: 'http://127.0.0.1:8788',
                     changeOrigin: true,
                     secure: false
-                },
-                '/ws': {
-                    target: 'wss://pipeline.vrchat.cloud',
-                    changeOrigin: true,
-                    ws: true,
-                    rewrite: (path) => path.replace(/^\/ws/, '') || '/'
                 }
             }
         },
