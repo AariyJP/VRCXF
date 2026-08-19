@@ -118,7 +118,7 @@ jobs:
                   pnpm build-electron
                   mv build/VRCX_*_x64.AppImage VRCXF_x64.AppImage
                   rm -rf build/Electron
-            - run: dotnet build Dotnet/VRCX-Electron-arm64.csproj -c Release -p:Platform=ARM64 -a arm64
+            - run: dotnet build Dotnet/VRCX-Electron.csproj -c Release -p:Platform=ARM64 -a arm64
             - run: |
                   pnpm build-electron-arm64
                   mv build/VRCX_*_arm64.AppImage VRCXF_arm64.AppImage
@@ -152,12 +152,12 @@ jobs:
                       ~/.nuget/packages
                       ~/Library/Caches/electron
                       ~/Library/Caches/electron-builder
-                  key: ${{ runner.os }}-deps-${{ hashFiles('Dotnet/VRCX-Electron-arm64.csproj', 'pnpm-lock.yaml') }}
+                  key: ${{ runner.os }}-deps-${{ hashFiles('Dotnet/VRCX-Electron.csproj', 'pnpm-lock.yaml') }}
                   restore-keys: ${{ runner.os }}-deps-
             - run: |
                   echo '${{ needs.set_version.outputs.version }}' > Version
                   pnpm i --frozen-lockfile --prefer-offline
-            - run: dotnet build Dotnet/VRCX-Electron-arm64.csproj -c Release -p:Platform=ARM64 -a arm64
+            - run: dotnet build Dotnet/VRCX-Electron.csproj -c Release -p:Platform=ARM64 -a arm64
             - env:
                   SENTRY_AUTH_TOKEN: ${{ secrets.SentryAuthToken }}
               run: pnpm prod

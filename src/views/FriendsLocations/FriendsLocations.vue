@@ -301,6 +301,8 @@
 
     const scrollbarRef = ref();
     const gridWidth = ref(0);
+    let gridUpdateScheduled = false;
+
     const updateGridWidth = () => {
         const wrap = scrollbarRef.value;
         if (!wrap) {
@@ -338,6 +340,18 @@
     const getFriendIdentity = (friend) => friend?.id ?? friend?.userId ?? friend?.displayName ?? 'unknown';
 
     const getEntryIdentity = (entry) => entry?.id ?? getFriendIdentity(entry?.friend);
+
+    const scheduleGridUpdate = () => {
+        if (gridUpdateScheduled) {
+            return;
+        }
+
+        gridUpdateScheduled = true;
+        nextTick(() => {
+            gridUpdateScheduled = false;
+            updateGridWidth();
+        });
+    };
 
     const fetchedOwners = new Set();
     const resolveInstanceOwnerOptionally = (instanceId) => {
@@ -909,7 +923,7 @@
     };
 
     watch([searchTerm, activeSegment], () => {
-        nextTick(() => updateGridWidth());
+        scheduleGridUpdate();
     });
 
     watch(showSameInstance, (value) => {
@@ -920,13 +934,13 @@
             activeSegment.value = 'online';
         }
 
-        nextTick(() => updateGridWidth());
+        scheduleGridUpdate();
     });
 
     watch(
         () => filteredFriends.value.length,
         () => {
-            nextTick(() => updateGridWidth());
+            scheduleGridUpdate();
         }
     );
 
@@ -934,13 +948,13 @@
         if (!settingsReady.value) {
             return;
         }
-        nextTick(() => updateGridWidth());
+        scheduleGridUpdate();
     });
 
     onMounted(() => {
         nextTick(() => {
             setupResizeHandling();
-            updateGridWidth();
+            scheduleGridUpdate();
         });
     });
 
@@ -974,7 +988,7 @@
             settingsReady.value = true;
             nextTick(() => {
                 setupResizeHandling();
-                updateGridWidth();
+                scheduleGridUpdate();
             });
         }
     }
