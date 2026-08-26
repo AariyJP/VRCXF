@@ -61,6 +61,8 @@
 
         <InviteGroupDialog></InviteGroupDialog>
 
+        <GroupEditDialog></GroupEditDialog>
+
         <FullscreenImagePreview></FullscreenImagePreview>
 
         <LaunchDialog></LaunchDialog>
@@ -120,6 +122,7 @@
     import FriendImportDialog from '../Favorites/dialogs/FriendImportDialog.vue';
     import FullscreenImagePreview from '../../components/FullscreenImagePreview.vue';
     import GlobalToolsDialogs from '../Tools/components/GlobalToolsDialogs.vue';
+    import GroupEditDialog from '../../components/dialogs/GroupDialog/GroupEditDialog.vue';
     import InviteGroupDialog from '../../components/dialogs/InviteGroupDialog.vue';
     import LaunchDialog from '../../components/dialogs/LaunchDialog.vue';
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';

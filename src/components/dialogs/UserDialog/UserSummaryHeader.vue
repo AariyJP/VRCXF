@@ -1,18 +1,6 @@
 <template>
-    <div class="rounded-xl bg-(--profile-card) overflow-hidden flex flex-col relative">
-        <template v-if="displayVRCProfileCosmetics">
-            <img
-                v-if="profileEffectMainUrl"
-                v-show="!profileEffectIntroActive"
-                :src="profileEffectMainUrl"
-                class="absolute z-1 inset-0 block h-full w-full object-cover object-top pointer-events-none" />
-            <img
-                v-if="profileEffectIntroUrl"
-                v-show="profileEffectIntroActive"
-                :src="profileEffectIntroUrl"
-                @load="startProfileEffectTimer"
-                class="absolute z-1 inset-0 block h-full w-full object-cover object-top pointer-events-none" />
-        </template>
+    <div class="rounded-b-lg rounded-t-[15px] bg-(--profile-card) overflow-hidden flex flex-col relative">
+        <ProfileEffect :profile-effect="userDialog.ref.profileEffect" class="z-1" />
         <div class="relative aspect-17/6">
             <div
                 v-if="
@@ -81,24 +69,14 @@
                         @error="userIconError = true"
                         loading="lazy" />
                 </div>
-                <template v-if="displayVRCProfileCosmetics">
-                    <img
-                        v-if="iconFrameMainUrl"
-                        v-show="!iconFrameIntroActive"
-                        :src="iconFrameMainUrl"
-                        class="absolute top-[-15%] left-[-15%] z-2 h-[130%] w-[130%] max-w-none pointer-events-none" />
-                    <img
-                        v-if="iconFrameIntroUrl"
-                        v-show="iconFrameIntroActive"
-                        :src="iconFrameIntroUrl"
-                        @load="startIconFrameTimer"
-                        class="absolute top-[-15%] left-[-15%] z-2 h-[130%] w-[130%] max-w-none pointer-events-none" />
-                </template>
+                <IconFrame :icon-frame="userDialog.ref.iconFrame" class="z-2" />
             </div>
         </div>
 
-        <div class="flex flex-col gap-2 px-3 pb-3 pt-15 z-10">
-            <div class="flex items-start gap-1.5">
+        <NameplateEffect :nameplate-effect="userDialog.ref.nameplateEffect" />
+
+        <div class="relative isolate flex flex-col gap-2 px-3 pb-3 pt-15 z-10">
+            <div class="flex gap-1.5 items-center">
                 <div class="flex-1 min-w-0">
                     <div class="flex flex-wrap items-center gap-x-1 leading-snug">
                         <template v-if="userDialog.previousDisplayNames.length > 0">
@@ -119,7 +97,7 @@
                             </TooltipWrapper>
                         </template>
                         <span
-                            class="font-bold cursor-pointer wrap-anywhere"
+                            class="font-bold cursor-pointer flex flex-wrap"
                             v-text="userDialog.ref.displayName"
                             @click="copyUserDisplayName(userDialog.ref.displayName)"></span>
                         <TooltipWrapper
@@ -128,6 +106,7 @@
                             :content="t('dialog.user.info.economy_creator')">
                             <BadgeCheck class="h-3.5 w-3.5 text-[#3b82f6]" />
                         </TooltipWrapper>
+                        <span v-if="userDialog.ref.pronouns" class="basis-full h-0"></span>
                         <TooltipWrapper v-if="userDialog.ref.pronouns" side="top" :content="t('dialog.user.pronouns')">
                             <span class="x-grey font-mono text-xs" v-text="userDialog.ref.pronouns"></span>
                         </TooltipWrapper>
@@ -138,28 +117,29 @@
                             v-text="currentUser.username"
                             @click="copyToClipboard(currentUser.username)"></span>
                     </template>
-                    <div
-                        v-if="userDialog.ref.status || userDialog.ref.statusDescription"
-                        class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"
-                        :class="{ 'cursor-pointer hover:text-foreground': userDialog.ref.id === currentUser.id }"
-                        @click="userDialog.ref.id === currentUser.id ? showEditProfileDialog() : undefined">
-                        <TooltipWrapper v-if="userDialog.ref.status" side="top">
-                            <template #content>
-                                <span>{{ getUserStateText(userDialog.ref) }}</span>
-                            </template>
-                            <i class="x-user-status mt-0.5 flex-none" :class="userStatusClass(userDialog.ref)"></i>
-                        </TooltipWrapper>
-                        <div class="min-w-0">
-                            <span v-if="!userDialog.ref.statusDescription" class="block wrap-anywhere">{{
-                                getUserStateText(userDialog.ref)
-                            }}</span>
-                            <span v-if="userDialog.ref.statusDescription" class="block wrap-anywhere">{{
-                                userDialog.ref.statusDescription
-                            }}</span>
-                        </div>
-                    </div>
                 </div>
                 <UserActionDropdown class="flex-none mt-0.5" :user-dialog-command="userDialogCommand" />
+            </div>
+
+            <div
+                v-if="userDialog.ref.status || userDialog.ref.statusDescription"
+                class="flex items-center gap-1.5 text-xs text-muted-foreground"
+                :class="{ 'cursor-pointer hover:text-foreground': userDialog.ref.id === currentUser.id }"
+                @click="userDialog.ref.id === currentUser.id ? showEditProfileDialog() : undefined">
+                <TooltipWrapper v-if="userDialog.ref.status" side="top">
+                    <template #content>
+                        <span>{{ getUserStateText(userDialog.ref) }}</span>
+                    </template>
+                    <i class="x-user-status mt-0.5 flex-none" :class="userStatusClass(userDialog.ref)"></i>
+                </TooltipWrapper>
+                <div class="min-w-0">
+                    <span v-if="!userDialog.ref.statusDescription" class="block wrap-anywhere">{{
+                        getUserStateText(userDialog.ref)
+                    }}</span>
+                    <span v-if="userDialog.ref.statusDescription" class="block wrap-anywhere">{{
+                        userDialog.ref.statusDescription
+                    }}</span>
+                </div>
             </div>
 
             <div class="flex flex-wrap gap-1 text-[11px]" v-show="!userDialog.loading">
@@ -508,9 +488,12 @@
     import { copyToClipboard, formatDateFilter, languageClass, openDiscordProfile } from '../../../shared/utils';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
-    import { useAppearanceSettingsStore, useGalleryStore, useUserStore } from '../../../stores';
+    import { useGalleryStore, useUserStore } from '../../../stores';
     import { Badge } from '../../ui/badge';
     import { Checkbox } from '../../ui/checkbox';
+    import IconFrame from '../../IconFrame.vue';
+    import NameplateEffect from '../../NameplateEffect.vue';
+    import ProfileEffect from '../../ProfileEffect.vue';
 
     import UserActionDropdown from './UserActionDropdown.vue';
     import { showGroupDialog } from '@/coordinators/groupCoordinator';
@@ -540,87 +523,16 @@
 
     const { t } = useI18n();
 
-    const { userDialog, currentUser, cachedProfileEffects, cachedIconFrames } = storeToRefs(useUserStore());
+    const { userDialog, currentUser } = storeToRefs(useUserStore());
     const { toggleSharedConnectionsOptOut, toggleDiscordFriendsOptOut, toggleAvatarCopying, toggleAllowBooping } =
         useUserStore();
 
     const { showFullscreenImageDialog } = useGalleryStore();
     const { userImage, userStatusClass } = useUserDisplay();
     const { showEditProfileDialog } = useUserStore();
-    const { displayVRCProfileCosmetics } = storeToRefs(useAppearanceSettingsStore());
 
     const profileImageError = ref(false);
     const userIconError = ref(false);
-
-    const profileEffectMainUrl = ref(null);
-    const profileEffectIntroUrl = ref(null);
-    const profileEffectIntroActive = ref(false);
-    const profileEffectIntroDuration = ref(null);
-    const profileEffectTimer = ref(null);
-
-    const iconFrameMainUrl = ref(null);
-    const iconFrameIntroUrl = ref(null);
-    const iconFrameIntroActive = ref(false);
-    const iconFrameIntroDuration = ref(null);
-    const iconFrameTimer = ref(null);
-
-    function startProfileEffectTimer() {
-        clearTimeout(profileEffectTimer.value);
-        profileEffectTimer.value = setTimeout(() => {
-            profileEffectIntroActive.value = false;
-        }, profileEffectIntroDuration.value);
-    }
-
-    function startIconFrameTimer() {
-        clearTimeout(iconFrameTimer.value);
-        iconFrameTimer.value = setTimeout(() => {
-            iconFrameIntroActive.value = false;
-        }, iconFrameIntroDuration.value);
-    }
-
-    watch(
-        () => userDialog.value.ref.profileEffect,
-        (newProfileEffect) => {
-            clearTimeout(profileEffectTimer.value);
-            profileEffectIntroUrl.value = null;
-            profileEffectMainUrl.value = null;
-            profileEffectIntroActive.value = false;
-            profileEffectIntroDuration.value = null;
-            const effect = cachedProfileEffects.value.get(newProfileEffect);
-            const introAsset = effect?.metadata?.assets.find((asset) => asset.type === 'introAnimation');
-            const mainAsset = effect?.metadata?.assets.find((asset) => asset.type === 'mainAnimation');
-
-            profileEffectMainUrl.value = mainAsset ? mainAsset.url : null;
-            if (introAsset) {
-                profileEffectIntroActive.value = true;
-                profileEffectIntroUrl.value = introAsset.url;
-                profileEffectIntroDuration.value = introAsset.totalDurationMs;
-            }
-        },
-        { immediate: true }
-    );
-
-    watch(
-        () => userDialog.value.ref.iconFrame,
-        (newIconFrame) => {
-            clearTimeout(iconFrameTimer.value);
-            iconFrameIntroUrl.value = null;
-            iconFrameMainUrl.value = null;
-            iconFrameIntroActive.value = false;
-            iconFrameIntroDuration.value = null;
-            const frame = cachedIconFrames.value.get(newIconFrame);
-            const introAsset = frame?.metadata?.assets.find((asset) => asset.type === 'introAnimation');
-            const mainAsset = frame?.metadata?.assets.find((asset) => asset.type === 'mainAnimation');
-
-            iconFrameMainUrl.value = mainAsset ? mainAsset.url : null;
-            if (introAsset) {
-                iconFrameIntroActive.value = true;
-                iconFrameIntroUrl.value = introAsset.url;
-                iconFrameIntroDuration.value = introAsset.totalDurationMs;
-            }
-        },
-        { immediate: true }
-    );
 
     watch(
         () => userDialog.value.id,

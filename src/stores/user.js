@@ -310,7 +310,10 @@ export const useUserStore = defineStore('User', () => {
         backgroundType: 'default',
         backgroundTextureId: '',
         backgroundGradientBottom: '',
-        backgroundGradientTop: ''
+        backgroundGradientTop: '',
+        nameplateEffect: '',
+        profileEffect: '',
+        iconFrame: '',
     });
 
     const currentTravelers = reactive(new Map());
@@ -334,6 +337,7 @@ export const useUserStore = defineStore('User', () => {
 
     const cachedProfileEffects = shallowReactive(new Map());
     const cachedIconFrames = shallowReactive(new Map());
+    const cachedNameplateEffects = shallowReactive(new Map());
 
     function addCachedUserDisplayNameEntry(displayName, userId) {
         if (!displayName || !userId) {
@@ -875,6 +879,9 @@ export const useUserStore = defineStore('User', () => {
             D.backgroundTextureId = ref.backgroundTextureId;
             D.backgroundGradientBottom = ref.backgroundGradientBottom;
             D.backgroundGradientTop = ref.backgroundGradientTop;
+            D.nameplateEffect = ref.nameplateEffect;
+            D.profileEffect = ref.profileEffect;
+            D.iconFrame = ref.iconFrame;
         });
 
         D.visible = true;
@@ -1013,6 +1020,11 @@ export const useUserStore = defineStore('User', () => {
                 cachedIconFrames.set(frame.id, frame);
             });
         });
+        cosmeticsRequest.gatNameplateEffects().then(({ json }) => {
+            json.forEach((effect) => {
+                cachedNameplateEffects.set(effect.id, effect);
+            });
+        });
     }
 
     return {
@@ -1031,6 +1043,7 @@ export const useUserStore = defineStore('User', () => {
         isLocalUserVrcPlusSupporter,
         cachedProfileEffects,
         cachedIconFrames,
+        cachedNameplateEffects,
         applyUserLanguage,
         applyPresenceLocation,
         applyUserDialogLocation,

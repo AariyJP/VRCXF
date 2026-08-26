@@ -57,7 +57,7 @@
                 <template #JSON>
                     <DialogJsonTab
                         :tree-data="treeData"
-                        :tree-data-key="treeData?.id"
+                        :tree-data-key="treeData?.user?.id"
                         :dialog-id="userDialog.id"
                         :dialog-ref="userDialog.ref"
                         @refresh="refreshUserDialogTreeData()" />
@@ -292,17 +292,17 @@
     function refreshUserDialogTreeData() {
         const D = userDialog.value;
         if (D.id === currentUser.value.id) {
-            treeData.value = formatJsonVars({
-                currentUser: currentUser.value,
-                user: D.ref,
-                profile: D.publicProfileRef
-            });
+            treeData.value = {
+                currentUser: formatJsonVars(currentUser.value),
+                user: formatJsonVars(D.ref),
+                profile: formatJsonVars(D.publicProfileRef)
+            };
             return;
         }
-        treeData.value = formatJsonVars({
-            user: D.ref,
-            profile: D.publicProfileRef
-        });
+        treeData.value = {
+            user: formatJsonVars(D.ref),
+            profile: formatJsonVars(D.publicProfileRef)
+        };
     }
 
     /**

@@ -31,37 +31,37 @@
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.notifications.notifications.desktop_notifications.header')">
-            <SettingsItem :label="t('view.settings.notifications.notifications.desktop_notifications.when_to_display')">
-                <ToggleGroup
-                    type="single"
-                    required
-                    variant="outline"
-                    size="sm"
-                    :model-value="desktopToast"
-                    @update:model-value="setDesktopToast(String($event))">
-                    <ToggleGroupItem value="Never">{{
-                        t('view.settings.notifications.notifications.conditions.never')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Desktop Mode">{{
-                        t('view.settings.notifications.notifications.conditions.desktop')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Inside VR">{{
-                        t('view.settings.notifications.notifications.conditions.inside_vr')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Outside VR">{{
-                        t('view.settings.notifications.notifications.conditions.outside_vr')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Game Running">{{
-                        t('view.settings.notifications.notifications.conditions.inside_vrchat')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Game Closed">{{
-                        t('view.settings.notifications.notifications.conditions.outside_vrchat')
-                    }}</ToggleGroupItem>
-                    <ToggleGroupItem value="Always">{{
-                        t('view.settings.notifications.notifications.conditions.always')
-                    }}</ToggleGroupItem>
-                </ToggleGroup>
-            </SettingsItem>
+            <SettingsItem
+                :label="t('view.settings.notifications.notifications.desktop_notifications.when_to_display')" />
+            <ToggleGroup
+                type="single"
+                required
+                variant="outline"
+                size="sm"
+                :model-value="desktopToast"
+                @update:model-value="setDesktopToast(String($event))">
+                <ToggleGroupItem value="Never">{{
+                    t('view.settings.notifications.notifications.conditions.never')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Desktop Mode">{{
+                    t('view.settings.notifications.notifications.conditions.desktop')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Inside VR">{{
+                    t('view.settings.notifications.notifications.conditions.inside_vr')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Outside VR">{{
+                    t('view.settings.notifications.notifications.conditions.outside_vr')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Game Running">{{
+                    t('view.settings.notifications.notifications.conditions.inside_vrchat')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Game Closed">{{
+                    t('view.settings.notifications.notifications.conditions.outside_vrchat')
+                }}</ToggleGroupItem>
+                <ToggleGroupItem value="Always">{{
+                    t('view.settings.notifications.notifications.conditions.always')
+                }}</ToggleGroupItem>
+            </ToggleGroup>
 
             <SettingsItem
                 :label="
@@ -159,7 +159,7 @@
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
     import { Switch } from '@/components/ui/switch';
-    import { computed, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { Button } from '@/components/ui/button';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
     import { Play } from 'lucide-vue-next';
@@ -198,7 +198,7 @@
         setNotificationLayout
     } = notificationsSettingsStore;
 
-    const { testNotification } = useNotificationStore();
+    const { testNotification, markAllAsSeen } = useNotificationStore();
 
     const feedFiltersDialogMode = ref('');
 
@@ -213,6 +213,10 @@
                 changeTTSVoice(value);
             }
         }
+    });
+
+    onMounted(() => {
+        markAllAsSeen();
     });
 
     /**
