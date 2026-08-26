@@ -152,7 +152,7 @@ jobs:
                       ~/.nuget/packages
                       ~/Library/Caches/electron
                       ~/Library/Caches/electron-builder
-                  key: ${{ runner.os }}-deps-${{ hashFiles('Dotnet/VRCX-Electron-arm64.csproj', 'pnpm-lock.yaml') }}
+                  key: ${{ runner.os }}-deps-${{ hashFiles('Dotnet/VRCX-Electron*.csproj', 'pnpm-lock.yaml') }}
                   restore-keys: ${{ runner.os }}-deps-
             - run: |
                   echo '${{ needs.set_version.outputs.version }}' > Version

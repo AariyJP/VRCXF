@@ -1,11 +1,13 @@
 <template>
     <!-- Instances -->
-    <template v-if="groupDialog.instances.length">
-        <div
-            v-for="room in groupDialog.instances"
-            :key="room.tag"
-            class="rounded-xl bg-(--profile-card) p-3 mb-2.5 flex flex-col gap-2">
-            <div class="flex items-center justify-between gap-2">
+    <div v-if="groupDialog.instances.length" class="rounded-xl bg-(--profile-card) p-3 mb-2.5">
+        <div class="flex justify-between items-start mb-2 pb-2 border-b border-border">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                {{ t('dialog.world.instances.header') }}
+            </div>
+        </div>
+        <div v-for="room in groupDialog.instances" :key="room.tag" class="flex flex-col gap-2 mb-4">
+            <div class="flex flex-wrap gap-2 whitespace-nowrap overflow-hidden text-ellipsis">
                 <Location :location="room.tag" class="text-sm text-muted-foreground rounded-full border py-0.5 px-2" />
                 <InstanceActionBar
                     class="text-sm"
@@ -29,6 +31,7 @@
                                 <User class="size-4 text-muted-foreground" />
                             </AvatarFallback>
                         </Avatar>
+                        <IconFrame :icon-frame="user.iconFrame" />
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <span
@@ -46,7 +49,7 @@
                 </div>
             </div>
         </div>
-    </template>
+    </div>
 
     <!-- Info cards -->
     <div class="flex flex-col gap-2.5">
@@ -213,6 +216,7 @@
 <script setup>
     import { Eye, Image, Pencil, Trash2, User } from 'lucide-vue-next';
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import IconFrame from '@/components/IconFrame.vue';
     import { Button } from '@/components/ui/button';
     import { Spinner } from '@/components/ui/spinner';
     import { ref, watch } from 'vue';

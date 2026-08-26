@@ -1,9 +1,8 @@
 <template>
     <div>
         <div class="my-2 rounded-xl bg-(--profile-card) p-3">
-            <div class="flex justify-between items-start">
-                <div
-                    class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2 pb-2 border-b border-border">
+            <div class="flex justify-between items-start mb-2 pb-2 border-b border-border">
+                <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                     {{ t('dialog.world.instances.header') }}
                 </div>
                 <div class="flex gap-1 items-center text-muted-foreground text-[12px]">
@@ -65,6 +64,7 @@
                                                 <User class="size-4 text-muted-foreground" />
                                             </AvatarFallback>
                                         </Avatar>
+                                        <IconFrame :icon-frame="room.$location.user.iconFrame" />
                                     </div>
                                     <div class="flex-1 overflow-hidden">
                                         <span
@@ -92,6 +92,7 @@
                                             <User class="size-4 text-muted-foreground" />
                                         </AvatarFallback>
                                     </Avatar>
+                                    <IconFrame :icon-frame="user.iconFrame" />
                                 </div>
                                 <div class="flex-1 overflow-hidden">
                                     <span
@@ -155,6 +156,7 @@
 <script setup>
     import { Globe2, Languages, LockKeyhole, User } from 'lucide-vue-next';
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import IconFrame from '@/components/IconFrame.vue';
     import { Button } from '@/components/ui/button';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
     import { Spinner } from '@/components/ui/spinner';

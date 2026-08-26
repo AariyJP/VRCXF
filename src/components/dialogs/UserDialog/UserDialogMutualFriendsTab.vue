@@ -60,6 +60,7 @@
                             <User class="size-4 text-muted-foreground" />
                         </AvatarFallback>
                     </Avatar>
+                    <IconFrame :icon-frame="user.iconFrame" />
                 </div>
                 <div class="min-w-0 flex-1 overflow-hidden">
                     <span
@@ -74,6 +75,7 @@
 
 <script setup>
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import IconFrame from '@/components/IconFrame.vue';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { Button } from '@/components/ui/button';
     import { RefreshCw, User, Users } from 'lucide-vue-next';
