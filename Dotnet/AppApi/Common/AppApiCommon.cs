@@ -108,6 +108,25 @@ namespace VRCX
             return string.Empty;
         }
 
+        private static string BackgroundImagePath => Path.Join(Program.AppDataDirectory, "background.img");
+
+        public void SaveBackgroundImage(string base64)
+        {
+            File.WriteAllBytes(BackgroundImagePath, Convert.FromBase64String(base64));
+        }
+
+        public string GetBackgroundImage()
+        {
+            return File.Exists(BackgroundImagePath)
+                ? Convert.ToBase64String(File.ReadAllBytes(BackgroundImagePath))
+                : string.Empty;
+        }
+
+        public void ClearBackgroundImage()
+        {
+            File.Delete(BackgroundImagePath);
+        }
+
         public string CustomScript()
         {
             var filePath = Path.Join(Program.AppDataDirectory, "custom.js");
@@ -167,6 +186,11 @@ namespace VRCX
             }
 
             return null;
+        }
+
+        public long GetFileSize(string path)
+        {
+            return new FileInfo(path).Length;
         }
 
         public virtual Task<bool> TryOpenInstanceInVrc(string launchUrl)

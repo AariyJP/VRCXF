@@ -1,7 +1,7 @@
 <template>
     <slot v-if="disabled" />
     <Teleport v-else-if="target" :to="target">
-        <div class="h-full w-full overflow-hidden bg-background text-foreground">
+        <div class="x-popout-shell h-full w-full overflow-hidden bg-background text-foreground">
             <slot />
         </div>
         <Toaster position="top-center" :theme="toasterTheme" />
@@ -173,9 +173,12 @@
 
         newWindow.document.title = props.title;
 
-        const bodyStyle = window.getComputedStyle(document.body);
-        newWindow.document.body.style.backgroundColor = bodyStyle.backgroundColor;
-        newWindow.document.body.style.color = bodyStyle.color;
+        const syncBodyStyles = () => {
+            const bodyStyle = window.getComputedStyle(document.body);
+            newWindow.document.body.style.backgroundColor = bodyStyle.backgroundColor;
+            newWindow.document.body.style.color = bodyStyle.color;
+        };
+        syncBodyStyles();
 
         const syncStyles = () => {
             if (!newWindow || newWindow.closed) {
@@ -216,6 +219,7 @@
                     }
                 }
             });
+            syncBodyStyles();
         });
         themeObserver.observe(document.documentElement, { attributes: true });
 
