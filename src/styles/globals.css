@@ -71,6 +71,9 @@
     --visibility-public: #22c55e;
     --visibility-friends: #0ea5e9;
     --visibility-private: #ef4444;
+
+    --x-sidebar-opaque: var(--sidebar);
+    --x-bg-alpha: 50%;
 }
 
 .dark {
@@ -202,6 +205,44 @@ html {
 
 html.dark .x-container {
     background: var(--sidebar);
+}
+
+html.x-has-bg {
+    background-image: var(--x-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+html.x-has-bg body {
+    background-color: transparent;
+}
+
+html.x-has-bg #x-app,
+html.x-has-bg #teleport-target {
+    --sidebar: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
+}
+
+html.x-has-bg .x-popout-dialog {
+    background: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+}
+
+html.x-has-bg .macos-title-bar {
+    background-color: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+}
+
+html.dark.x-has-bg .macos-title-bar {
+    background-color: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
+}
+
+html.x-has-bg #x-app .x-container,
+html.x-has-bg #teleport-target .x-container {
+    background: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+}
+
+html.dark.x-has-bg #x-app .x-container,
+html.dark.x-has-bg #teleport-target .x-container {
+    background: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
 [data-sonner-toast] [data-content] [data-description] {

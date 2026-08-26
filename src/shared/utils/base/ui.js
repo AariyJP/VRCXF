@@ -23,6 +23,13 @@ const DEFAULT_THEME_COLOR_KEY = 'default';
 const APP_FONT_LINK_ATTR = 'data-app-font';
 const APP_CJK_FONT_PACK_LINK_ATTR = 'data-app-cjk-font-pack';
 
+const BACKGROUND_IMAGE_CLASS = 'x-has-bg';
+const BACKGROUND_IMAGE_MAX_EDGE = 2560;
+const BACKGROUND_IMAGE_MAX_SOURCE_BYTES = 32 * 1024 * 1024;
+const BACKGROUND_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'];
+const BACKGROUND_IMAGE_STYLE_ID = 'app-background-image-style';
+const BACKGROUND_IMAGE_MIME = 'image/webp';
+
 const themeColors = THEME_COLORS.map((theme) => ({
     ...theme,
     href: theme.file
@@ -504,6 +511,102 @@ async function getThemeMode(configRepository) {
     return { initThemeMode, isDarkMode };
 }
 
+function decodeBackgroundImageBase64(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+function encodeBackgroundImageBase64(bytes) {
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+}
+
+function pickImageFileBytes() {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.oncancel = () => resolve(null);
+        input.onchange = () => {
+            const file = input.files?.[0];
+            if (!file) {
+                resolve(null);
+                return;
+            }
+            file.arrayBuffer()
+                .then((buffer) => resolve(new Uint8Array(buffer)))
+                .catch(() => resolve(null));
+        };
+        input.click();
+    });
+}
+
+function pickBackgroundImageBytes() {
+    if (BROWSER) {
+        return pickImageFileBytes();
+    }
+    const patterns = BACKGROUND_IMAGE_EXTENSIONS.map((ext) => `*.${ext}`).join(';');
+    const dialog = LINUX
+        ? window.electron.openFileDialog([{ name: 'Images', extensions: BACKGROUND_IMAGE_EXTENSIONS }])
+        : AppApi.OpenFileSelectorDialog('', '.png', `Images (${patterns})|${patterns}`);
+    return dialog
+        .then((path) => (path ? AppApi.GetFileBase64(path) : null))
+        .then((base64) => (base64 ? decodeBackgroundImageBase64(base64) : null));
+}
+
+async function normalizeBackgroundImage(bytes) {
+    if (bytes.length > BACKGROUND_IMAGE_MAX_SOURCE_BYTES) {
+        throw new Error('Background image is too large');
+    }
+    const bitmap = await createImageBitmap(new Blob([bytes]));
+    const scale = Math.min(1, BACKGROUND_IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = new OffscreenCanvas(width, height);
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    const blob = await canvas.convertToBlob({ type: BACKGROUND_IMAGE_MIME, quality: 0.85 });
+    return new Uint8Array(await blob.arrayBuffer());
+}
+
+async function pickBackgroundImage() {
+    const bytes = await pickBackgroundImageBytes();
+    if (!bytes?.length) {
+        return '';
+    }
+    return encodeBackgroundImageBase64(await normalizeBackgroundImage(bytes));
+}
+
+function applyBackgroundImage(base64) {
+    const root = document.documentElement;
+    const existing = document.getElementById(BACKGROUND_IMAGE_STYLE_ID);
+    if (!base64) {
+        existing?.remove();
+        root.classList.remove(BACKGROUND_IMAGE_CLASS);
+        return;
+    }
+    const style = existing || document.createElement('style');
+    style.id = BACKGROUND_IMAGE_STYLE_ID;
+    style.textContent = `:root{--x-bg-image:url("data:${BACKGROUND_IMAGE_MIME};base64,${base64}")}`;
+    if (!existing) {
+        document.head.appendChild(style);
+    }
+    root.classList.add(BACKGROUND_IMAGE_CLASS);
+}
+
+function applyBackgroundImageOpacity(opacity) {
+    const clamped = Math.min(1, Math.max(0, Number(opacity) || 0));
+    document.documentElement.style.setProperty('--x-bg-alpha', `${Math.round((1 - clamped) * 100)}%`);
+}
+
 function redirectToToolsTab() {
     router.push({ name: 'tools' });
     toast(i18n.global.t('view.tools.redirect_message'), { duration: 3000 });
@@ -520,6 +623,9 @@ export {
     refreshCustomScript,
     applyAppFontFamily,
     applyAppCjkFontPack,
+    pickBackgroundImage,
+    applyBackgroundImage,
+    applyBackgroundImageOpacity,
     HueToHex,
     HSVtoRGB,
     formatJsonVars,

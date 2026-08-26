@@ -1,7 +1,9 @@
 <template>
     <slot v-if="disabled" />
     <Teleport v-else-if="target" :to="target">
-        <div class="h-full w-full overflow-hidden bg-background text-foreground">
+        <div
+            class="h-full w-full overflow-hidden text-foreground"
+            :class="hasBackgroundImage ? 'bg-transparent' : 'bg-background'">
             <slot />
         </div>
         <Toaster position="top-center" :theme="toasterTheme" />
@@ -17,6 +19,7 @@
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const toasterTheme = computed(() => (appearanceSettingsStore.isDarkMode ? 'dark' : 'light'));
+    const hasBackgroundImage = computed(() => appearanceSettingsStore.hasBackgroundImage);
 
     const popupDocument = shallowRef(null);
     providePortalDocument(popupDocument);

@@ -108,6 +108,27 @@ namespace VRCX
             return string.Empty;
         }
 
+        private static string BackgroundImagePath => Path.Join(Program.AppDataDirectory, "background.img");
+
+        public void SaveBackgroundImage(string base64)
+        {
+            File.WriteAllBytes(BackgroundImagePath, Convert.FromBase64String(base64));
+        }
+
+        public string GetBackgroundImage()
+        {
+            if (File.Exists(BackgroundImagePath))
+                return Convert.ToBase64String(File.ReadAllBytes(BackgroundImagePath));
+
+            return string.Empty;
+        }
+
+        public void ClearBackgroundImage()
+        {
+            if (File.Exists(BackgroundImagePath))
+                File.Delete(BackgroundImagePath);
+        }
+
         public string CustomScript()
         {
             var filePath = Path.Join(Program.AppDataDirectory, "custom.js");

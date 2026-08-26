@@ -206,6 +206,9 @@ declare global {
         IPCAnnounceStart(): Promise<void>;
         SendIpc(type: string, data: string): Promise<void>;
         CustomCss(): Promise<string>;
+        SaveBackgroundImage(base64: string): Promise<void>;
+        GetBackgroundImage(): Promise<string>;
+        ClearBackgroundImage(): Promise<void>;
         CustomScript(): Promise<string>;
         CurrentCulture(): Promise<string>;
         CurrentLanguage(): Promise<string>;

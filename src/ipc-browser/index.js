@@ -10,6 +10,7 @@ const indexedDbName = 'vrcxf-browser';
 const indexedDbStore = 'runtime';
 const sqliteKey = 'sqlite-db';
 const cookieJarKey = 'cookie-jar';
+const backgroundImageKey = 'background-image';
 const sqliteHeader = new Uint8Array([
     0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00
 ]);
@@ -931,6 +932,15 @@ const BrowserAppApi = new Proxy(
         async SendIpc() {},
         async CustomCss() {
             return '';
+        },
+        async SaveBackgroundImage(base64) {
+            await setIndexedDbValue(backgroundImageKey, base64);
+        },
+        async GetBackgroundImage() {
+            return (await getIndexedDbValue(backgroundImageKey).catch(() => '')) || '';
+        },
+        async ClearBackgroundImage() {
+            await withIndexedDbStore('readwrite', (store) => store.delete(backgroundImageKey)).catch(() => {});
         },
         async CustomScript() {
             return '';

@@ -161,7 +161,7 @@
     const windowTitle = computed(() => dialogCrumbs.value.at(-1)?.label);
     const dialogContentClass = computed(() => {
         if (popoutEnabled.value) {
-            return 'flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
+            return 'x-popout-dialog flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
         }
 
         switch (activeType.value) {
