@@ -77,6 +77,7 @@
     --x-card-opaque: var(--card);
     --x-bg-alpha: 50%;
     --x-bg-blur: 28px;
+    --x-content-alpha: calc(var(--x-bg-alpha) * 0.8);
     --x-dialog-alpha: calc(var(--x-bg-alpha) * 0.3);
 }
 
@@ -226,17 +227,31 @@ html.x-has-bg :is(#x-app, #teleport-target) {
     --sidebar: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
-html.x-has-bg :is(#x-app, #teleport-target) .x-container {
-    background: transparent;
+html.x-has-bg :is(#x-app, #teleport-target) [data-slot='sidebar-inset'] {
+    background-color: transparent;
+}
+
+html.x-has-bg :is(#x-app, #teleport-target) .x-aside-container {
+    height: calc(100% - 20px);
+    margin: 8px 8px 8px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+html.x-has-bg
+    :is(#x-app, #teleport-target)
+    :is(.x-container, .x-aside-container, [data-sidebar='sidebar'], .x-status-bar) {
+    background: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
+    backdrop-filter: blur(var(--x-bg-blur));
 }
 
 html.x-has-bg :is(.x-popout-shell, .x-popout-dialog, .macos-title-bar) {
     background-color: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
+    backdrop-filter: blur(var(--x-bg-blur));
 }
 
 html.x-has-bg :is(#x-app, #teleport-target) :is([data-slot='table-head'], [data-slot='table-cell'].sticky) {
-    background-color: transparent;
-    backdrop-filter: blur(var(--x-bg-blur));
+    background-color: var(--x-sidebar-opaque);
 }
 
 html.x-has-bg body {

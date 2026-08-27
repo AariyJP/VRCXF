@@ -1,6 +1,6 @@
 <template>
     <div
-        class="shrink-0 h-[22px] flex items-center bg-sidebar border-t border-border text-xs select-none overflow-hidden"
+        class="x-status-bar shrink-0 h-[22px] flex items-center bg-sidebar border-t border-border text-xs select-none overflow-hidden"
         style="font-family: var(--font-mono-cjk)"
         @contextmenu.prevent>
         <ContextMenu>
