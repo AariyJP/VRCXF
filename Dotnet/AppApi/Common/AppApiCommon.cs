@@ -117,16 +117,14 @@ namespace VRCX
 
         public string GetBackgroundImage()
         {
-            if (File.Exists(BackgroundImagePath))
-                return Convert.ToBase64String(File.ReadAllBytes(BackgroundImagePath));
-
-            return string.Empty;
+            return File.Exists(BackgroundImagePath)
+                ? Convert.ToBase64String(File.ReadAllBytes(BackgroundImagePath))
+                : string.Empty;
         }
 
         public void ClearBackgroundImage()
         {
-            if (File.Exists(BackgroundImagePath))
-                File.Delete(BackgroundImagePath);
+            File.Delete(BackgroundImagePath);
         }
 
         public string CustomScript()

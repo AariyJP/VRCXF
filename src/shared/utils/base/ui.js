@@ -12,6 +12,7 @@ import {
 import { i18n } from '../../../plugins/i18n';
 import { router } from '../../../plugins/router';
 import { textToHex } from './string';
+import { readFileAsBase64 } from '../imageUpload';
 
 import configRepository from '../../../services/config.js';
 
@@ -27,7 +28,6 @@ const BACKGROUND_IMAGE_CLASS = 'x-has-bg';
 const BACKGROUND_IMAGE_MAX_EDGE = 2560;
 const BACKGROUND_IMAGE_MAX_SOURCE_BYTES = 32 * 1024 * 1024;
 const BACKGROUND_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'];
-const BACKGROUND_IMAGE_STYLE_ID = 'app-background-image-style';
 const BACKGROUND_IMAGE_MIME = 'image/webp';
 
 const themeColors = THEME_COLORS.map((theme) => ({
@@ -520,15 +520,6 @@ function decodeBackgroundImageBase64(base64) {
     return bytes;
 }
 
-function encodeBackgroundImageBase64(bytes) {
-    let binary = '';
-    const chunkSize = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-    }
-    return btoa(binary);
-}
-
 function validateBackgroundImageSize(size) {
     if (size > BACKGROUND_IMAGE_MAX_SOURCE_BYTES) {
         throw new Error('Background image is too large');
@@ -541,7 +532,7 @@ function pickImageFileBytes() {
         input.type = 'file';
         input.accept = 'image/*';
         input.oncancel = () => resolve(null);
-        input.onchange = () => {
+        input.onchange = async () => {
             const file = input.files?.[0];
             if (!file) {
                 resolve(null);
@@ -549,39 +540,32 @@ function pickImageFileBytes() {
             }
             try {
                 validateBackgroundImageSize(file.size);
+                resolve(new Uint8Array(await file.arrayBuffer()));
             } catch (error) {
                 reject(error);
-                return;
             }
-            file.arrayBuffer()
-                .then((buffer) => resolve(new Uint8Array(buffer)))
-                .catch(() => resolve(null));
         };
         input.click();
     });
 }
 
-function pickBackgroundImageBytes() {
+async function pickBackgroundImageBytes() {
     if (BROWSER) {
         return pickImageFileBytes();
     }
     const patterns = BACKGROUND_IMAGE_EXTENSIONS.map((ext) => `*.${ext}`).join(';');
-    const dialog = LINUX
+    const path = await (LINUX
         ? window.electron.openFileDialog([{ name: 'Images', extensions: BACKGROUND_IMAGE_EXTENSIONS }])
-        : AppApi.OpenFileSelectorDialog('', '.png', `Images (${patterns})|${patterns}`);
-    return dialog
-        .then(async (path) => {
-            if (!path) {
-                return null;
-            }
-            validateBackgroundImageSize(await AppApi.GetFileSize(path));
-            return AppApi.GetFileBase64(path);
-        })
-        .then((base64) => (base64 ? decodeBackgroundImageBase64(base64) : null));
+        : AppApi.OpenFileSelectorDialog('', '.png', `Images (${patterns})|${patterns}`));
+    if (!path) {
+        return null;
+    }
+    validateBackgroundImageSize(await AppApi.GetFileSize(path));
+    const base64 = await AppApi.GetFileBase64(path);
+    return base64 ? decodeBackgroundImageBase64(base64) : null;
 }
 
 async function normalizeBackgroundImage(bytes) {
-    validateBackgroundImageSize(bytes.length);
     const bitmap = await createImageBitmap(new Blob([bytes]));
     const scale = Math.min(1, BACKGROUND_IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
@@ -589,8 +573,7 @@ async function normalizeBackgroundImage(bytes) {
     const canvas = new OffscreenCanvas(width, height);
     canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
-    const blob = await canvas.convertToBlob({ type: BACKGROUND_IMAGE_MIME, quality: 0.85 });
-    return new Uint8Array(await blob.arrayBuffer());
+    return canvas.convertToBlob({ type: BACKGROUND_IMAGE_MIME, quality: 0.85 });
 }
 
 async function pickBackgroundImage() {
@@ -598,24 +581,14 @@ async function pickBackgroundImage() {
     if (!bytes?.length) {
         return '';
     }
-    return encodeBackgroundImageBase64(await normalizeBackgroundImage(bytes));
+    return readFileAsBase64(await normalizeBackgroundImage(bytes));
 }
 
 function applyBackgroundImage(base64) {
     const root = document.documentElement;
-    const existing = document.getElementById(BACKGROUND_IMAGE_STYLE_ID);
-    if (!base64) {
-        existing?.remove();
-        root.classList.remove(BACKGROUND_IMAGE_CLASS);
-        return;
-    }
-    const style = existing || document.createElement('style');
-    style.id = BACKGROUND_IMAGE_STYLE_ID;
-    style.textContent = `:root{--x-bg-image:url("data:${BACKGROUND_IMAGE_MIME};base64,${base64}")}`;
-    if (!existing) {
-        document.head.appendChild(style);
-    }
-    root.classList.add(BACKGROUND_IMAGE_CLASS);
+    const image = base64 ? `url("data:${BACKGROUND_IMAGE_MIME};base64,${base64}")` : 'none';
+    root.style.setProperty('--x-bg-image', image);
+    root.classList.toggle(BACKGROUND_IMAGE_CLASS, Boolean(base64));
 }
 
 function applyBackgroundImageOpacity(opacity) {

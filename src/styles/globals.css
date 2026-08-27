@@ -218,8 +218,7 @@ html.x-has-bg body {
     background-color: transparent;
 }
 
-html.x-has-bg #x-app,
-html.x-has-bg #teleport-target {
+html.x-has-bg :is(#x-app, #teleport-target) {
     --sidebar: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
@@ -235,13 +234,11 @@ html.dark.x-has-bg .macos-title-bar {
     background-color: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
-html.x-has-bg #x-app .x-container,
-html.x-has-bg #teleport-target .x-container {
+html.x-has-bg :is(#x-app, #teleport-target) .x-container {
     background: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
 }
 
-html.dark.x-has-bg #x-app .x-container,
-html.dark.x-has-bg #teleport-target .x-container {
+html.dark.x-has-bg :is(#x-app, #teleport-target) .x-container {
     background: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 

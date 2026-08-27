@@ -136,7 +136,7 @@
                 label="不透明度"
                 description="値を大きくするほど背景画像がはっきり見えます">
                 <NumberField
-                    v-model="backgroundImageOpacity"
+                    :model-value="backgroundImageOpacity"
                     :step="0.1"
                     :min="0"
                     :max="1"
@@ -621,30 +621,24 @@
 
     const isBackgroundImageBusy = ref(false);
 
-    function handleSelectBackgroundImage() {
+    async function handleBackgroundImageAction(action, errorMessage) {
         if (isBackgroundImageBusy.value) {
             return;
         }
         isBackgroundImageBusy.value = true;
-        selectBackgroundImage()
-            .catch(() => {
-                toast.error('背景画像の設定に失敗しました。');
-            })
-            .finally(() => {
-                isBackgroundImageBusy.value = false;
-            });
-    }
-
-    async function handleClearBackgroundImage() {
-        isBackgroundImageBusy.value = true;
         try {
-            await clearBackgroundImage();
+            await action();
         } catch {
-            toast.error('背景画像の解除に失敗しました。');
+            toast.error(errorMessage);
         } finally {
             isBackgroundImageBusy.value = false;
         }
     }
+
+    const handleSelectBackgroundImage = () =>
+        handleBackgroundImageAction(selectBackgroundImage, '背景画像の設定に失敗しました。');
+    const handleClearBackgroundImage = () =>
+        handleBackgroundImageAction(clearBackgroundImage, '背景画像の解除に失敗しました。');
 
     const trustColorEntries = [
         {

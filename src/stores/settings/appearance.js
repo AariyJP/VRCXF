@@ -683,14 +683,13 @@ export const useAppearanceSettingsStore = defineStore(
             configRepository.setFloat('VRCX_profileBackgroundOpacity', value);
         }
 
+        function setBackgroundImage(base64) {
+            hasBackgroundImage.value = Boolean(base64);
+            applyBackgroundImage(base64);
+        }
+
         async function loadBackgroundImage() {
-            try {
-                const base64 = await AppApi.GetBackgroundImage();
-                hasBackgroundImage.value = Boolean(base64);
-                applyBackgroundImage(base64);
-            } catch {
-                hasBackgroundImage.value = false;
-            }
+            setBackgroundImage(await AppApi.GetBackgroundImage().catch(() => ''));
         }
 
         async function selectBackgroundImage() {
@@ -699,14 +698,12 @@ export const useAppearanceSettingsStore = defineStore(
                 return;
             }
             await AppApi.SaveBackgroundImage(base64);
-            hasBackgroundImage.value = true;
-            applyBackgroundImage(base64);
+            setBackgroundImage(base64);
         }
 
         async function clearBackgroundImage() {
             await AppApi.ClearBackgroundImage();
-            hasBackgroundImage.value = false;
-            applyBackgroundImage('');
+            setBackgroundImage('');
         }
 
         function setBackgroundImageOpacity(value) {
