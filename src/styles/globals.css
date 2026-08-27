@@ -73,7 +73,11 @@
     --visibility-private: #ef4444;
 
     --x-sidebar-opaque: var(--sidebar);
+    --x-popover-opaque: var(--popover);
+    --x-card-opaque: var(--card);
     --x-bg-alpha: 50%;
+    --x-bg-blur: 28px;
+    --x-dialog-alpha: calc(var(--x-bg-alpha) * 0.3);
 }
 
 .dark {
@@ -222,24 +226,51 @@ html.x-has-bg :is(#x-app, #teleport-target) {
     --sidebar: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
-html.x-has-bg .x-popout-dialog {
-    background: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+html.x-has-bg :is(#x-app, #teleport-target) .x-container {
+    background: transparent;
 }
 
-html.x-has-bg .macos-title-bar {
-    background-color: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
-}
-
-html.dark.x-has-bg .macos-title-bar {
+html.x-has-bg :is(.x-popout-shell, .x-popout-dialog, .macos-title-bar) {
     background-color: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
 }
 
-html.x-has-bg :is(#x-app, #teleport-target) .x-container {
-    background: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+html.x-has-bg :is(#x-app, #teleport-target) :is([data-slot='table-head'], [data-slot='table-cell'].sticky) {
+    background-color: transparent;
+    backdrop-filter: blur(var(--x-bg-blur));
 }
 
-html.dark.x-has-bg :is(#x-app, #teleport-target) .x-container {
-    background: color-mix(in oklab, var(--x-sidebar-opaque) var(--x-bg-alpha), transparent);
+html.x-has-bg body {
+    --popover: color-mix(in oklab, var(--x-popover-opaque) var(--x-bg-alpha), transparent);
+    --card: color-mix(in oklab, var(--x-card-opaque) var(--x-bg-alpha), transparent);
+}
+
+html.x-has-bg :is([data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='sheet-content']) {
+    background-color: color-mix(in oklab, var(--background) var(--x-bg-alpha), transparent);
+}
+
+html.x-has-bg .x-main-dialog {
+    background-color: color-mix(in oklab, var(--background) var(--x-dialog-alpha), transparent);
+}
+
+html.x-has-bg
+    :is(
+        [data-slot='command'],
+        [data-slot='dialog-content'],
+        [data-slot='alert-dialog-content'],
+        [data-slot='sheet-content'],
+        [data-slot='popover-content'],
+        [data-slot='select-content'],
+        [data-slot='dropdown-menu-content'],
+        [data-slot='dropdown-menu-sub-content'],
+        [data-slot='context-menu-content'],
+        [data-slot='context-menu-sub-content'],
+        [data-slot='hover-card-content']
+    ) {
+    backdrop-filter: blur(var(--x-bg-blur));
+}
+
+html.x-has-bg .x-login-container {
+    background: var(--background);
 }
 
 [data-sonner-toast] [data-content] [data-description] {
