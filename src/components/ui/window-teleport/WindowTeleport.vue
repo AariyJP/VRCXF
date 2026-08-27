@@ -176,9 +176,12 @@
 
         newWindow.document.title = props.title;
 
-        const bodyStyle = window.getComputedStyle(document.body);
-        newWindow.document.body.style.backgroundColor = bodyStyle.backgroundColor;
-        newWindow.document.body.style.color = bodyStyle.color;
+        const syncBodyStyles = () => {
+            const bodyStyle = window.getComputedStyle(document.body);
+            newWindow.document.body.style.backgroundColor = bodyStyle.backgroundColor;
+            newWindow.document.body.style.color = bodyStyle.color;
+        };
+        syncBodyStyles();
 
         const syncStyles = () => {
             if (!newWindow || newWindow.closed) {
@@ -219,6 +222,7 @@
                     }
                 }
             });
+            syncBodyStyles();
         });
         themeObserver.observe(document.documentElement, { attributes: true });
 

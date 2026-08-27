@@ -940,7 +940,7 @@ const BrowserAppApi = new Proxy(
             return (await getIndexedDbValue(backgroundImageKey).catch(() => '')) || '';
         },
         async ClearBackgroundImage() {
-            await withIndexedDbStore('readwrite', (store) => store.delete(backgroundImageKey)).catch(() => {});
+            await withIndexedDbStore('readwrite', (store) => store.delete(backgroundImageKey));
         },
         async CustomScript() {
             return '';
@@ -963,6 +963,9 @@ const BrowserAppApi = new Proxy(
         async SetAppLauncherSettings() {},
         async GetFileBase64() {
             return null;
+        },
+        async GetFileSize() {
+            return 0;
         },
         async TryOpenInstanceInVrc(launchUrl) {
             window.open(launchUrl, '_blank', 'noopener');

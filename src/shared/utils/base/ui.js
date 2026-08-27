@@ -529,8 +529,14 @@ function encodeBackgroundImageBase64(bytes) {
     return btoa(binary);
 }
 
+function validateBackgroundImageSize(size) {
+    if (size > BACKGROUND_IMAGE_MAX_SOURCE_BYTES) {
+        throw new Error('Background image is too large');
+    }
+}
+
 function pickImageFileBytes() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
@@ -539,6 +545,12 @@ function pickImageFileBytes() {
             const file = input.files?.[0];
             if (!file) {
                 resolve(null);
+                return;
+            }
+            try {
+                validateBackgroundImageSize(file.size);
+            } catch (error) {
+                reject(error);
                 return;
             }
             file.arrayBuffer()
@@ -558,14 +570,18 @@ function pickBackgroundImageBytes() {
         ? window.electron.openFileDialog([{ name: 'Images', extensions: BACKGROUND_IMAGE_EXTENSIONS }])
         : AppApi.OpenFileSelectorDialog('', '.png', `Images (${patterns})|${patterns}`);
     return dialog
-        .then((path) => (path ? AppApi.GetFileBase64(path) : null))
+        .then(async (path) => {
+            if (!path) {
+                return null;
+            }
+            validateBackgroundImageSize(await AppApi.GetFileSize(path));
+            return AppApi.GetFileBase64(path);
+        })
         .then((base64) => (base64 ? decodeBackgroundImageBase64(base64) : null));
 }
 
 async function normalizeBackgroundImage(bytes) {
-    if (bytes.length > BACKGROUND_IMAGE_MAX_SOURCE_BYTES) {
-        throw new Error('Background image is too large');
-    }
+    validateBackgroundImageSize(bytes.length);
     const bitmap = await createImageBitmap(new Blob([bytes]));
     const scale = Math.min(1, BACKGROUND_IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));

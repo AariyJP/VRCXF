@@ -190,6 +190,11 @@ namespace VRCX
             return null;
         }
 
+        public long GetFileSize(string path)
+        {
+            return new FileInfo(path).Length;
+        }
+
         public virtual Task<bool> TryOpenInstanceInVrc(string launchUrl)
         {
             return VRCIPC.Send(launchUrl);

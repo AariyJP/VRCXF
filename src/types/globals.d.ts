@@ -221,6 +221,7 @@ declare global {
             runProcessOnce: boolean
         ): Promise<void>;
         GetFileBase64(path: string): Promise<string | null>;
+        GetFileSize(path: string): Promise<number>;
         TryOpenInstanceInVrc(launchUrl: string): Promise<boolean>;
 
         // Image Upload (Cef Only)
