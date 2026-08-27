@@ -131,10 +131,7 @@
                 </div>
             </SettingsItem>
 
-            <SettingsItem
-                v-if="hasBackgroundImage"
-                label="不透明度"
-                description="値を大きくするほど背景画像がはっきり見えます">
+            <SettingsItem v-if="hasBackgroundImage" label="不透明度">
                 <NumberField
                     :model-value="backgroundImageOpacity"
                     :step="0.1"
