@@ -217,6 +217,14 @@
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.advanced_groups.database.header')">
+            <SettingsItem
+                label="Feedを有効にする"
+                description="無効にすると、Feedのデータベースへの保存を停止してディスク容量を節約します。">
+                <Switch :model-value="feedEnabled" ariaLabel="Feedを有効にする" @update:modelValue="setFeedEnabled" />
+            </SettingsItem>
+
+            <Separator class="my-2" />
+
             <SettingsItem :label="t('view.settings.advanced.advanced.sqlite_table_size.refresh')">
                 <Button size="sm" variant="outline" @click="getSqliteTableSizes">{{
                     t('view.settings.advanced.advanced.sqlite_table_size.refresh')
@@ -654,7 +662,9 @@
     const { photonLoggingEnabled } = storeToRefs(usePhotonStore());
     const { branch } = storeToRefs(useVRCXUpdaterStore());
 
-    const { isDarkMode } = storeToRefs(useAppearanceSettingsStore());
+    const appearanceSettingsStore = useAppearanceSettingsStore();
+    const { isDarkMode, feedEnabled } = storeToRefs(appearanceSettingsStore);
+    const { setFeedEnabled } = appearanceSettingsStore;
 
     const {
         enablePrimaryPassword,
