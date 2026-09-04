@@ -50,6 +50,10 @@ namespace VRCX
         {
         }
 
+        public override void FocusPopupWindow(string name)
+        {
+        }
+
         public override void ChangeTheme(int value)
         {
         }

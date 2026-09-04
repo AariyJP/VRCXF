@@ -18,6 +18,7 @@ namespace VRCX
         public abstract bool CheckForUpdateExe();
         public abstract void ExecuteVrOverlayFunction(string function, string json);
         public abstract void FocusWindow();
+        public abstract void FocusPopupWindow(string name);
         public abstract void ChangeTheme(int value);
         public abstract void DoFunny();
         public abstract string GetClipboard();

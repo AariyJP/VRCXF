@@ -69,6 +69,7 @@ declare global {
             ) => () => void;
             onBrowserFocus: (Function: (event: any) => void) => () => void;
             restartApp: () => Promise<void>;
+            focusSelfWindow: () => Promise<void>;
             getOverlayWindow: () => Promise<boolean>;
             updateVr: (
                 active: boolean,
@@ -186,6 +187,7 @@ declare global {
         CheckForUpdateExe(): Promise<boolean>;
         ExecuteVrOverlayFunction(key: string, json: string): Promise<void>;
         FocusWindow(): Promise<void>;
+        FocusPopupWindow(name: string): Promise<void>;
         ChangeTheme(value: number): Promise<void>;
         DoFunny(): Promise<void>;
         GetClipboard(): Promise<string>;

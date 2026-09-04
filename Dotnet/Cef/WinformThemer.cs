@@ -236,6 +236,19 @@ namespace VRCX
             internal static extern bool IsWindow(IntPtr hWnd);
 
             [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool IsIconic(IntPtr hWnd);
+
+            [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            internal const int SW_RESTORE = 9;
+
+            [DllImport("user32.dll")]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
+            [DllImport("user32.dll")]
             internal static extern bool SetWindowPos(IntPtr hwnd, IntPtr hwndInsertAfter, int x, int y, int width, int height, uint flags);
             internal const uint SWP_NOMOVE = 0x0002;
             internal const uint SWP_NOSIZE = 0x0001;
