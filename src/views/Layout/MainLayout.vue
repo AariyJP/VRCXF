@@ -97,6 +97,7 @@
             v-for="view in popoutViews"
             :key="view.popout.id"
             :open="true"
+            :focus-key="view.popout.focusRequest"
             :title="view.popout.title"
             @close="uiStore.removePopout(view.popout.id)">
             <Suspense>
