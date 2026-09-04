@@ -884,7 +884,6 @@ const BrowserAppApi = new Proxy(
         async FocusWindow() {
             window.focus();
         },
-        async FocusPopupWindow() {},
         async ChangeTheme() {},
         async DoFunny() {},
         async GetClipboard() {

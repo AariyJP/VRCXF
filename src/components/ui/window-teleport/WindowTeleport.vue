@@ -127,7 +127,7 @@
         };
     };
 
-    const windowName = `vrcx-popout-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const windowName = `vrcx-popout-${Math.random().toString(36).slice(2, 10)}`;
 
     const focusNewWindow = () => {
         if (!newWindow || newWindow.closed) {

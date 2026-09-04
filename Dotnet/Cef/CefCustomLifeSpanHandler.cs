@@ -8,9 +8,7 @@ namespace VRCX
     public class CefCustomLifeSpanHandler : ILifeSpanHandler
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly ConcurrentDictionary<int, IntPtr> _popupTopLevelHandles = new ConcurrentDictionary<int, IntPtr>();
-        private static readonly ConcurrentDictionary<string, IntPtr> _popupHandlesByName = new ConcurrentDictionary<string, IntPtr>();
-        private static readonly ConcurrentDictionary<int, string> _popupNamesById = new ConcurrentDictionary<int, string>();
+        private static readonly ConcurrentDictionary<int, (IntPtr Handle, string Name)> _popupTopLevelHandles = new ConcurrentDictionary<int, (IntPtr, string)>();
         private static readonly ConcurrentQueue<string> _pendingPopupNames = new ConcurrentQueue<string>();
 
         public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
@@ -56,25 +54,35 @@ namespace VRCX
 
         private static string ResolvePopupName(IBrowser browser)
         {
+            _pendingPopupNames.TryDequeue(out string pendingName);
             string frameName = browser.MainFrame?.Name;
-            if (!string.IsNullOrEmpty(frameName))
-            {
-                return frameName;
-            }
-
-            return _pendingPopupNames.TryDequeue(out string pendingName) ? pendingName : null;
+            return string.IsNullOrEmpty(frameName) ? pendingName : frameName;
         }
 
-        public static bool FocusPopup(string name)
+        private static IntPtr FindPopupHandleByName(string name)
         {
-            if (string.IsNullOrEmpty(name) || !_popupHandlesByName.TryGetValue(name, out IntPtr handle))
+            foreach (var popup in _popupTopLevelHandles.Values)
             {
-                return false;
+                if (popup.Name == name)
+                {
+                    return popup.Handle;
+                }
             }
 
+            return IntPtr.Zero;
+        }
+
+        public static void FocusPopup(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
+            IntPtr handle = FindPopupHandleByName(name);
             if (handle == IntPtr.Zero || !WinformThemer.PInvoke.IsWindow(handle))
             {
-                return false;
+                return;
             }
 
             if (WinformThemer.PInvoke.IsIconic(handle))
@@ -82,7 +90,7 @@ namespace VRCX
                 WinformThemer.PInvoke.ShowWindow(handle, WinformThemer.PInvoke.SW_RESTORE);
             }
 
-            return WinformThemer.PInvoke.SetForegroundWindow(handle);
+            WinformThemer.PInvoke.SetForegroundWindow(handle);
         }
 
         public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
@@ -90,15 +98,7 @@ namespace VRCX
             IntPtr topLevelHandle = GetPopupTopLevelHandle(browser);
             if (topLevelHandle != IntPtr.Zero)
             {
-                _popupTopLevelHandles[browser.Identifier] = topLevelHandle;
-
-                string popupName = ResolvePopupName(browser);
-                if (!string.IsNullOrEmpty(popupName))
-                {
-                    _popupNamesById[browser.Identifier] = popupName;
-                    _popupHandlesByName[popupName] = topLevelHandle;
-                }
-
+                _popupTopLevelHandles[browser.Identifier] = (topLevelHandle, ResolvePopupName(browser));
                 WinformThemer.AddPopup(topLevelHandle);
             }
         }
@@ -107,14 +107,9 @@ namespace VRCX
 
         public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
-            if (_popupNamesById.TryRemove(browser.Identifier, out string popupName))
+            if (_popupTopLevelHandles.TryRemove(browser.Identifier, out var popup))
             {
-                _popupHandlesByName.TryRemove(popupName, out _);
-            }
-
-            if (_popupTopLevelHandles.TryRemove(browser.Identifier, out IntPtr topLevelHandle))
-            {
-                WinformThemer.RemovePopup(topLevelHandle);
+                WinformThemer.RemovePopup(popup.Handle);
             }
         }
     }
