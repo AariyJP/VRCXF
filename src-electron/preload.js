@@ -54,6 +54,7 @@ contextBridge.exposeInMainWorld('electron', {
     onBrowserFocus: (callback) => registerManagedListener('onBrowserFocus', callback),
     desktopNotification: (title, body, icon) => ipcRenderer.invoke('notification:showNotification', title, body, icon),
     restartApp: () => ipcRenderer.invoke('app:restart'),
+    focusSelfWindow: () => ipcRenderer.invoke('window:focusSelf'),
     getOverlayWindow: () => ipcRenderer.invoke('app:getOverlayWindow'),
     updateVr: (active, hmdOverlay, wristOverlay, menuButton, overlayHand) =>
         ipcRenderer.invoke('app:updateVr', active, hmdOverlay, wristOverlay, menuButton, overlayHand),

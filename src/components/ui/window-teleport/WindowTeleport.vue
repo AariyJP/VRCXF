@@ -127,9 +127,22 @@
         };
     };
 
+    const windowName = `vrcx-popout-${Math.random().toString(36).slice(2, 10)}`;
+
+    const focusNewWindow = () => {
+        if (!newWindow || newWindow.closed) {
+            return;
+        }
+        if (WINDOWS) {
+            AppApi.FocusPopupWindow(windowName);
+        }
+        newWindow.electron?.focusSelfWindow?.();
+        newWindow.focus();
+    };
+
     const createNewWindow = () => {
         if (newWindow && !newWindow.closed && target.value?.isConnected) {
-            newWindow.focus();
+            focusNewWindow();
             return;
         }
 
@@ -142,7 +155,7 @@
 
         const openedWindow = openerWindow.open(
             'about:blank',
-            '',
+            windowName,
             `width=${props.width},height=${props.height},top=${top},left=${left}`
         );
 
@@ -218,7 +231,7 @@
         newWindow.document.body.style.overflow = 'hidden';
 
         target.value = el;
-        newWindow.focus();
+        focusNewWindow();
 
         const openedDocument = newWindow.document;
         const handleWindowClose = () => {

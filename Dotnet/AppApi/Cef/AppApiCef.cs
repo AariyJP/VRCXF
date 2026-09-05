@@ -131,6 +131,11 @@ namespace VRCX
             MainForm.Instance.Invoke(new Action(() => { MainForm.Instance.Focus_Window(); }));
         }
 
+        public override void FocusPopupWindow(string name)
+        {
+            CefCustomLifeSpanHandler.FocusPopup(name);
+        }
+
         public override void ChangeTheme(int value)
         {
             WinformThemer.SetGlobalTheme(value);

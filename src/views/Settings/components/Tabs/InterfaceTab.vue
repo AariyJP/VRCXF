@@ -239,12 +239,6 @@
             </SettingsItem>
 
             <SettingsItem
-                label="Feedを有効にする"
-                description="無効にすると、Feedのデータベースへの保存を停止してディスク容量を節約します。">
-                <Switch :model-value="feedEnabled" ariaLabel="Feedを有効にする" @update:modelValue="setFeedEnabled" />
-            </SettingsItem>
-
-            <SettingsItem
                 v-if="!BROWSER"
                 label="ポップアウト機能を使用する"
                 description="ナビゲーションのポップアウトボタンと、メニュー項目の中クリックでビューを別ウィンドウに切り離せるようにします。">
@@ -542,7 +536,6 @@
         isDataTableStriped,
         accessibleStatusIndicators,
         showNewDashboardButton,
-        feedEnabled,
         popoutEnabled
     } = storeToRefs(appearanceSettingsStore);
 
@@ -572,7 +565,6 @@
         toggleStripedDataTable,
         toggleAccessibleStatusIndicators,
         setShowNewDashboardButton,
-        setFeedEnabled,
         setPopoutEnabled,
         setAppFontFamily,
         setCustomFontFamily,

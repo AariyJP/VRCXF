@@ -364,9 +364,18 @@ export const useUiStore = defineStore('Ui', () => {
     function addPopout(routeName, routeParams, title) {
         const target = { name: routeName, params: routeParams };
         const id = router.resolve(target).fullPath;
-        if (!popouts.value.some((popout) => popout.id === id)) {
-            popouts.value.push({ id, routeName, routeParams, title });
+        const existing = popouts.value.find((popout) => popout.id === id);
+        if (existing) {
+            existing.focusRequest += 1;
+            return;
         }
+        popouts.value.push({
+            id,
+            routeName,
+            routeParams,
+            title,
+            focusRequest: 0
+        });
     }
 
     function removePopout(id) {

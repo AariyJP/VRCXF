@@ -63,6 +63,8 @@
 
         <GroupEditDialog></GroupEditDialog>
 
+        <GroupEventEditDialog></GroupEventEditDialog>
+
         <FullscreenImagePreview></FullscreenImagePreview>
 
         <LaunchDialog></LaunchDialog>
@@ -95,6 +97,7 @@
             v-for="view in popoutViews"
             :key="view.popout.id"
             :open="true"
+            :focus-key="view.popout.focusRequest"
             :title="view.popout.title"
             @close="uiStore.removePopout(view.popout.id)">
             <Suspense>
@@ -123,6 +126,7 @@
     import FullscreenImagePreview from '../../components/FullscreenImagePreview.vue';
     import GlobalToolsDialogs from '../Tools/components/GlobalToolsDialogs.vue';
     import GroupEditDialog from '../../components/dialogs/GroupDialog/GroupEditDialog.vue';
+    import GroupEventEditDialog from '../../components/dialogs/GroupDialog/GroupEventEditDialog.vue';
     import InviteGroupDialog from '../../components/dialogs/InviteGroupDialog.vue';
     import LaunchDialog from '../../components/dialogs/LaunchDialog.vue';
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';

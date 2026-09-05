@@ -263,6 +263,18 @@ ipcMain.handle('app:setTrayIconNotification', (_event, notify) => {
     setTrayIconNotification(notify);
 });
 
+ipcMain.handle('window:focusSelf', (ipcEvent) => {
+    const targetWindow = BrowserWindow.fromWebContents(ipcEvent.sender);
+    if (!targetWindow || targetWindow.isDestroyed()) {
+        return;
+    }
+    if (targetWindow.isMinimized()) {
+        targetWindow.restore();
+    }
+    targetWindow.show();
+    targetWindow.focus();
+});
+
 function createWindow() {
     console.log('Creating main window');
 
