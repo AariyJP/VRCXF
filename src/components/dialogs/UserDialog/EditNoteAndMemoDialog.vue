@@ -35,6 +35,16 @@
                 </template>
             </div>
 
+            <template v-if="userDialog.friend">
+                <span class="name mt-2">LocateMe URL</span>
+                <InputGroupTextareaField
+                    v-model="locateMeUrl"
+                    class="text-xs mt-2"
+                    :rows="2"
+                    placeholder="https://locate-me.tapioka-systems.org/s/XXXXXXXXXXXX"
+                    input-class="resize-none min-h-0" />
+            </template>
+
             <DialogFooter>
                 <Button variant="secondary" @click="cancel" class="mr-2">{{
                     t('dialog.user.note_memo.cancel')
@@ -51,15 +61,18 @@
     import { Button } from '@/components/ui/button';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
     import { storeToRefs } from 'pinia';
+    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
     import { miscRequest, userRequest } from '../../../api';
     import { replaceBioSymbols } from '../../../shared/utils';
     import { saveUserMemo } from '../../../coordinators/memoCoordinator';
+    import { saveLocateMeUrl } from '../../../coordinators/locateMeCoordinator';
     import { useAppearanceSettingsStore, useUserStore } from '../../../stores';
 
-    const { userDialog } = storeToRefs(useUserStore());
-    const { cachedUsers } = useUserStore();
+    const userStore = useUserStore();
+    const { userDialog } = storeToRefs(userStore);
+    const { cachedUsers } = userStore;
     const { hideUserNotes, hideUserMemos } = storeToRefs(useAppearanceSettingsStore());
 
     const { t } = useI18n();
@@ -75,6 +88,7 @@
 
     const note = ref('');
     const memo = ref('');
+    const locateMeUrl = ref('');
 
     watch(
         () => props.visible,
@@ -82,11 +96,12 @@
             if (!val) return;
             note.value = userDialog.value.note;
             memo.value = userDialog.value.memo;
+            locateMeUrl.value = userDialog.value.$locateMeUrl || '';
         }
     );
 
     function saveChanges() {
-        cleanNote(note.value);
+        cleanNote();
         checkNote(userDialog.value.ref, note.value);
         onUserMemoChange();
         emit('update:visible', false);
@@ -133,14 +148,27 @@
         }
     }
 
-    function onUserMemoChange() {
-        const D = userDialog.value;
-        saveUserMemo(D.id, memo.value);
+    async function onUserMemoChange() {
+        const userId = userDialog.value.id;
+        saveUserMemo(userId, memo.value);
+        try {
+            const saved = await saveLocateMeUrl(userId, locateMeUrl.value);
+            if (saved === null) {
+                toast.error('LocateMe URL の形式が正しくありません。');
+                return;
+            }
+            if (userStore.userDialog.id !== userId) {
+                return;
+            }
+            userStore.setUserDialogLocateMeUrl(saved);
+        } catch (err) {
+            toast.error(`LocateMe URL の保存に失敗しました: ${err?.message ?? err}`);
+        }
     }
 
-    function cleanNote(note) {
+    function cleanNote() {
         if (!note.value) return;
         // remove newlines because they aren't supported
-        note.value = note.value?.replace(/[\r\n]/g, '');
+        note.value = note.value.replace(/[\r\n]/g, '');
     }
 </script>

@@ -64,6 +64,7 @@ export interface VrcxUser extends GetUserResponse {
     $friendNumber: number;
     $lastFetch: number;
     $moderations: moderations;
+    $isExternalLocation?: boolean;
 }
 
 export interface moderations {
