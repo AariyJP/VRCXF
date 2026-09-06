@@ -161,25 +161,25 @@
     const windowTitle = computed(() => dialogCrumbs.value.at(-1)?.label);
     const dialogContentClass = computed(() => {
         if (popoutEnabled.value) {
-            return 'flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
+            return 'x-popout-dialog flex h-full w-full flex-col overflow-hidden bg-background p-6 text-foreground';
         }
 
         switch (activeType.value) {
             case 'user':
             case 'group':
-                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
+                return 'x-dialog x-main-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
             case 'world':
             case 'avatar':
-                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
+                return 'x-dialog x-main-dialog top-[10vh] translate-y-0 sm:max-w-270 overflow-hidden flex flex-col';
             case 'group-member-moderation':
-                return 'x-dialog top-[10vh] translate-y-0 max-w-none flex flex-col sm:min-w-[90vw] sm:max-w-[90vw] sm:min-h-[80vh] sm:max-h-[80vh]';
+                return 'x-dialog x-main-dialog top-[10vh] translate-y-0 max-w-none flex flex-col sm:min-w-[90vw] sm:max-w-[90vw] sm:min-h-[80vh] sm:max-h-[80vh]';
             case 'previous-instances-info':
             case 'previous-instances-user':
             case 'previous-instances-world':
             case 'previous-instances-group':
-                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-250';
+                return 'x-dialog x-main-dialog top-[10vh] translate-y-0 sm:max-w-250';
             default:
-                return 'x-dialog top-[10vh] translate-y-0 sm:max-w-235 overflow-hidden flex flex-col';
+                return 'x-dialog x-main-dialog top-[10vh] translate-y-0 sm:max-w-235 overflow-hidden flex flex-col';
         }
     });
 
