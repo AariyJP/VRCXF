@@ -6,6 +6,7 @@
     import { reactiveOmit } from '@vueuse/core';
 
     import { ALERT_DIALOG_OPEN_INJECTION_KEY } from './context';
+    import { DIALOG_POPOUT_INJECTION_KEY } from '../dialog/context';
 
     defineOptions({
         inheritAttrs: false
@@ -32,6 +33,7 @@
     const forwarded = useForwardProps(delegatedProps);
 
     const injectedOpen = inject(ALERT_DIALOG_OPEN_INJECTION_KEY, null);
+    const isPopoutDocument = inject(DIALOG_POPOUT_INJECTION_KEY, null);
     const open = injectedOpen ?? ref(true);
 
     const portalDoc = usePortalDocument(open);
@@ -41,7 +43,12 @@
 
 <template>
     <AlertDialogPortal :to="portalTo">
+        <div
+            v-if="isPopoutDocument?.value && open"
+            data-slot="alert-dialog-overlay"
+            class="fixed inset-0 z-11000 bg-black/80"></div>
         <AlertDialogOverlay
+            v-else
             data-slot="alert-dialog-overlay"
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-11000 bg-black/80" />
         <AlertDialogContent
