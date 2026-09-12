@@ -1,4 +1,5 @@
 import { toast } from 'vue-sonner';
+import { writeClipboardText } from '@/lib/clipboard';
 
 import { useExternalLinkStore, useSearchStore } from '../../stores';
 import { escapeTag } from './base/string';
@@ -35,8 +36,7 @@ function downloadAndSaveJson(fileName, data) {
  * @param {string} message
  */
 function copyToClipboard(text, message = 'Copied successfully!') {
-    navigator.clipboard
-        .writeText(text)
+    writeClipboardText(text)
         .then(() => {
             toast.success(message);
         })

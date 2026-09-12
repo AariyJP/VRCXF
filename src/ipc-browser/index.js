@@ -1,4 +1,5 @@
 import initSqlJs from 'sql.js';
+import { readClipboardText } from '@/lib/clipboard';
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { toast } from 'vue-sonner';
 
@@ -888,7 +889,7 @@ const BrowserAppApi = new Proxy(
         async DoFunny() {},
         async GetClipboard() {
             try {
-                return await navigator.clipboard.readText();
+                return await readClipboardText();
             } catch {
                 return '';
             }

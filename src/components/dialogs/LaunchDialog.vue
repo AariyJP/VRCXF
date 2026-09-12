@@ -128,6 +128,7 @@
         DropdownMenuTrigger
     } from '@/components/ui/dropdown-menu';
     import { Field, FieldContent, FieldGroup, FieldLabel } from '@/components/ui/field';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
     import { Copy, Info, MoreHorizontal } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
@@ -393,7 +394,7 @@
      */
     async function copyInstanceMessage(input) {
         try {
-            await navigator.clipboard.writeText(input);
+            await writeClipboardText(input);
             toast.success('Instance copied to clipboard');
         } catch (error) {
             toast.error('Instance copied failed');

@@ -429,6 +429,7 @@
 
 <script setup>
     import { computed, markRaw, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Ellipsis, Loader, MoreHorizontal, Plus, RefreshCcw, RefreshCw } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
     import { DataTableEmpty } from '@/components/ui/data-table';
@@ -892,8 +893,7 @@
 
             if (!confirmDeleteResult.ok) {
                 if (confirmDeleteResult.reason === 'cancel') {
-                    navigator.clipboard
-                        .writeText(invalidIdsText)
+                    writeClipboardText(invalidIdsText)
                         .then(() => {
                             toast.success(t('view.favorite.avatars.copied_ids'));
                         })

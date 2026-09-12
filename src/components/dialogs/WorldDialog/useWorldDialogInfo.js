@@ -1,4 +1,5 @@
 import { computed } from 'vue';
+import { writeClipboardText } from '@/lib/clipboard';
 import {
     commaNumber,
     compareUnityVersion,
@@ -116,8 +117,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
      *
      */
     function copyWorldId() {
-        navigator.clipboard
-            .writeText(worldDialog.value.id)
+        writeClipboardText(worldDialog.value.id)
             .then(() => {
                 toast.success(t('message.world.id_copied'));
             })
@@ -131,8 +131,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
      *
      */
     function copyWorldUrl() {
-        navigator.clipboard
-            .writeText(`https://vrchat.com/home/world/${worldDialog.value.id}`)
+        writeClipboardText(`https://vrchat.com/home/world/${worldDialog.value.id}`)
             .then(() => {
                 toast.success(t('message.world.url_copied'));
             })
@@ -146,8 +145,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
      *
      */
     function copyWorldName() {
-        navigator.clipboard
-            .writeText(worldDialog.value.ref.name)
+        writeClipboardText(worldDialog.value.ref.name)
             .then(() => {
                 toast.success(t('message.world.name_copied'));
             })

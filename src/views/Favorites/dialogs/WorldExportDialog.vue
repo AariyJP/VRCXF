@@ -66,6 +66,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { computed, ref, watch } from 'vue';
     import { Checkbox } from '@/components/ui/checkbox';
@@ -197,8 +198,7 @@
         if (event.target.tagName === 'TEXTAREA') {
             event.target.select();
         }
-        navigator.clipboard
-            .writeText(worldExportContent.value)
+        writeClipboardText(worldExportContent.value)
             .then(() => {
                 toast.success('Copied successfully!', { duration: 2000 });
             })

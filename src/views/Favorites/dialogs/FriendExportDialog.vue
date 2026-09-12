@@ -53,6 +53,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { computed, ref, watch } from 'vue';
     import { InputGroupTextareaField } from '@/components/ui/input-group';
@@ -155,8 +156,7 @@
         if (event.target.tagName === 'TEXTAREA') {
             event.target.select();
         }
-        navigator.clipboard
-            .writeText(friendExportContent.value)
+        writeClipboardText(friendExportContent.value)
             .then(() => {
                 toast.success('Copied successfully!', { duration: 2000 });
             })

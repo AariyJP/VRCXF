@@ -35,6 +35,12 @@ export function queryAllAcrossWindows(selector) {
     );
 }
 
+export function getFocusedWindow() {
+    const documents = collectDocuments();
+    const target = documents.find((doc) => doc.hasFocus()) ?? documents[0];
+    return target?.defaultView ?? (typeof window !== 'undefined' ? window : null);
+}
+
 export function registerActiveDocument(doc) {
     if (!doc) {
         return () => {};
