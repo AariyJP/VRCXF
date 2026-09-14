@@ -38,6 +38,7 @@ import {
 } from './userSessionCoordinator';
 import { runHandleUserUpdateFlow } from './userEventCoordinator';
 import { runUpdateCurrentUserLocationFlow } from './locationCoordinator';
+import { getLocateMeUrl, runLocateMeFallbackFlow } from './locateMeCoordinator';
 import { runUpdateFriendFlow } from './friendPresenceCoordinator';
 import { userOnFriend } from './friendRelationshipCoordinator';
 import { handleGroupRepresented } from './groupCoordinator';
@@ -64,7 +65,7 @@ const getRobotUrl = () =>
     `${AppDebug.endpointDomain}/file/file_0e8c4e32-7444-44ea-ade4-313c010d4bae/1/file`;
 
 /**
- * @param {import('../types/api/user').GetUserResponse} json
+ * @param {Partial<import('../types/api/user').VrcxUser> & {id: string}} json
  * @returns {import('../types/api/user').VrcxUser}
  */
 export function applyUser(json) {
@@ -133,6 +134,22 @@ export function applyUser(json) {
             runUpdateFriendFlow(ref.id, json.state);
         }
         previousDisplayName = ref.displayName;
+
+        if (json.$isExternalLocation) {
+            ref.$isExternalLocation = true;
+        } else if (json.location && json.location !== 'private') {
+            ref.$isExternalLocation = false;
+        }
+
+        if (ref.$isExternalLocation && !json.$isExternalLocation && json.location === 'private') {
+            delete json.location;
+            delete json.instanceId;
+            delete json.worldId;
+            delete json.travelingToInstance;
+            delete json.travelingToLocation;
+            delete json.travelingToWorld;
+        }
+
         const { hasPropChanged: _hasPropChanged, changedProps: _changedProps } =
             diffObjectProps(ref, json, arraysMatch);
         for (const prop in json) {
@@ -274,6 +291,7 @@ export function applyUser(json) {
         }
     }
     patchUserFromEvent(ref);
+    runLocateMeFallbackFlow(ref);
     return ref;
 }
 
@@ -313,6 +331,7 @@ export function showUserDialog(userId) {
     D.id = userId;
     D.memo = '';
     D.note = '';
+    D.$locateMeUrl = getLocateMeUrl(userId);
     getUserMemo(userId).then((memo) => {
         if (memo.userId === userId) {
             D.memo = memo.memo;
