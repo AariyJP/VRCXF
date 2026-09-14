@@ -19,7 +19,7 @@
     import { cn } from '@/lib/utils';
     import { reactiveOmit } from '@vueuse/core';
 
-    import { DIALOG_OPEN_INJECTION_KEY, DIALOG_POPOUT_INJECTION_KEY } from './context';
+    import { DIALOG_OPEN_INJECTION_KEY } from './context';
 
     defineOptions({
         inheritAttrs: false
@@ -47,7 +47,6 @@
 
     const injectedOpen = inject(DIALOG_OPEN_INJECTION_KEY, null);
     const open = injectedOpen ?? ref(true);
-    const isPopoutDocument = inject(DIALOG_POPOUT_INJECTION_KEY, null);
 
     const portalDoc = usePortalDocument(open);
     const crossWindowGuard = useCrossWindowDismissGuard(portalDoc);
@@ -72,9 +71,7 @@
 
 <template>
     <DialogPortal :to="portalTo">
-        <component
-            :is="isPopoutDocument?.value ? 'div' : DialogOverlay"
-            v-if="!isPopoutDocument?.value || open"
+        <DialogOverlay
             class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
             <DialogContent
                 :class="
@@ -101,6 +98,6 @@
                     <span class="sr-only">Close</span>
                 </DialogClose>
             </DialogContent>
-        </component>
+        </DialogOverlay>
     </DialogPortal>
 </template>
