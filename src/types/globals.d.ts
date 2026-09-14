@@ -206,6 +206,9 @@ declare global {
         IPCAnnounceStart(): Promise<void>;
         SendIpc(type: string, data: string): Promise<void>;
         CustomCss(): Promise<string>;
+        SaveBackgroundImage(base64: string): Promise<void>;
+        GetBackgroundImage(): Promise<string>;
+        ClearBackgroundImage(): Promise<void>;
         CustomScript(): Promise<string>;
         CurrentCulture(): Promise<string>;
         CurrentLanguage(): Promise<string>;
@@ -218,6 +221,7 @@ declare global {
             runProcessOnce: boolean
         ): Promise<void>;
         GetFileBase64(path: string): Promise<string | null>;
+        GetFileSize(path: string): Promise<number>;
         TryOpenInstanceInVrc(launchUrl: string): Promise<boolean>;
 
         // Image Upload (Cef Only)

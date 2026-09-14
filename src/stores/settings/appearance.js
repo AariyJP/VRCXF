@@ -18,9 +18,12 @@ import {
     applyAppCjkFontPack,
     HueToHex,
     applyAppFontFamily,
+    applyBackgroundImage,
+    applyBackgroundImageOpacity,
     changeAppThemeStyle,
     changeHtmlLangAttribute,
     getThemeMode,
+    pickBackgroundImage,
     updateTrustColorClasses
 } from '../../shared/utils/base/ui';
 import { computeTrustLevel, getNameColour } from '../../shared/utils';
@@ -64,6 +67,8 @@ export const useAppearanceSettingsStore = defineStore(
         const displayVRCProfileThemes = ref(false);
         const displayVRCProfileBackgrounds = ref(false);
         const profileBackgroundOpacity = ref(0.5);
+        const hasBackgroundImage = ref(false);
+        const backgroundImageOpacity = ref(0.5);
         const displayVRCProfileCosmetics = ref(false);
         const hideNicknames = ref(false);
         const showInstanceIdInLocation = ref(false);
@@ -158,6 +163,7 @@ export const useAppearanceSettingsStore = defineStore(
                 displayVRCProfileThemesConfig,
                 displayVRCProfileBackgroundsConfig,
                 profileBackgroundOpacityConfig,
+                backgroundImageOpacityConfig,
                 displayVRCProfileCosmeticsConfig,
                 hideNicknamesConfig,
                 showInstanceIdInLocationConfig,
@@ -205,6 +211,7 @@ export const useAppearanceSettingsStore = defineStore(
                     false
                 ),
                 configRepository.getFloat('VRCX_profileBackgroundOpacity', 0.5),
+                configRepository.getFloat('VRCX_backgroundImageOpacity', 0.5),
                 configRepository.getBool(
                     'VRCX_displayVRCProfileCosmetics',
                     false
@@ -332,6 +339,9 @@ export const useAppearanceSettingsStore = defineStore(
             displayVRCProfileBackgrounds.value =
                 displayVRCProfileBackgroundsConfig;
             profileBackgroundOpacity.value = profileBackgroundOpacityConfig;
+            backgroundImageOpacity.value = backgroundImageOpacityConfig;
+            applyBackgroundImageOpacity(backgroundImageOpacityConfig);
+            loadBackgroundImage();
             displayVRCProfileCosmetics.value = displayVRCProfileCosmeticsConfig;
             hideNicknames.value = hideNicknamesConfig;
             showInstanceIdInLocation.value = showInstanceIdInLocationConfig;
@@ -671,6 +681,35 @@ export const useAppearanceSettingsStore = defineStore(
         function setProfileBackgroundOpacity(value) {
             profileBackgroundOpacity.value = value;
             configRepository.setFloat('VRCX_profileBackgroundOpacity', value);
+        }
+
+        function setBackgroundImage(base64) {
+            hasBackgroundImage.value = Boolean(base64);
+            applyBackgroundImage(base64);
+        }
+
+        async function loadBackgroundImage() {
+            setBackgroundImage(await AppApi.GetBackgroundImage().catch(() => ''));
+        }
+
+        async function selectBackgroundImage() {
+            const base64 = await pickBackgroundImage();
+            if (!base64) {
+                return;
+            }
+            await AppApi.SaveBackgroundImage(base64);
+            setBackgroundImage(base64);
+        }
+
+        async function clearBackgroundImage() {
+            await AppApi.ClearBackgroundImage();
+            setBackgroundImage('');
+        }
+
+        function setBackgroundImageOpacity(value) {
+            backgroundImageOpacity.value = value;
+            applyBackgroundImageOpacity(value);
+            configRepository.setFloat('VRCX_backgroundImageOpacity', value);
         }
 
         /**
@@ -1267,6 +1306,8 @@ export const useAppearanceSettingsStore = defineStore(
             displayVRCProfileThemes,
             displayVRCProfileBackgrounds,
             profileBackgroundOpacity,
+            hasBackgroundImage,
+            backgroundImageOpacity,
             displayVRCProfileCosmetics,
             hideNicknames,
             showInstanceIdInLocation,
@@ -1316,6 +1357,9 @@ export const useAppearanceSettingsStore = defineStore(
             setDisplayVRCProfileThemes,
             setDisplayVRCProfileBackgrounds,
             setProfileBackgroundOpacity,
+            selectBackgroundImage,
+            clearBackgroundImage,
+            setBackgroundImageOpacity,
             setDisplayVRCProfileCosmetics,
             setHideNicknames,
             setShowInstanceIdInLocation,

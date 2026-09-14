@@ -12,6 +12,7 @@ import {
 import { i18n } from '../../../plugins/i18n';
 import { router } from '../../../plugins/router';
 import { textToHex } from './string';
+import { readFileAsBase64 } from '../imageUpload';
 
 import configRepository from '../../../services/config.js';
 
@@ -22,6 +23,12 @@ const DEFAULT_THEME_COLOR_KEY = 'default';
 
 const APP_FONT_LINK_ATTR = 'data-app-font';
 const APP_CJK_FONT_PACK_LINK_ATTR = 'data-app-cjk-font-pack';
+
+const BACKGROUND_IMAGE_CLASS = 'x-has-bg';
+const BACKGROUND_IMAGE_MAX_EDGE = 2560;
+const BACKGROUND_IMAGE_MAX_SOURCE_BYTES = 32 * 1024 * 1024;
+const BACKGROUND_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'];
+const BACKGROUND_IMAGE_MIME = 'image/webp';
 
 const themeColors = THEME_COLORS.map((theme) => ({
     ...theme,
@@ -504,6 +511,91 @@ async function getThemeMode(configRepository) {
     return { initThemeMode, isDarkMode };
 }
 
+function decodeBackgroundImageBase64(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+function validateBackgroundImageSize(size) {
+    if (size > BACKGROUND_IMAGE_MAX_SOURCE_BYTES) {
+        throw new Error('Background image is too large');
+    }
+}
+
+function pickImageFileBytes() {
+    return new Promise((resolve, reject) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.oncancel = () => resolve(null);
+        input.onchange = async () => {
+            const file = input.files?.[0];
+            if (!file) {
+                resolve(null);
+                return;
+            }
+            try {
+                validateBackgroundImageSize(file.size);
+                resolve(new Uint8Array(await file.arrayBuffer()));
+            } catch (error) {
+                reject(error);
+            }
+        };
+        input.click();
+    });
+}
+
+async function pickBackgroundImageBytes() {
+    if (BROWSER) {
+        return pickImageFileBytes();
+    }
+    const patterns = BACKGROUND_IMAGE_EXTENSIONS.map((ext) => `*.${ext}`).join(';');
+    const path = await (LINUX
+        ? window.electron.openFileDialog([{ name: 'Images', extensions: BACKGROUND_IMAGE_EXTENSIONS }])
+        : AppApi.OpenFileSelectorDialog('', '.png', `Images (${patterns})|${patterns}`));
+    if (!path) {
+        return null;
+    }
+    validateBackgroundImageSize(await AppApi.GetFileSize(path));
+    const base64 = await AppApi.GetFileBase64(path);
+    return base64 ? decodeBackgroundImageBase64(base64) : null;
+}
+
+async function normalizeBackgroundImage(bytes) {
+    const bitmap = await createImageBitmap(new Blob([bytes]));
+    const scale = Math.min(1, BACKGROUND_IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = new OffscreenCanvas(width, height);
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    return canvas.convertToBlob({ type: BACKGROUND_IMAGE_MIME, quality: 0.85 });
+}
+
+async function pickBackgroundImage() {
+    const bytes = await pickBackgroundImageBytes();
+    if (!bytes?.length) {
+        return '';
+    }
+    return readFileAsBase64(await normalizeBackgroundImage(bytes));
+}
+
+function applyBackgroundImage(base64) {
+    const root = document.documentElement;
+    const image = base64 ? `url("data:${BACKGROUND_IMAGE_MIME};base64,${base64}")` : 'none';
+    root.style.setProperty('--x-bg-image', image);
+    root.classList.toggle(BACKGROUND_IMAGE_CLASS, Boolean(base64));
+}
+
+function applyBackgroundImageOpacity(opacity) {
+    const clamped = Math.min(1, Math.max(0, Number(opacity) || 0));
+    document.documentElement.style.setProperty('--x-bg-alpha', `${Math.round((1 - clamped) * 100)}%`);
+}
+
 function redirectToToolsTab() {
     router.push({ name: 'tools' });
     toast(i18n.global.t('view.tools.redirect_message'), { duration: 3000 });
@@ -520,6 +612,9 @@ export {
     refreshCustomScript,
     applyAppFontFamily,
     applyAppCjkFontPack,
+    pickBackgroundImage,
+    applyBackgroundImage,
+    applyBackgroundImageOpacity,
     HueToHex,
     HSVtoRGB,
     formatJsonVars,

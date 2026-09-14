@@ -109,6 +109,46 @@
             </SettingsItem>
         </SettingsGroup>
 
+        <SettingsGroup title="背景画像">
+            <SettingsItem label="画像" description="好きな画像をアプリの背景に設定します">
+                <div class="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="isBackgroundImageBusy"
+                        @click="handleSelectBackgroundImage">
+                        画像を選択
+                    </Button>
+                    <Button
+                        v-if="hasBackgroundImage"
+                        variant="outline"
+                        size="icon-sm"
+                        ariaLabel="背景画像を解除"
+                        :disabled="isBackgroundImageBusy"
+                        @click="handleClearBackgroundImage">
+                        <Trash2 class="h-4 w-4" />
+                    </Button>
+                </div>
+            </SettingsItem>
+
+            <SettingsItem v-if="hasBackgroundImage" label="不透明度">
+                <NumberField
+                    :model-value="backgroundImageOpacity"
+                    :step="0.1"
+                    :min="0"
+                    :max="1"
+                    :format-options="{ maximumFractionDigits: 2 }"
+                    class="w-32"
+                    @update:modelValue="setBackgroundImageOpacity">
+                    <NumberFieldContent>
+                        <NumberFieldDecrement />
+                        <NumberFieldInput />
+                        <NumberFieldIncrement />
+                    </NumberFieldContent>
+                </NumberField>
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup :title="t('view.settings.appearance.user_dialog.header')">
             <SettingsItem :label="t('view.settings.appearance.appearance.vrc_profile_themes')">
                 <Switch
@@ -484,7 +524,7 @@
     import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
-    import { CheckIcon, ChevronDown } from 'lucide-vue-next';
+    import { CheckIcon, ChevronDown, Trash2 } from 'lucide-vue-next';
     import { useAppearanceSettingsStore, useVrStore } from '@/stores';
 
     import { Switch } from '@/components/ui/switch';
@@ -514,6 +554,8 @@
         displayVRCProfileThemes,
         displayVRCProfileBackgrounds,
         profileBackgroundOpacity,
+        hasBackgroundImage,
+        backgroundImageOpacity,
         displayVRCProfileCosmetics,
         appFontFamily,
         customFontFamily,
@@ -546,6 +588,9 @@
         setDisplayVRCProfileThemes,
         setDisplayVRCProfileBackgrounds,
         setProfileBackgroundOpacity,
+        selectBackgroundImage,
+        clearBackgroundImage,
+        setBackgroundImageOpacity,
         setDisplayVRCProfileCosmetics,
         setHideNicknames,
         setShowInstanceIdInLocation,
@@ -570,6 +615,27 @@
         setCustomFontFamily,
         setAppCjkFontPack
     } = appearanceSettingsStore;
+
+    const isBackgroundImageBusy = ref(false);
+
+    async function handleBackgroundImageAction(action, errorMessage) {
+        if (isBackgroundImageBusy.value) {
+            return;
+        }
+        isBackgroundImageBusy.value = true;
+        try {
+            await action();
+        } catch {
+            toast.error(errorMessage);
+        } finally {
+            isBackgroundImageBusy.value = false;
+        }
+    }
+
+    const handleSelectBackgroundImage = () =>
+        handleBackgroundImageAction(selectBackgroundImage, '背景画像の設定に失敗しました。');
+    const handleClearBackgroundImage = () =>
+        handleBackgroundImageAction(clearBackgroundImage, '背景画像の解除に失敗しました。');
 
     const trustColorEntries = [
         {
