@@ -102,6 +102,9 @@
             if (event.key !== 'Escape') {
                 return;
             }
+            if (event.defaultPrevented) {
+                return;
+            }
             forward(
                 event,
                 new KeyboardEvent('keydown', {
@@ -116,6 +119,9 @@
                     metaKey: event.metaKey
                 })
             );
+            event.preventDefault();
+            closeNewWindow();
+            emit('close');
         };
 
         sourceDocument.addEventListener('pointerdown', forwardPointerDown);
