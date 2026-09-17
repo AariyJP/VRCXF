@@ -112,6 +112,7 @@
 
 <script setup>
     import { Copy, Download, RefreshCcw, RotateCcw, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-vue-next';
+    import { writeClipboardImage } from '@/lib/clipboard';
     import { useEventListener } from '@vueuse/core';
     import { computed, ref, watch } from 'vue';
     import { DialogContent as RekaDialogContent, DialogOverlay as RekaDialogOverlay, DialogPortal } from 'reka-ui';
@@ -308,7 +309,7 @@
                 throw new Error(`Error: ${response.data}`);
             }
             const blob = await (await fetch(response.data)).blob();
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            await writeClipboardImage(blob);
             toast.success(t('message.image.copied_to_clipboard'));
         } catch (error) {
             console.error('Error downloading image:', error);

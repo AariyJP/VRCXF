@@ -128,6 +128,7 @@
         DropdownMenuTrigger
     } from '@/components/ui/dropdown-menu';
     import { Field, FieldContent, FieldGroup, FieldLabel } from '@/components/ui/field';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
     import { Copy, Info, MoreHorizontal } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
@@ -216,14 +217,10 @@
 
     getConfig();
 
-    /**
-     *
-     */
     function closeInviteDialog() {
         inviteDialog.value.visible = false;
     }
     /**
-     *
      * @param tag
      */
     function showInviteDialog(tag) {
@@ -253,7 +250,6 @@
             });
     }
     /**
-     *
      * @param location
      * @param shortName
      * @param desktop
@@ -280,7 +276,6 @@
     }
 
     /**
-     *
      * @param location
      * @param shortName
      */
@@ -289,7 +284,6 @@
     }
 
     /**
-     *
      * @param command
      * @param location
      * @param shortName
@@ -304,7 +298,6 @@
         }, 500);
     }
     /**
-     *
      * @param location
      * @param shortName
      */
@@ -313,7 +306,6 @@
         isVisible.value = false;
     }
     /**
-     *
      * @param location
      * @param shortName
      */
@@ -334,15 +326,9 @@
             });
     }
 
-    /**
-     *
-     */
     function getConfig() {
         configRepository.getBool('launchAsDesktop').then((value) => (launchDialog.value.desktop = value));
     }
-    /**
-     *
-     */
     async function initLaunchDialog() {
         const { tag, shortName } = launchDialogData.value;
         if (!isRealInstance(tag)) {
@@ -388,12 +374,11 @@
         }
     }
     /**
-     *
      * @param input
      */
     async function copyInstanceMessage(input) {
         try {
-            await navigator.clipboard.writeText(input);
+            await writeClipboardText(input);
             toast.success('Instance copied to clipboard');
         } catch (error) {
             toast.error('Instance copied failed');

@@ -59,15 +59,11 @@
         tasklists: true
     };
 
-    /**
-     *
-     */
     function closeDialog() {
         changeLogDialog.value.visible = false;
     }
 
     /**
-     *
      * @param event
      */
     function handleLinkClick(event) {

@@ -582,7 +582,6 @@
     );
 
     /**
-     *
      * @param groupKey
      */
     function toggleGroupCollapse(groupKey) {
@@ -976,17 +975,9 @@
         });
     });
 
-    /**
-     *
-     */
     async function loadInitialSettings() {
         try {
-            const [
-                storedScale,
-                storedSpacing,
-                storedShowSameInstance,
-                storedShowCosmetics
-            ] = await Promise.all([
+            const [storedScale, storedSpacing, storedShowSameInstance, storedShowCosmetics] = await Promise.all([
                 configRepository.getString('VRCX_FriendLocationCardScale', '1'),
                 configRepository.getString('VRCX_FriendLocationCardSpacing', '1'),
                 configRepository.getBool('VRCX_FriendLocationShowSameInstance', null),

@@ -345,9 +345,6 @@
         return friendStatsRefreshInFlight;
     }
 
-    /**
-     *
-     */
     function scheduleFriendsListSearchChange() {
         if (friendsListSearchTimer) {
             clearTimeout(friendsListSearchTimer);
@@ -358,9 +355,6 @@
         }, FRIEND_LIST_SEARCH_DEBOUNCE_MS);
     }
 
-    /**
-     *
-     */
     function friendsListSearchChange() {
         if (friendsListSearchTimer) {
             clearTimeout(friendsListSearchTimer);
@@ -370,7 +364,6 @@
     }
 
     /**
-     *
      * @param {object} ctx
      * @returns {object | null}
      */
@@ -404,9 +397,6 @@
         return entry;
     }
 
-    /**
-     *
-     */
     function applyFriendsListSearchChange() {
         friendsListLoading.value = true;
         let query = '';
@@ -463,7 +453,6 @@
     }
 
     /**
-     *
      * @param id
      */
     function toggleFriendSelection(id) {
@@ -474,18 +463,12 @@
         }
     }
 
-    /**
-     *
-     */
     function toggleFriendsListBulkUnfriendMode() {
         if (!friendsListBulkUnfriendMode.value) {
             selectedFriends.value.clear();
         }
     }
 
-    /**
-     *
-     */
     function showBulkUnfriendSelectionConfirm() {
         const pending = friendsListDisplayData.value
             .filter((item) => selectedFriends.value.has(item.id))
@@ -506,9 +489,6 @@
             .catch(() => {});
     }
 
-    /**
-     *
-     */
     async function bulkUnfriendSelection() {
         if (!selectedFriends.value.size) return;
         const selectedFriendsCount = selectedFriends.value.size;
@@ -526,9 +506,6 @@
         selectedFriends.value.clear();
     }
 
-    /**
-     *
-     */
     async function friendsListLoadUsers() {
         const toFetch = Array.from(friends.value.values())
             .filter((ctx) => ctx.ref && !ctx.ref.date_joined)
@@ -564,16 +541,12 @@
         }
     }
 
-    /**
-     *
-     */
     function cancelFriendsListLoad() {
         friendsListLoading.value = false;
         friendsListLoadDialogVisible.value = false;
     }
 
     /**
-     *
      * @param val
      */
     function selectFriendsListRow(val) {
@@ -582,9 +555,6 @@
         else showUserDialog(val.id);
     }
 
-    /**
-     *
-     */
     async function loadMutualFriends() {
         if (isMutualFetching.value) return;
         await chartsStore.fetchMutualGraph();
@@ -592,7 +562,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleFriendListFilterChange(value) {

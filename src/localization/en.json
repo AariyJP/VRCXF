@@ -327,7 +327,6 @@
             "clear_results_tooltip": "Clear Search Results",
             "user": {
                 "header": "User",
-                "search_by_bio": "Search by bio",
                 "sort_by_last_logged_in": "Sort by last logged in"
             },
             "world": {
@@ -839,7 +838,6 @@
                 "logging": {
                     "header": "Logging",
                     "resource_load": "Log Udon String/Image Load",
-                    "empty_avatar": "Log Avatars in Feed Without Names",
                     "auto_login_delay": "Auto-Login Delay",
                     "auto_login_delay_button": "Set Delay Seconds"
                 },
@@ -916,8 +914,6 @@
                     "theme_mode_pink": "Pink",
                     "theme_mode_material3": "Material 3",
                     "zoom": "Zoom",
-                    "profile_icons": "Profile Icons",
-                    "profile_icons_description": "Use profile icons when available.",
                     "vrc_profile_themes": "VRChat Profile Themes",
                     "show_instance_id": "Show Instance ID",
                     "show_status_bar": "Show Status Bar",
@@ -1419,7 +1415,6 @@
                 "memo": "Memo",
                 "memo_placeholder": "Click to add a memo",
                 "avatar_info": "Avatar Info",
-                "avatar_info_last_seen": "Avatar Info Last Seen",
                 "unknown_avatar": "Unknown Avatar",
                 "represented_group": "Represented Group",
                 "bio": "Bio",
@@ -1444,7 +1439,7 @@
                 "copy_id": "Copy ID",
                 "copy_url": "Copy URL",
                 "copy_display_name": "Copy DisplayName",
-                "vrcplus_hides_avatar": "When a VRC+ profile photo is set, avatar info is hidden. This also hides avatar changes in the feed",
+                "icon_hides_avatar": "When a user icon is set, avatar info is hidden. This also hides avatar changes in the feed",
                 "instance_full": "Full",
                 "instance_closed_at": "Instance closed at",
                 "instance_age_restricted": "Restricted",

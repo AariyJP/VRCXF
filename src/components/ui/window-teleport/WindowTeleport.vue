@@ -102,6 +102,9 @@
             if (event.key !== 'Escape') {
                 return;
             }
+            if (event.defaultPrevented) {
+                return;
+            }
             forward(
                 event,
                 new KeyboardEvent('keydown', {
@@ -116,6 +119,9 @@
                     metaKey: event.metaKey
                 })
             );
+            event.preventDefault();
+            closeNewWindow();
+            emit('close');
         };
 
         sourceDocument.addEventListener('pointerdown', forwardPointerDown);
@@ -138,6 +144,26 @@
         }
         newWindow.electron?.focusSelfWindow?.();
         newWindow.focus();
+        const body = newWindow.document?.body;
+        if (body) {
+            if (body.tabIndex < 0) {
+                body.tabIndex = -1;
+            }
+            body.focus({ preventScroll: true });
+        }
+    };
+
+    const scheduleFocusNewWindow = (opened) => {
+        const run = () => {
+            if (newWindow !== opened || opened.closed) {
+                return;
+            }
+            focusNewWindow();
+        };
+        run();
+        requestAnimationFrame(run);
+        setTimeout(run, 50);
+        setTimeout(run, 150);
     };
 
     const createNewWindow = () => {
@@ -231,7 +257,7 @@
         newWindow.document.body.style.overflow = 'hidden';
 
         target.value = el;
-        focusNewWindow();
+        scheduleFocusNewWindow(openedWindow);
 
         const openedDocument = newWindow.document;
         const handleWindowClose = () => {

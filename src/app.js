@@ -2,13 +2,7 @@ import { VueQueryPlugin } from '@tanstack/vue-query';
 import { createApp } from 'vue';
 
 import './services/browserConsoleLog';
-import {
-    i18n,
-    initComponents,
-    initPlugins,
-    initRouter,
-    initSentry
-} from './plugins';
+import { i18n, initComponents, initPlugins, initRouter, initSentry } from './plugins';
 import { loadWebSocketAutoConnectPreference } from './services/websocket';
 import { initPiniaPlugins, pinia } from './stores';
 import { queryClient } from './queries';

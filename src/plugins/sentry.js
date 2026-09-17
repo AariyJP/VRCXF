@@ -20,8 +20,7 @@ export async function initSentry(app) {
     try {
         if (!(await isSentryOptedIn())) return;
 
-        const dsn =
-            'https://b9e3006eb340c2caefe3ee28c7f09824@o4509403957035008.ingest.us.sentry.io/4510781456056320';
+        const dsn = 'https://b9e3006eb340c2caefe3ee28c7f09824@o4509403957035008.ingest.us.sentry.io/4510781456056320';
         const Sentry = await getSentry();
         Sentry.init({
             app,
@@ -41,24 +40,14 @@ export async function initSentry(app) {
                         error.message.includes('500') ||
                         error.message.includes('503') ||
                         error.message.includes('No such host is known') ||
-                        error.message.includes(
-                            'The SSL connection could not be established'
-                        ) ||
+                        error.message.includes('The SSL connection could not be established') ||
                         error.message.includes('A connection attempt failed') ||
-                        error.message.includes(
-                            'no data of the requested type was found'
-                        ) ||
-                        error.message.includes(
-                            'An error occurred while sending the request'
-                        ) ||
+                        error.message.includes('no data of the requested type was found') ||
+                        error.message.includes('An error occurred while sending the request') ||
                         error.message.includes('database or disk is full') ||
                         error.message.includes('disk I/O error') ||
-                        error.message.includes(
-                            'There is not enough space on the disk.'
-                        ) ||
-                        error.message.includes(
-                            'The requested address is not valid in its context.'
-                        )
+                        error.message.includes('There is not enough space on the disk.') ||
+                        error.message.includes('The requested address is not valid in its context.')
                     ) {
                         return null;
                     }

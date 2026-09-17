@@ -3,18 +3,8 @@ import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import {
-    getEmojiFileName,
-    getPrintFileName,
-    getPrintLocalDate,
-    openExternalLink
-} from '../shared/utils';
-import {
-    inventoryRequest,
-    queryRequest,
-    vrcPlusIconRequest,
-    vrcPlusImageRequest
-} from '../api';
+import { getEmojiFileName, getPrintFileName, getPrintLocalDate, openExternalLink } from '../shared/utils';
+import { inventoryRequest, queryRequest, vrcPlusIconRequest, vrcPlusImageRequest } from '../api';
 import { AppDebug } from '../services/appConfig';
 import { handleImageUploadInput } from '../coordinators/imageUploadCoordinator';
 import { queryAllAcrossWindows } from '../lib/activeWindowTracker';
@@ -103,7 +93,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     );
 
     /**
-     *
      * @param args
      */
     function handleFilesList(args) {
@@ -124,7 +113,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param args
      */
     function handleGalleryImageAdd(args) {
@@ -133,9 +121,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
         }
     }
 
-    /**
-     *
-     */
     function showGalleryPage() {
         galleryDialogVisible.value = true;
         if (router.currentRoute.value?.name === 'gallery') {
@@ -145,22 +130,15 @@ export const useGalleryStore = defineStore('Gallery', () => {
         router.push({ name: 'gallery' });
     }
 
-    /**
-     *
-     */
     function loadGalleryData() {
         refreshGalleryTable();
         refreshVRCPlusIconsTable();
         refreshEmojiTable();
         refreshStickerTable();
         refreshPrintTable();
-        refreshPrintFavorites(),
-        getInventory();
+        (refreshPrintFavorites(), getInventory());
     }
 
-    /**
-     *
-     */
     function refreshGalleryTable() {
         galleryDialogGalleryLoading.value = true;
         const params = {
@@ -178,9 +156,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
             });
     }
 
-    /**
-     *
-     */
     function refreshVRCPlusIconsTable() {
         galleryDialogIconsLoading.value = true;
         const params = {
@@ -199,7 +174,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param e
      */
     function inviteImageUpload(e) {
@@ -219,18 +193,12 @@ export const useGalleryStore = defineStore('Gallery', () => {
         r.readAsBinaryString(file);
     }
 
-    /**
-     *
-     */
     function clearInviteImageUpload() {
         const buttonList = queryAllAcrossWindows('.inviteImageUploadButton');
         buttonList.forEach((button) => (button.value = ''));
         uploadImage.value = '';
     }
 
-    /**
-     *
-     */
     function refreshStickerTable() {
         galleryDialogStickersLoading.value = true;
         const params = {
@@ -249,7 +217,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param args
      */
     function handleStickerAdd(args) {
@@ -259,7 +226,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param displayName
      * @param userId
      * @param inventoryId
@@ -277,20 +243,14 @@ export const useGalleryStore = defineStore('Gallery', () => {
             userId
         });
 
-        if (
-            args.json.itemType !== 'sticker' ||
-            !args.json.flags.includes('ugc')
-        ) {
+        if (args.json.itemType !== 'sticker' || !args.json.flags.includes('ugc')) {
             // Not a sticker or ugc, skipping
             return;
         }
         const imageUrl = args.json.metadata?.imageUrl ?? args.json.imageUrl;
         const createdAt = args.json.created_at;
         const monthFolder = createdAt.slice(0, 7);
-        const fileNameDate = createdAt
-            .replace(/:/g, '-')
-            .replace(/T/g, '_')
-            .replace(/Z/g, '');
+        const fileNameDate = createdAt.replace(/:/g, '-').replace(/T/g, '_').replace(/Z/g, '');
         const fileName = `${displayName}_${fileNameDate}_${inventoryId}.png`;
         const filePath = await AppApi.SaveStickerToFile(
             imageUrl,
@@ -303,9 +263,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
         }
     }
 
-    /**
-     *
-     */
     async function refreshPrintTable() {
         galleryDialogPrintsLoading.value = true;
         const params = {
@@ -314,10 +271,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
         try {
             const args = await vrcPlusImageRequest.getPrints(params);
             args.json.sort((a, b) => {
-                return (
-                    new Date(b.timestamp).getTime() -
-                    new Date(a.timestamp).getTime()
-                );
+                return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
             });
             printTable.value = args.json;
         } catch (error) {
@@ -330,13 +284,10 @@ export const useGalleryStore = defineStore('Gallery', () => {
     async function refreshPrintFavorites() {
         const favorites = await database.getPrintFavorites();
 
-        favoritePrintIds.value = new Set(
-            favorites.map((favorite) => favorite.printId)
-    );
+        favoritePrintIds.value = new Set(favorites.map((favorite) => favorite.printId));
     }
 
     /**
-     *
      * @param printId
      */
     function queueSavePrintToFile(printId) {
@@ -361,7 +312,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param printId
      */
     async function trySavePrintToFile(printId) {
@@ -409,9 +359,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     // #endregion
     // #region | Emoji
 
-    /**
-     *
-     */
     function refreshEmojiTable() {
         galleryDialogEmojisLoading.value = true;
         const params = {
@@ -429,9 +376,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
             });
     }
 
-    /**
-     *
-     */
     async function getInventory() {
         inventoryTable.value = [];
         advancedSettingsStore.currentUserInventory.clear();
@@ -447,10 +391,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
                 params.offset = i * params.n;
                 const args = await inventoryRequest.getInventoryItems(params);
                 for (const item of args.json.data) {
-                    advancedSettingsStore.currentUserInventory.set(
-                        item.id,
-                        item
-                    );
+                    advancedSettingsStore.currentUserInventory.set(item.id, item);
                     inventoryTable.value.push(item);
                 }
                 if (args.json.data.length === 0) {
@@ -468,9 +409,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
         }
     }
 
-    /**
-     *
-     */
     async function tryDeleteOldPrints() {
         if (!advancedSettingsStore.autoDeleteOldPrints) {
             return;
@@ -492,11 +430,13 @@ export const useGalleryStore = defineStore('Gallery', () => {
             if (favoritePrintIds.value.has(print.id)) {
                 continue;
             }
-            idList.push(print.id)
+            idList.push(print.id);
         }
         console.log(`Deleting ${idList.length} old prints`, idList);
         if (idList.length < deleteCount) {
-            console.log(`Unable to automatically delete enough old prints because ${deleteCount - idList.length} print(s) are protected by favorites.`);
+            console.log(
+                `Unable to automatically delete enough old prints because ${deleteCount - idList.length} print(s) are protected by favorites.`
+            );
         }
         try {
             for (const printId of idList) {
@@ -514,7 +454,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param imageUrl
      * @param fileName
      */
@@ -529,15 +468,11 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param inventoryId
      * @param userId
      */
     function queueCheckInstanceInventory(inventoryId, userId) {
-        if (
-            state.instanceInventoryCache.includes(inventoryId) ||
-            instanceStickersCache.value.includes(inventoryId)
-        ) {
+        if (state.instanceInventoryCache.includes(inventoryId) || instanceStickersCache.value.includes(inventoryId)) {
             return;
         }
         state.instanceInventoryCache.push(inventoryId);
@@ -548,20 +483,16 @@ export const useGalleryStore = defineStore('Gallery', () => {
         state.instanceInventoryQueue.push({ inventoryId, userId });
 
         if (!state.instanceInventoryQueueWorker) {
-            state.instanceInventoryQueueWorker = workerTimers.setInterval(
-                () => {
-                    const item = state.instanceInventoryQueue.shift();
-                    if (item?.inventoryId) {
-                        trySaveEmojiToFile(item.inventoryId, item.userId);
-                    }
-                },
-                2_500
-            );
+            state.instanceInventoryQueueWorker = workerTimers.setInterval(() => {
+                const item = state.instanceInventoryQueue.shift();
+                if (item?.inventoryId) {
+                    trySaveEmojiToFile(item.inventoryId, item.userId);
+                }
+            }, 2_500);
         }
     }
 
     /**
-     *
      * @param inventoryId
      * @param userId
      */
@@ -571,10 +502,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
             userId
         });
 
-        if (
-            args.json.itemType !== 'emoji' ||
-            !args.json.flags.includes('ugc')
-        ) {
+        if (args.json.itemType !== 'emoji' || !args.json.flags.includes('ugc')) {
             // Not an emoji or ugc, skipping
             return;
         }
@@ -600,9 +528,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
                 emojiFileName
             );
             if (filePath) {
-                console.log(
-                    `Emoji saved to file: ${monthFolder}\\${emojiFileName}`
-                );
+                console.log(`Emoji saved to file: ${monthFolder}\\${emojiFileName}`);
             }
         } catch (e) {
             if (e.message.includes('Could not find file')) {
@@ -615,9 +541,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
                     })
                     .then(({ ok }) => {
                         if (!ok) return;
-                        openExternalLink(
-                            'https://www.youtube.com/watch?v=1mwmmCdA4D8&t=213s'
-                        );
+                        openExternalLink('https://www.youtube.com/watch?v=1mwmmCdA4D8&t=213s');
                     })
                     .catch(() => {});
             }
@@ -631,7 +555,6 @@ export const useGalleryStore = defineStore('Gallery', () => {
     }
 
     /**
-     *
      * @param fileId
      */
     async function getCachedEmoji(fileId) {

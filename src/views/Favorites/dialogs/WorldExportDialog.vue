@@ -66,6 +66,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { computed, ref, watch } from 'vue';
     import { Checkbox } from '@/components/ui/checkbox';
@@ -118,7 +119,6 @@
     ]);
 
     /**
-     *
      * @param label
      * @param checked
      */
@@ -151,9 +151,6 @@
         }
     );
 
-    /**
-     *
-     */
     function showWorldExportDialog() {
         worldExportFavoriteGroup.value = null;
         worldExportLocalFavoriteGroup.value = null;
@@ -163,7 +160,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleWorldExportGroupSelect(value) {
@@ -177,7 +173,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleWorldExportLocalGroupSelect(value) {
@@ -190,15 +185,13 @@
     }
 
     /**
-     *
      * @param event
      */
     function handleCopyWorldExportData(event) {
         if (event.target.tagName === 'TEXTAREA') {
             event.target.select();
         }
-        navigator.clipboard
-            .writeText(worldExportContent.value)
+        writeClipboardText(worldExportContent.value)
             .then(() => {
                 toast.success('Copied successfully!', { duration: 2000 });
             })
@@ -208,9 +201,6 @@
             });
     }
 
-    /**
-     *
-     */
     function updateWorldExportDialog() {
         const propsForQuery = exportSelectOptions.value
             .filter((option) => exportSelectedOptions.value.includes(option.label))
@@ -254,7 +244,6 @@
     }
 
     /**
-     *
      * @param group
      */
     function selectWorldExportGroup(group) {
@@ -266,7 +255,6 @@
     }
 
     /**
-     *
      * @param group
      */
     function selectWorldExportLocalGroup(group) {

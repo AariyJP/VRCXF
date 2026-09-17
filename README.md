@@ -9,7 +9,7 @@ VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat ク�
 
 <https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full>  
 <a href="https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full" target="_blank" rel="noopener noreferrer">
- <img src="https://get.microsoft.com/images/ja%20dark.svg" width="200" alt="Microsoft Store から入手"/>
+<img src="https://get.microsoft.com/images/ja%20dark.svg" width="200" alt="Microsoft Store から入手"/>
 </a>
 
 ### WinGet

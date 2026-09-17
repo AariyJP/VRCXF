@@ -64,6 +64,7 @@
 
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { computed, ref, watch } from 'vue';
     import { Checkbox } from '@/components/ui/checkbox';
@@ -115,7 +116,6 @@
     ]);
 
     /**
-     *
      * @param label
      * @param checked
      */
@@ -148,9 +148,6 @@
         }
     );
 
-    /**
-     *
-     */
     function showAvatarExportDialog() {
         avatarExportFavoriteGroup.value = null;
         avatarExportLocalFavoriteGroup.value = null;
@@ -160,7 +157,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleAvatarExportFavoriteGroupSelect(value) {
@@ -174,7 +170,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleAvatarExportLocalFavoriteGroupSelect(value) {
@@ -186,15 +181,13 @@
         selectAvatarExportLocalGroup(value);
     }
     /**
-     *
      * @param event
      */
     function handleCopyAvatarExportData(event) {
         if (event.target.tagName === 'TEXTAREA') {
             event.target.select();
         }
-        navigator.clipboard
-            .writeText(avatarExportContent.value)
+        writeClipboardText(avatarExportContent.value)
             .then(() => {
                 toast.success('Copied successfully!', { duration: 2000 });
             })
@@ -203,9 +196,6 @@
                 toast.error('Copy failed!');
             });
     }
-    /**
-     *
-     */
     function updateAvatarExportDialog() {
         const propsForQuery = exportSelectOptions.value
             .filter((option) => exportSelectedOptions.value.includes(option.label))
@@ -248,7 +238,6 @@
         avatarExportContent.value = lines.reverse().join('\n');
     }
     /**
-     *
      * @param group
      */
     function selectAvatarExportGroup(group) {
@@ -259,7 +248,6 @@
         updateAvatarExportDialog();
     }
     /**
-     *
      * @param group
      */
     function selectAvatarExportLocalGroup(group) {

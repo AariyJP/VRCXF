@@ -8,7 +8,7 @@ namespace VRCX
     public class CefCustomLifeSpanHandler : ILifeSpanHandler
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly ConcurrentDictionary<int, (IntPtr Handle, string Name)> _popupTopLevelHandles = new ConcurrentDictionary<int, (IntPtr, string)>();
+        private static readonly ConcurrentDictionary<int, (IntPtr Handle, string Name, IBrowser Browser)> _popupTopLevelHandles = new ConcurrentDictionary<int, (IntPtr, string, IBrowser)>();
         private static readonly ConcurrentQueue<string> _pendingPopupNames = new ConcurrentQueue<string>();
 
         public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
@@ -59,27 +59,8 @@ namespace VRCX
             return string.IsNullOrEmpty(frameName) ? pendingName : frameName;
         }
 
-        private static IntPtr FindPopupHandleByName(string name)
+        private static void ActivatePopup(IntPtr handle, IBrowser browser)
         {
-            foreach (var popup in _popupTopLevelHandles.Values)
-            {
-                if (popup.Name == name)
-                {
-                    return popup.Handle;
-                }
-            }
-
-            return IntPtr.Zero;
-        }
-
-        public static void FocusPopup(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                return;
-            }
-
-            IntPtr handle = FindPopupHandleByName(name);
             if (handle == IntPtr.Zero || !WinformThemer.PInvoke.IsWindow(handle))
             {
                 return;
@@ -91,6 +72,30 @@ namespace VRCX
             }
 
             WinformThemer.PInvoke.SetForegroundWindow(handle);
+
+            if (browser == null || browser.IsDisposed)
+            {
+                return;
+            }
+
+            browser.GetHost()?.SetFocus(true);
+        }
+
+        public static void FocusPopup(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
+            foreach (var popup in _popupTopLevelHandles.Values)
+            {
+                if (popup.Name == name)
+                {
+                    ActivatePopup(popup.Handle, popup.Browser);
+                    return;
+                }
+            }
         }
 
         public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
@@ -98,8 +103,9 @@ namespace VRCX
             IntPtr topLevelHandle = GetPopupTopLevelHandle(browser);
             if (topLevelHandle != IntPtr.Zero)
             {
-                _popupTopLevelHandles[browser.Identifier] = (topLevelHandle, ResolvePopupName(browser));
+                _popupTopLevelHandles[browser.Identifier] = (topLevelHandle, ResolvePopupName(browser), browser);
                 WinformThemer.AddPopup(topLevelHandle);
+                ActivatePopup(topLevelHandle, browser);
             }
         }
 

@@ -75,13 +75,6 @@
                     @update:modelValue="setLogResourceLoad" />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.general.logging.empty_avatar')">
-                <Switch
-                    :model-value="logEmptyAvatars"
-                    :ariaLabel="t('view.settings.general.logging.empty_avatar')"
-                    @update:modelValue="setLogEmptyAvatars" />
-            </SettingsItem>
-
             <SettingsItem :label="t('view.settings.general.logging.auto_login_delay')">
                 <Switch
                     :model-value="autoLoginDelayEnabled"
@@ -643,15 +636,9 @@
     const { showConsole } = useUiStore();
 
     const generalSettingsStore = useGeneralSettingsStore();
-    const { udonExceptionLogging, logResourceLoad, logEmptyAvatars, autoLoginDelayEnabled } =
-        storeToRefs(generalSettingsStore);
-    const {
-        setUdonExceptionLogging,
-        setLogResourceLoad,
-        setLogEmptyAvatars,
-        setAutoLoginDelayEnabled,
-        promptAutoLoginDelaySeconds
-    } = generalSettingsStore;
+    const { udonExceptionLogging, logResourceLoad, autoLoginDelayEnabled } = storeToRefs(generalSettingsStore);
+    const { setUdonExceptionLogging, setLogResourceLoad, setAutoLoginDelayEnabled, promptAutoLoginDelaySeconds } =
+        generalSettingsStore;
 
     const { cachedUsers } = useUserStore();
     const { cachedWorlds } = useWorldStore();
@@ -887,16 +874,10 @@
         purgeAvatarFeedData(days);
     }
 
-    /**
-     *
-     */
     function openShortcutFolder() {
         AppApi.OpenShortcutFolder();
     }
 
-    /**
-     *
-     */
     function refreshCacheSize() {
         cacheSize.cachedUsers = cachedUsers.size;
         cacheSize.cachedWorlds = cachedWorlds.size;
@@ -906,9 +887,6 @@
         cacheSize.cachedInstances = cachedInstances.size;
     }
 
-    /**
-     *
-     */
     async function refreshConfigTreeData() {
         await authRequest.getConfig();
         configTreeData.value = cachedConfig.value;
@@ -975,9 +953,6 @@
         }
     }
 
-    /**
-     *
-     */
     function getVisits() {
         queryRequest.fetch('visits').then((args) => {
             visits.value = args.json;

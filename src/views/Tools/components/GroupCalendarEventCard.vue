@@ -129,6 +129,7 @@
 
 <script setup>
     import { Calendar, Download, Image, Pencil, Repeat, Share2, Star } from 'lucide-vue-next';
+    import { writeClipboardText } from '@/lib/clipboard';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { computed, ref } from 'vue';
     import { Button } from '@/components/ui/button';
@@ -226,7 +227,6 @@
     });
 
     /**
-     *
      * @param event
      */
     async function openCalendarEvent(event) {
@@ -236,7 +236,6 @@
     }
 
     /**
-     *
      * @param event
      */
     async function getCalendarIcs(event) {
@@ -257,7 +256,6 @@
     }
 
     /**
-     *
      * @param event
      */
     async function downloadEventIcs(event) {
@@ -274,7 +272,6 @@
     }
 
     /**
-     *
      * @param event
      */
     async function toggleEventFollow(event) {
@@ -287,12 +284,11 @@
     }
 
     /**
-     *
      * @param event
      */
     function copyEventLink(event) {
         const eventLink = `https://vrchat.com/home/group/${event.ownerId}/calendar/${event.id}`;
-        navigator.clipboard.writeText(eventLink);
+        writeClipboardText(eventLink);
         toast.success(t('dialog.group_calendar.event_card.copied_event_link'));
     }
 

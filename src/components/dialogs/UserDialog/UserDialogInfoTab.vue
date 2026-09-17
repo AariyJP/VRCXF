@@ -143,7 +143,7 @@
                         </span>
                         <div class="flex items-center gap-1">
                             <Button
-                                v-if="translationApi && userDialog.ref.bio"
+                                v-if="translationApi && userDialog.publicProfileRef?.bio"
                                 class="h-5 w-5"
                                 size="icon-sm"
                                 variant="ghost"
@@ -164,11 +164,11 @@
                     <pre
                         class="text-xs font-[inherit]"
                         style="white-space: pre-wrap; max-height: 210px; overflow-y: auto"
-                        >{{ bioCache.translated || userDialog.ref.bio || '—' }}</pre>
+                        >{{ bioCache.translated || userDialog.publicProfileRef?.bio || '—' }}</pre>
                     <div
-                        v-if="userDialog.ref.bioLinks && userDialog.ref.bioLinks.length"
+                        v-if="userDialog.publicProfileRef?.bioLinks && userDialog.publicProfileRef?.bioLinks.length"
                         class="flex flex-wrap items-center gap-1.5 mt-2">
-                        <TooltipWrapper v-for="(link, index) in userDialog.ref.bioLinks" :key="index">
+                        <TooltipWrapper v-for="(link, index) in userDialog.publicProfileRef?.bioLinks" :key="index">
                             <template #content>
                                 <span v-text="link"></span>
                             </template>
@@ -522,25 +522,16 @@
         }
     );
 
-    /**
-     *
-     */
     function onTabActivated() {
         if (currentUser.value.id === userDialog.value.id && vrchatCredit.value === null) {
             getVRChatCredits();
         }
     }
 
-    /**
-     *
-     */
     function showEditNoteAndMemoDialog() {
         isEditNoteAndMemoDialogVisible.value = true;
     }
 
-    /**
-     *
-     */
     async function translateBio() {
         if (translateLoading.value) {
             return;
@@ -579,16 +570,12 @@
     }
 
     /**
-     *
      * @param userRef
      */
     function showPreviousInstancesListDialog(userRef) {
         instanceStore.showPreviousInstancesListDialog('user', userRef);
     }
 
-    /**
-     *
-     */
     function resetHome() {
         modalStore
             .confirm({
@@ -611,15 +598,11 @@
             .catch(() => {});
     }
 
-    /**
-     *
-     */
     function getVRChatCredits() {
         queryRequest.fetch('vrchatCredits').then((args) => (vrchatCredit.value = args.json?.balance));
     }
 
     /**
-     *
      * @param imageUrl
      * @param fileName
      */

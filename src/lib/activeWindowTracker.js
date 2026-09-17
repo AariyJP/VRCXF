@@ -1,8 +1,6 @@
 import { ref } from 'vue';
 
-export const activeDocument = ref(
-    typeof document !== 'undefined' ? document : null
-);
+export const activeDocument = ref(typeof document !== 'undefined' ? document : null);
 
 const trackedDocuments = new Set();
 
@@ -30,9 +28,13 @@ export function queryAcrossWindows(selector) {
 }
 
 export function queryAllAcrossWindows(selector) {
-    return collectDocuments().flatMap((doc) =>
-        Array.from(doc.querySelectorAll(selector))
-    );
+    return collectDocuments().flatMap((doc) => Array.from(doc.querySelectorAll(selector)));
+}
+
+export function getFocusedWindow() {
+    const documents = collectDocuments();
+    const target = documents.find((doc) => doc.hasFocus()) ?? documents[0];
+    return target?.defaultView ?? (typeof window !== 'undefined' ? window : null);
 }
 
 export function registerActiveDocument(doc) {
@@ -62,8 +64,7 @@ export function registerActiveDocument(doc) {
         doc.removeEventListener('keydown', handler, { capture: true });
         doc.removeEventListener('focusin', handler, { capture: true });
         if (activeDocument.value === doc) {
-            activeDocument.value =
-                typeof document !== 'undefined' ? document : null;
+            activeDocument.value = typeof document !== 'undefined' ? document : null;
         }
     };
 }

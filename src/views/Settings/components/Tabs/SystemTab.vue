@@ -206,9 +206,6 @@
         () => import('../../dialogs/OpenSourceSoftwareNoticeDialog.vue')
     );
 
-    /**
-     *
-     */
     function openOSSDialog() {
         ossDialog.value = true;
     }
