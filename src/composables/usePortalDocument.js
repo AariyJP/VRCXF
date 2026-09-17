@@ -1,12 +1,4 @@
-import {
-    computed,
-    inject,
-    onBeforeUnmount,
-    provide,
-    ref,
-    shallowRef,
-    watch
-} from 'vue';
+import { computed, inject, onBeforeUnmount, provide, ref, shallowRef, watch } from 'vue';
 import { activeDocument, isDocumentAlive } from '@/lib/activeWindowTracker';
 import { acquireModalPortalLayer } from '@/lib/modalPortalLayers';
 
@@ -38,9 +30,7 @@ export function usePortalDocument(open = null) {
         watch(
             open,
             (isOpen) => {
-                ownerDocument.value = isOpen
-                    ? resolvePortalDocument(inheritedDocument?.value)
-                    : null;
+                ownerDocument.value = isOpen ? resolvePortalDocument(inheritedDocument?.value) : null;
             },
             { immediate: true }
         );
@@ -94,9 +84,7 @@ export function useCrossWindowDismissGuard(portalDocument) {
         if (!original || !portalDocument?.value) {
             return;
         }
-        const sourceDocument =
-            Reflect.get(original, '__vrcxSourceDocument') ||
-            original.target?.ownerDocument;
+        const sourceDocument = Reflect.get(original, '__vrcxSourceDocument') || original.target?.ownerDocument;
         if (sourceDocument && sourceDocument !== portalDocument.value) {
             event.preventDefault();
         }
@@ -115,9 +103,5 @@ export function useGuardedOutsideEmit(portalDocument, emits) {
 
 export function usePortalTarget() {
     const portalDocument = inject(PORTAL_DOCUMENT_KEY, null);
-    return computed(() =>
-        isUsableDocument(portalDocument?.value)
-            ? portalDocument.value.body
-            : undefined
-    );
+    return computed(() => (isUsableDocument(portalDocument?.value) ? portalDocument.value.body : undefined));
 }

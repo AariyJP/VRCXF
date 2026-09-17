@@ -52,20 +52,17 @@ const chartRoutes = BROWSER
           {
               path: 'charts/instance',
               name: 'charts-instance',
-              component: () =>
-                  import('./../views/Charts/components/InstanceActivity.vue')
+              component: () => import('./../views/Charts/components/InstanceActivity.vue')
           },
           {
               path: 'charts/mutual',
               name: 'charts-mutual',
-              component: () =>
-                  import('./../views/Charts/components/MutualFriends.vue')
+              component: () => import('./../views/Charts/components/MutualFriends.vue')
           },
           {
               path: 'charts/hot-worlds',
               name: 'charts-hot-worlds',
-              component: () =>
-                  import('./../views/Charts/components/HotWorlds.vue')
+              component: () => import('./../views/Charts/components/HotWorlds.vue')
           }
       ];
 

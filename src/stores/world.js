@@ -72,9 +72,6 @@ export const useWorldStore = defineStore('World', () => {
         worldDialog.activeTab = value;
     }
 
-    /**
-     *
-     */
     function updateVRChatWorldCache() {
         const D = worldDialog;
         if (D.visible) {

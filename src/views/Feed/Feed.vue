@@ -173,9 +173,6 @@
         return selected.length;
     });
 
-    /**
-     *
-     */
     function applyDateFilter() {
         if (dateRange.value?.start) {
             const s = dateRange.value.start;
@@ -193,9 +190,6 @@
         feedTableLookup();
     }
 
-    /**
-     *
-     */
     function clearDateFilter() {
         dateRange.value = undefined;
         feedTable.value.dateFrom = '';
@@ -209,7 +203,6 @@
     const pageSizes = computed(() => appearanceSettingsStore.tablePageSizes);
 
     /**
-     *
      * @param row
      */
     function getFeedRowId(row) {
@@ -269,7 +262,6 @@
     });
 
     /**
-     *
      * @param value
      */
     function handleFeedFilterChange(value) {

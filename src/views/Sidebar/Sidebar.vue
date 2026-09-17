@@ -392,16 +392,10 @@
     whenever(keys['Meta+k'], () => openQuickSearch());
     whenever(keys['Ctrl+k'], () => openQuickSearch());
 
-    /**
-     *
-     */
     function openQuickSearch() {
         quickSearchStore.open();
     }
 
-    /**
-     *
-     */
     function markNotificationsRead() {
         notificationStore.markAllAsSeen();
     }
@@ -446,7 +440,6 @@
     );
 
     /**
-     *
      * @param value
      */
     function handleFavoriteGroupsChange(value) {

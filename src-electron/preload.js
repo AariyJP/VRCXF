@@ -6,7 +6,7 @@
  *
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
-const { contextBridge, ipcRenderer, app } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 const managedListeners = new Map();
 
@@ -44,8 +44,7 @@ contextBridge.exposeInMainWorld('electron', {
     getArch: () => ipcRenderer.invoke('app:getArch'),
     getClipboardText: () => ipcRenderer.invoke('app:getClipboardText'),
     getNoUpdater: () => ipcRenderer.invoke('app:getNoUpdater'),
-    setTrayIconNotification: (notify) =>
-        ipcRenderer.invoke('app:setTrayIconNotification', notify),
+    setTrayIconNotification: (notify) => ipcRenderer.invoke('app:setTrayIconNotification', notify),
     openFileDialog: (filters) => ipcRenderer.invoke('dialog:openFile', filters),
     openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
     onWindowPositionChanged: (callback) => registerManagedListener('setWindowPosition', callback),

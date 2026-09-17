@@ -1,39 +1,32 @@
 import { nextTick, ref } from 'vue';
 import { writeClipboardText } from '@/lib/clipboard';
 
-import {
-    favoriteRequest,
-    miscRequest,
-    userRequest,
-    worldRequest
-} from '../../../api';
+import { favoriteRequest, miscRequest, userRequest, worldRequest } from '../../../api';
 import {
     handleImageUploadInput,
     resizeImageToFitLimits,
     uploadImageLegacy
 } from '../../../coordinators/imageUploadCoordinator';
 import { openExternalLink, replaceVrcPackageUrl } from '../../../shared/utils';
-import {
-    readFileAsBase64,
-    withUploadTimeout
-} from '../../../shared/utils/imageUpload';
+import { readFileAsBase64, withUploadTimeout } from '../../../shared/utils/imageUpload';
 import { removeWorldFromCache } from '../../../coordinators/worldCoordinator';
 
 /**
  * Composable for WorldDialog commands, prompt functions, and image upload.
- * @param {import('vue').Ref} worldDialog - reactive ref to the world dialog state
- * @param {object} deps - external dependencies
- * @param {Function} deps.t - i18n translation function
- * @param {Function} deps.toast - toast notification function
- * @param {object} deps.modalStore - modal store for confirm/prompt dialogs
- * @param {import('vue').Ref} deps.userDialog - reactive ref to the user dialog state
- * @param {Map} deps.cachedWorlds - cached worlds map
- * @param {Function} deps.showWorldDialog - function to show world dialog
- * @param {Function} deps.showFavoriteDialog - function to show favorite dialog
- * @param {Function} deps.newInstanceSelfInvite - function for new instance self invite
- * @param {Function} deps.showPreviousInstancesListDialog - function to show previous instances
- * @param {Function} deps.showFullscreenImageDialog - function to show fullscreen image
- * @returns {object} commands composable API
+ *
+ * @param {import('vue').Ref} worldDialog - Reactive ref to the world dialog state
+ * @param {object} deps - External dependencies
+ * @param {Function} deps.t - I18n translation function
+ * @param {Function} deps.toast - Toast notification function
+ * @param {object} deps.modalStore - Modal store for confirm/prompt dialogs
+ * @param {import('vue').Ref} deps.userDialog - Reactive ref to the user dialog state
+ * @param {Map} deps.cachedWorlds - Cached worlds map
+ * @param {Function} deps.showWorldDialog - Function to show world dialog
+ * @param {Function} deps.showFavoriteDialog - Function to show favorite dialog
+ * @param {Function} deps.newInstanceSelfInvite - Function for new instance self invite
+ * @param {Function} deps.showPreviousInstancesListDialog - Function to show previous instances
+ * @param {Function} deps.showFullscreenImageDialog - Function to show fullscreen image
+ * @returns {object} Commands composable API
  */
 export function useWorldDialogCommands(
     worldDialog,
@@ -62,7 +55,6 @@ export function useWorldDialogCommands(
     const changeWorldImageLoading = ref(false);
 
     /**
-     *
      * @param e
      */
     function onFileChangeWorldImage(e) {
@@ -84,7 +76,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param blob
      */
     async function onCropConfirmWorld(blob) {
@@ -113,7 +104,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param tag
      */
     function showNewInstanceDialog(tag) {
@@ -122,9 +112,6 @@ export function useWorldDialogCommands(
         nextTick(() => (newInstanceDialogLocationTag.value = tag));
     }
 
-    /**
-     *
-     */
     function copyWorldUrl() {
         writeClipboardText(`https://vrchat.com/home/world/${worldDialog.value.id}`)
             .then(() => {
@@ -136,9 +123,6 @@ export function useWorldDialogCommands(
             });
     }
 
-    /**
-     *
-     */
     function copyWorldName() {
         writeClipboardText(worldDialog.value.ref.name)
             .then(() => {
@@ -150,9 +134,6 @@ export function useWorldDialogCommands(
             });
     }
 
-    /**
-     *
-     */
     function copyWorldId() {
         writeClipboardText(worldDialog.value.id)
             .then(() => {
@@ -164,9 +145,6 @@ export function useWorldDialogCommands(
             });
     }
 
-    /**
-     *
-     */
     function showWorldAllowedDomainsDialog() {
         const D = worldAllowedDomainsDialog.value;
         D.worldId = worldDialog.value.id;
@@ -175,7 +153,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param worldRef
      */
     function showPreviousInstancesListDialog(worldRef) {
@@ -183,7 +160,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param world
      */
     function promptRenameWorld(world) {
@@ -205,9 +181,7 @@ export function useWorldDialogCommands(
                             name: value
                         })
                         .then((args) => {
-                            toast.success(
-                                t('prompt.rename_world.message.success')
-                            );
+                            toast.success(t('prompt.rename_world.message.success'));
                             return args;
                         });
                 }
@@ -215,7 +189,6 @@ export function useWorldDialogCommands(
             .catch(() => {});
     }
     /**
-     *
      * @param world
      */
     function promptChangeWorldDescription(world) {
@@ -237,11 +210,7 @@ export function useWorldDialogCommands(
                             description: value
                         })
                         .then((args) => {
-                            toast.success(
-                                t(
-                                    'prompt.change_world_description.message.success'
-                                )
-                            );
+                            toast.success(t('prompt.change_world_description.message.success'));
                             return args;
                         });
                 }
@@ -250,7 +219,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param world
      */
     function promptChangeWorldCapacity(world) {
@@ -273,11 +241,7 @@ export function useWorldDialogCommands(
                             capacity: Number(value)
                         })
                         .then((args) => {
-                            toast.success(
-                                t(
-                                    'prompt.change_world_capacity.message.success'
-                                )
-                            );
+                            toast.success(t('prompt.change_world_capacity.message.success'));
                             return args;
                         });
                 }
@@ -286,23 +250,18 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param world
      */
     function promptChangeWorldRecommendedCapacity(world) {
         modalStore
             .prompt({
                 title: t('prompt.change_world_recommended_capacity.header'),
-                description: t(
-                    'prompt.change_world_recommended_capacity.description'
-                ),
+                description: t('prompt.change_world_recommended_capacity.description'),
                 confirmText: t('prompt.change_world_capacity.ok'),
                 cancelText: t('prompt.change_world_capacity.cancel'),
                 inputValue: world.ref.recommendedCapacity,
                 pattern: /\d+$/,
-                errorMessage: t(
-                    'prompt.change_world_recommended_capacity.input_error'
-                )
+                errorMessage: t('prompt.change_world_recommended_capacity.input_error')
             })
             .then(({ ok, value }) => {
                 if (!ok) return;
@@ -313,11 +272,7 @@ export function useWorldDialogCommands(
                             recommendedCapacity: Number(value)
                         })
                         .then((args) => {
-                            toast.success(
-                                t(
-                                    'prompt.change_world_recommended_capacity.message.success'
-                                )
-                            );
+                            toast.success(t('prompt.change_world_recommended_capacity.message.success'));
                             return args;
                         });
                 }
@@ -326,7 +281,6 @@ export function useWorldDialogCommands(
     }
 
     /**
-     *
      * @param world
      */
     function promptChangeWorldYouTubePreview(world) {
@@ -355,9 +309,7 @@ export function useWorldDialogCommands(
                                 processedValue = id2;
                             }
                         } catch {
-                            toast.error(
-                                t('prompt.change_world_preview.message.error')
-                            );
+                            toast.error(t('prompt.change_world_preview.message.error'));
                             return;
                         }
                     }
@@ -368,11 +320,7 @@ export function useWorldDialogCommands(
                                 previewYoutubeId: processedValue
                             })
                             .then((args) => {
-                                toast.success(
-                                    t(
-                                        'prompt.change_world_preview.message.success'
-                                    )
-                                );
+                                toast.success(t('prompt.change_world_preview.message.success'));
                                 return args;
                             });
                     }
@@ -386,9 +334,6 @@ export function useWorldDialogCommands(
     // String commands: delegate to component callback
     // Confirmed commands: { confirm: () => ({title, description, ...}), handler: fn }
 
-    /**
-     *
-     */
     function buildCommandMap() {
         const D = () => worldDialog.value;
 
@@ -463,12 +408,10 @@ export function useWorldDialogCommands(
                     })
                 }),
                 handler: (id) => {
-                    userRequest
-                        .saveCurrentUser({ homeLocation: id })
-                        .then((args) => {
-                            toast.success(t('message.world.home_updated'));
-                            return args;
-                        });
+                    userRequest.saveCurrentUser({ homeLocation: id }).then((args) => {
+                        toast.success(t('message.world.home_updated'));
+                        return args;
+                    });
                 }
             },
             'Reset Home': {
@@ -479,12 +422,10 @@ export function useWorldDialogCommands(
                     })
                 }),
                 handler: () => {
-                    userRequest
-                        .saveCurrentUser({ homeLocation: '' })
-                        .then((args) => {
-                            toast.success(t('message.world.home_reset'));
-                            return args;
-                        });
+                    userRequest.saveCurrentUser({ homeLocation: '' }).then((args) => {
+                        toast.success(t('message.world.home_reset'));
+                        return args;
+                    });
                 }
             },
             Publish: {
@@ -509,38 +450,27 @@ export function useWorldDialogCommands(
                     })
                 }),
                 handler: (id) => {
-                    worldRequest
-                        .unpublishWorld({ worldId: id })
-                        .then((args) => {
-                            toast.success(t('message.world.unpublished'));
-                            return args;
-                        });
+                    worldRequest.unpublishWorld({ worldId: id }).then((args) => {
+                        toast.success(t('message.world.unpublished'));
+                        return args;
+                    });
                 }
             },
             'Delete Persistent Data': {
                 confirm: () => ({
                     title: t('confirm.title'),
                     description: t('confirm.command_question', {
-                        command: t(
-                            'dialog.world.actions.delete_persistent_data'
-                        )
+                        command: t('dialog.world.actions.delete_persistent_data')
                     })
                 }),
                 handler: (id) => {
-                    miscRequest
-                        .deleteWorldPersistData({ worldId: id })
-                        .then((args) => {
-                            if (
-                                args.params.worldId === worldDialog.value.id &&
-                                worldDialog.value.visible
-                            ) {
-                                worldDialog.value.hasPersistData = false;
-                            }
-                            toast.success(
-                                t('message.world.persistent_data_deleted')
-                            );
-                            return args;
-                        });
+                    miscRequest.deleteWorldPersistData({ worldId: id }).then((args) => {
+                        if (args.params.worldId === worldDialog.value.id && worldDialog.value.visible) {
+                            worldDialog.value.hasPersistData = false;
+                        }
+                        toast.success(t('message.world.persistent_data_deleted'));
+                        return args;
+                    });
                 }
             },
             Delete: {
@@ -581,6 +511,7 @@ export function useWorldDialogCommands(
 
     /**
      * Register component-level callbacks for string-type commands.
+     *
      * @param {object} callbacks
      */
     function registerCallbacks(callbacks) {
@@ -589,6 +520,7 @@ export function useWorldDialogCommands(
 
     /**
      * Dispatch a world dialog command.
+     *
      * @param {string} command
      */
     function worldDialogCommand(command) {

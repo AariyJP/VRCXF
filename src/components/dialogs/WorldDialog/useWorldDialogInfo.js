@@ -1,21 +1,19 @@
 import { computed } from 'vue';
 import { writeClipboardText } from '@/lib/clipboard';
-import {
-    commaNumber,
-    compareUnityVersion,
-    formatDateFilter,
-    timeToText
-} from '../../../shared/utils';
+import { commaNumber, compareUnityVersion, formatDateFilter, timeToText } from '../../../shared/utils';
 import { database } from '../../../services/database';
 
 /**
  * Composable for WorldDialogInfoTab computed properties and actions.
- * @param {import('vue').Ref} worldDialog - reactive ref to the world dialog state
- * @param {object} deps - external dependencies
- * @param {Function} deps.t - i18n translation function
- * @param {Function} deps.toast - toast notification function
- * @param deps.sdkUnityVersion
- * @returns {object} info composable API
+ *
+ * @param {import('vue').Ref} worldDialog - Reactive ref to the world dialog state
+ * @param {object} deps - External dependencies
+ * @param {Function} deps.t - I18n translation function
+ * @param {object} deps.toast - Toast notification functions
+ * @param {Function} deps.toast.success - Toast success notification function
+ * @param {Function} deps.toast.error - Toast error notification function
+ * @param {string} [deps.sdkUnityVersion]
+ * @returns {object} Info composable API
  */
 export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
     const { memo, onWorldMemoChange } = useWorldMemo(worldDialog);
@@ -39,9 +37,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
     const favoriteRate = computed(() => {
         return (
             Math.round(
-                (((worldDialog.value.ref?.favorites -
-                    worldDialog.value.ref?.visits) /
-                    worldDialog.value.ref?.visits) *
+                (((worldDialog.value.ref?.favorites - worldDialog.value.ref?.visits) / worldDialog.value.ref?.visits) *
                     100 +
                     100) *
                     100
@@ -61,12 +57,7 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         const platforms = [];
         if (ref.unityPackages) {
             for (const unityPackage of ref.unityPackages) {
-                if (
-                    !compareUnityVersion(
-                        unityPackage.unitySortNumber,
-                        sdkUnityVersion
-                    )
-                ) {
+                if (!compareUnityVersion(unityPackage.unitySortNumber, sdkUnityVersion)) {
                     continue;
                 }
                 let platform = 'PC';
@@ -94,28 +85,18 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
         }
         let newest = {};
         for (const unityPackage of ref.unityPackages) {
-            if (
-                unityPackage.variant &&
-                unityPackage.variant !== 'standard' &&
-                unityPackage.variant !== 'security'
-            ) {
+            if (unityPackage.variant && unityPackage.variant !== 'standard' && unityPackage.variant !== 'security') {
                 continue;
             }
             const platform = unityPackage.platform;
             const createdAt = unityPackage.created_at;
-            if (
-                !newest[platform] ||
-                new Date(createdAt) > new Date(newest[platform])
-            ) {
+            if (!newest[platform] || new Date(createdAt) > new Date(newest[platform])) {
                 newest[platform] = createdAt;
             }
         }
         return newest;
     });
 
-    /**
-     *
-     */
     function copyWorldId() {
         writeClipboardText(worldDialog.value.id)
             .then(() => {
@@ -127,9 +108,6 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
             });
     }
 
-    /**
-     *
-     */
     function copyWorldUrl() {
         writeClipboardText(`https://vrchat.com/home/world/${worldDialog.value.id}`)
             .then(() => {
@@ -141,9 +119,6 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
             });
     }
 
-    /**
-     *
-     */
     function copyWorldName() {
         writeClipboardText(worldDialog.value.ref.name)
             .then(() => {
@@ -173,8 +148,8 @@ export function useWorldDialogInfo(worldDialog, { t, toast, sdkUnityVersion }) {
 }
 
 /**
- * @param {import('vue').Ref} worldDialog - reactive ref to the world dialog state
- * @returns {object} memo composable API
+ * @param {import('vue').Ref} worldDialog - Reactive ref to the world dialog state
+ * @returns {object} Memo composable API
  */
 export function useWorldMemo(worldDialog) {
     const memo = computed({
@@ -186,9 +161,6 @@ export function useWorldMemo(worldDialog) {
         }
     });
 
-    /**
-     *
-     */
     function onWorldMemoChange() {
         const worldId = worldDialog.value.id;
         const memo = worldDialog.value.memo;

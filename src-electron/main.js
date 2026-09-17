@@ -167,9 +167,7 @@ if (!gotTheLock) {
 ipcMain.handle('dialog:openFile', async (_event, filters) => {
     const result = await dialog.showOpenDialog(mainWindow, {
         properties: ['openFile'],
-        filters: filters?.length
-            ? filters
-            : [{ name: 'Images', extensions: ['png'] }]
+        filters: filters?.length ? filters : [{ name: 'Images', extensions: ['png'] }]
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
@@ -370,11 +368,7 @@ function createWindow() {
     mainWindow.webContents.on('did-create-window', (popoutWindow) => {
         popoutWindow.webContents.setZoomLevel(zoomLevel);
         popoutWindow.webContents.on('before-input-event', (event, input) => {
-            if (
-                input.control &&
-                input.shift &&
-                input.key.toLowerCase() === 'i'
-            ) {
+            if (input.control && input.shift && input.key.toLowerCase() === 'i') {
                 popoutWindow.webContents.openDevTools();
                 event.preventDefault();
             }
@@ -547,7 +541,6 @@ function createTray() {
 }
 
 /**
- *
  * @param {Boolean} notify
  */
 function setTrayIconNotification(notify) {
@@ -640,7 +633,8 @@ async function installVRCX() {
  * If there is an existing .desktop file, it will be updated with the current AppImage path.
  * If there is no .desktop file, the one inside the current AppImage will be copied to applications dir and
  * updated to the path of the AppImage.
- * @returns void
+ *
+ * @returns Void
  */
 function updateDesktopFile() {
     if (noDesktop) {

@@ -119,7 +119,6 @@
     ]);
 
     /**
-     *
      * @param label
      * @param checked
      */
@@ -152,9 +151,6 @@
         }
     );
 
-    /**
-     *
-     */
     function showWorldExportDialog() {
         worldExportFavoriteGroup.value = null;
         worldExportLocalFavoriteGroup.value = null;
@@ -164,7 +160,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleWorldExportGroupSelect(value) {
@@ -178,7 +173,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleWorldExportLocalGroupSelect(value) {
@@ -191,7 +185,6 @@
     }
 
     /**
-     *
      * @param event
      */
     function handleCopyWorldExportData(event) {
@@ -208,9 +201,6 @@
             });
     }
 
-    /**
-     *
-     */
     function updateWorldExportDialog() {
         const propsForQuery = exportSelectOptions.value
             .filter((option) => exportSelectedOptions.value.includes(option.label))
@@ -254,7 +244,6 @@
     }
 
     /**
-     *
      * @param group
      */
     function selectWorldExportGroup(group) {
@@ -266,7 +255,6 @@
     }
 
     /**
-     *
      * @param group
      */
     function selectWorldExportLocalGroup(group) {

@@ -110,7 +110,6 @@
     });
 
     /**
-     *
      * @param imageUrl
      * @param fileId
      * @param fileVersion
@@ -124,15 +123,11 @@
         D.visible = false;
     }
 
-    /**
-     *
-     */
     function displayGalleryUpload() {
         queryAcrossWindows('#GalleryUploadButton')?.click();
     }
 
     /**
-     *
      * @param e
      */
     function onFileChangeGallery(e) {

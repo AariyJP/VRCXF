@@ -527,7 +527,6 @@
     const visibility = reactive({ ...defaultVisibility });
 
     /**
-     *
      * @param key
      */
     function toggleVisibility(key) {
@@ -564,9 +563,6 @@
 
     const msgsPerMinuteAvg = computed(() => Math.round(msgsLastMinute.value));
 
-    /**
-     *
-     */
     function drawSparkline() {
         const canvas = wsCanvasRef.value;
         if (!canvas) return;
@@ -608,7 +604,6 @@
     }
 
     /**
-     *
      * @param variableName
      * @param fallback
      */
@@ -650,15 +645,11 @@
 
     const visibleClocks = computed(() => clocks.value.slice(0, clockCount.value));
 
-    /**
-     *
-     */
     function saveClocks() {
         configRepository.setString(CLOCKS_KEY, JSON.stringify(clocks.value));
     }
 
     /**
-     *
      * @param val
      */
     function setClockCount(val) {
@@ -671,7 +662,6 @@
     }
 
     /**
-     *
      * @param clock
      * @returns {string}
      */
@@ -686,7 +676,6 @@
     }
 
     /**
-     *
      * @param idx
      * @param offsetValue
      */
@@ -794,9 +783,6 @@
         zoomInputRef.value?.$el?.focus?.();
     }
 
-    /**
-     *
-     */
     function handleProxyClick() {
         generalSettingsStore.promptProxySettings();
     }

@@ -35,6 +35,7 @@ export async function runLogoutFlow() {
 
 /**
  * Runs post-login side effects after a successful auth response.
+ *
  * @param {object} json Current user payload from auth API.
  */
 export function runLoginSuccessFlow(json) {

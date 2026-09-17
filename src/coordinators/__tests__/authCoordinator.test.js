@@ -138,16 +138,10 @@ describe('runLogoutFlow', () => {
         deferred.resolve();
         await flow;
 
-        expect(mocks.authStore.updateStoredUser).toHaveBeenCalledWith(
-            mocks.userStore.currentUser
-        );
-        expect(mocks.configRepository.remove).toHaveBeenCalledWith(
-            'lastUserLoggedIn'
-        );
+        expect(mocks.authStore.updateStoredUser).toHaveBeenCalledWith(mocks.userStore.currentUser);
+        expect(mocks.configRepository.remove).toHaveBeenCalledWith('lastUserLoggedIn');
         expect(mocks.authStore.loginForm.lastUserLoggedIn).toBe('');
-        expect(mocks.authStore.setAttemptingAutoLogin).toHaveBeenCalledWith(
-            false
-        );
+        expect(mocks.authStore.setAttemptingAutoLogin).toHaveBeenCalledWith(false);
         expect(mocks.closeWebSocket).toHaveBeenCalledTimes(1);
         expect(mocks.queryClient.clear).toHaveBeenCalledTimes(1);
     });

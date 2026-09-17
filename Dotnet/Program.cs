@@ -1,11 +1,11 @@
-using NLog;
-using NLog.Targets;
 using System;
 using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using NLog;
+using NLog.Targets;
 #if !LINUX
 using System.Windows.Forms;
 using VRCX.Overlay;

@@ -95,18 +95,6 @@
                         saveOpenVROption();
                     " />
             </SettingsItem>
-
-            <SettingsItem
-                :label="t('view.settings.appearance.appearance.profile_icons')"
-                :description="t('view.settings.appearance.appearance.profile_icons_description')">
-                <Switch
-                    :model-value="displayVRCPlusIconsAsAvatar"
-                    :ariaLabel="t('view.settings.appearance.appearance.profile_icons')"
-                    @update:modelValue="
-                        setDisplayVRCPlusIconsAsAvatar();
-                        saveOpenVROption();
-                    " />
-            </SettingsItem>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.appearance.user_dialog.header')">
@@ -510,7 +498,6 @@
 
     const {
         appLanguage,
-        displayVRCPlusIconsAsAvatar,
         displayVRCProfileThemes,
         displayVRCProfileBackgrounds,
         profileBackgroundOpacity,
@@ -542,7 +529,6 @@
     const appLanguageDisplayName = computed(() => getLanguageName(String(appLanguage.value)));
 
     const {
-        setDisplayVRCPlusIconsAsAvatar,
         setDisplayVRCProfileThemes,
         setDisplayVRCProfileBackgrounds,
         setProfileBackgroundOpacity,
@@ -699,7 +685,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleSortFavoritesRadio(value) {
@@ -710,7 +695,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleInstanceUsersSortAlphabeticalRadio(value) {
@@ -721,7 +705,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleDtHour12Radio(value) {
@@ -733,7 +716,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleWeekStartsOnChange(value) {
@@ -778,9 +760,6 @@
         }
     });
 
-    /**
-     *
-     */
     async function initGetZoomLevel() {
         const handleWheel = (event) => {
             if (event.ctrlKey) {
@@ -794,16 +773,10 @@
         getZoomLevel();
     }
 
-    /**
-     *
-     */
     async function getZoomLevel() {
         zoomLevel.value = ((await AppApi.GetZoom()) + 10) * 10;
     }
 
-    /**
-     *
-     */
     function setZoomLevel() {
         AppApi.SetZoom(zoomLevel.value / 10 - 10);
     }

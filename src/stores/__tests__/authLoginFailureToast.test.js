@@ -252,11 +252,9 @@ describe('useAuthStore login failure toast policy', () => {
         vi.setSystemTime(new Date('2026-03-23T00:00:00.000Z'));
         vi.clearAllMocks();
 
-        mocks.configRepository.getString.mockImplementation(
-            (_key, defaultValue = '') => Promise.resolve(defaultValue)
-        );
-        mocks.configRepository.getBool.mockImplementation(
-            (_key, defaultValue = false) => Promise.resolve(defaultValue)
+        mocks.configRepository.getString.mockImplementation((_key, defaultValue = '') => Promise.resolve(defaultValue));
+        mocks.configRepository.getBool.mockImplementation((_key, defaultValue = false) =>
+            Promise.resolve(defaultValue)
         );
         mocks.configRepository.setString.mockResolvedValue(undefined);
         mocks.configRepository.setBool.mockResolvedValue(undefined);
@@ -317,8 +315,7 @@ describe('useAuthStore login failure toast policy', () => {
         expect(mocks.toast.warning).toHaveBeenCalledWith(
             'message.auth.login_network_issue_hint_title',
             expect.objectContaining({
-                description:
-                    'message.auth.login_network_issue_hint_description',
+                description: 'message.auth.login_network_issue_hint_description',
                 duration: Infinity,
                 action: expect.objectContaining({
                     label: 'common.actions.open',
@@ -327,9 +324,7 @@ describe('useAuthStore login failure toast policy', () => {
             })
         );
         mocks.toast.warning.mock.calls[0][1].action.onClick();
-        expect(globalThis.AppApi.OpenLink).toHaveBeenCalledWith(
-            links.troubleshootingAuthUserConnectionIssues
-        );
+        expect(globalThis.AppApi.OpenLink).toHaveBeenCalledWith(links.troubleshootingAuthUserConnectionIssues);
     });
 
     test('does not count explicit password errors toward the warning threshold', async () => {
@@ -341,10 +336,7 @@ describe('useAuthStore login failure toast policy', () => {
         vi.setSystemTime(new Date('2026-03-23T00:00:20.000Z'));
         await failManualLogin(store, makeAuthError('Unauthorized', 401));
         vi.setSystemTime(new Date('2026-03-23T00:00:40.000Z'));
-        await failManualLogin(
-            store,
-            makeAuthError('Invalid Username/Email or Password', 401)
-        );
+        await failManualLogin(store, makeAuthError('Invalid Username/Email or Password', 401));
 
         expect(mocks.toast.warning).not.toHaveBeenCalled();
     });
@@ -406,9 +398,7 @@ describe('useAuthStore login failure toast policy', () => {
 
         vi.setSystemTime(new Date('2026-03-23T00:01:05.000Z'));
         await succeedManualLogin(store);
-        expect(mocks.toast.dismiss).toHaveBeenCalledWith(
-            'login-network-issue-toast'
-        );
+        expect(mocks.toast.dismiss).toHaveBeenCalledWith('login-network-issue-toast');
 
         mocks.toast.warning.mockClear();
         mocks.toast.dismiss.mockClear();
@@ -460,52 +450,46 @@ describe('useAuthStore login failure toast policy', () => {
         vi.setSystemTime(new Date('2026-03-23T00:01:10.000Z'));
         await failManualLogin(store, makeAuthError('Unauthorized', 401));
 
-        expect(mocks.toast.dismiss).toHaveBeenCalledWith(
-            'login-network-issue-toast'
-        );
+        expect(mocks.toast.dismiss).toHaveBeenCalledWith('login-network-issue-toast');
         expect(mocks.toast.warning).toHaveBeenCalledTimes(1);
     });
 
     test('removes lastUserLoggedIn when deleting the active saved account', async () => {
-        mocks.configRepository.getString.mockImplementation(
-            (key, defaultValue = '') => {
-                if (key === 'savedCredentials') {
-                    return Promise.resolve(
-                        JSON.stringify({
-                            usr_me: {
-                                user: { id: 'usr_me', displayName: 'Tester' },
-                                loginParams: {
-                                    username: 'tester@example.com',
-                                    password: 'password',
-                                    endpoint: '',
-                                    websocket: ''
-                                }
-                            },
-                            usr_other: {
-                                user: { id: 'usr_other', displayName: 'Other' },
-                                loginParams: {
-                                    username: 'other@example.com',
-                                    password: 'password',
-                                    endpoint: '',
-                                    websocket: ''
-                                }
+        mocks.configRepository.getString.mockImplementation((key, defaultValue = '') => {
+            if (key === 'savedCredentials') {
+                return Promise.resolve(
+                    JSON.stringify({
+                        usr_me: {
+                            user: { id: 'usr_me', displayName: 'Tester' },
+                            loginParams: {
+                                username: 'tester@example.com',
+                                password: 'password',
+                                endpoint: '',
+                                websocket: ''
                             }
-                        })
-                    );
-                }
-                if (key === 'lastUserLoggedIn') {
-                    return Promise.resolve('usr_me');
-                }
-                return Promise.resolve(defaultValue);
+                        },
+                        usr_other: {
+                            user: { id: 'usr_other', displayName: 'Other' },
+                            loginParams: {
+                                username: 'other@example.com',
+                                password: 'password',
+                                endpoint: '',
+                                websocket: ''
+                            }
+                        }
+                    })
+                );
             }
-        );
+            if (key === 'lastUserLoggedIn') {
+                return Promise.resolve('usr_me');
+            }
+            return Promise.resolve(defaultValue);
+        });
 
         const store = await createAuthStore();
         await store.deleteSavedLogin('usr_me');
 
-        expect(mocks.configRepository.remove).toHaveBeenCalledWith(
-            'lastUserLoggedIn'
-        );
+        expect(mocks.configRepository.remove).toHaveBeenCalledWith('lastUserLoggedIn');
         expect(mocks.configRepository.setString).toHaveBeenCalledWith(
             'savedCredentials',
             JSON.stringify({

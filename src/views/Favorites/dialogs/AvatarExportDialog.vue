@@ -116,7 +116,6 @@
     ]);
 
     /**
-     *
      * @param label
      * @param checked
      */
@@ -149,9 +148,6 @@
         }
     );
 
-    /**
-     *
-     */
     function showAvatarExportDialog() {
         avatarExportFavoriteGroup.value = null;
         avatarExportLocalFavoriteGroup.value = null;
@@ -161,7 +157,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleAvatarExportFavoriteGroupSelect(value) {
@@ -175,7 +170,6 @@
     }
 
     /**
-     *
      * @param value
      */
     function handleAvatarExportLocalFavoriteGroupSelect(value) {
@@ -187,7 +181,6 @@
         selectAvatarExportLocalGroup(value);
     }
     /**
-     *
      * @param event
      */
     function handleCopyAvatarExportData(event) {
@@ -203,9 +196,6 @@
                 toast.error('Copy failed!');
             });
     }
-    /**
-     *
-     */
     function updateAvatarExportDialog() {
         const propsForQuery = exportSelectOptions.value
             .filter((option) => exportSelectedOptions.value.includes(option.label))
@@ -248,7 +238,6 @@
         avatarExportContent.value = lines.reverse().join('\n');
     }
     /**
-     *
      * @param group
      */
     function selectAvatarExportGroup(group) {
@@ -259,7 +248,6 @@
         updateAvatarExportDialog();
     }
     /**
-     *
      * @param group
      */
     function selectAvatarExportLocalGroup(group) {
