@@ -97,6 +97,11 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
     const sharedFeedData = ref([]);
     const maxEntries = 25;
 
+    function isPublicLocation(location) {
+        const parsed = parseLocation(location);
+        return parsed.accessType === 'public' || (parsed.accessType === 'group' && parsed.groupAccessType === 'public');
+    }
+
     async function loadSharedFeed() {
         let newFeed = [];
         const wristFilter = notificationsSettingsStore.sharedFeedFilters.wrist;
@@ -108,7 +113,10 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
         const vipFilters = Object.keys(wristFilter).filter((key) => wristFilter[key] === 'VIP');
         const friendsFilters = Object.keys(wristFilter).filter((key) => wristFilter[key] === 'Friends');
         const everyoneFilters = Object.keys(wristFilter).filter(
-            (key) => wristFilter[key] === 'On' || wristFilter[key] === 'Everyone'
+            (key) =>
+                wristFilter[key] === 'On' ||
+                wristFilter[key] === 'Everyone' ||
+                wristFilter[key] === 'Everyone w/o Public'
         );
         const everyoneAndFriendsFilters = Object.keys(wristFilter).filter(
             (key) => wristFilter[key] === 'Friends' || wristFilter[key] === 'On' || wristFilter[key] === 'Everyone'
@@ -152,6 +160,13 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             );
             newFeed = newFeed.concat(friendsNotificationRows);
         }
+
+        newFeed = newFeed.filter((ctx) => {
+            if (wristFilter[ctx.type] !== 'Everyone w/o Public') {
+                return true;
+            }
+            return !isPublicLocation(ctx.location) || friendStore.friends.has(ctx.userId);
+        });
 
         // hide private worlds from feed
         if (wristOverlaySettingsStore.hidePrivateFromFeed) {
@@ -273,10 +288,7 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
             });
         }
 
-        const parsedLocation = parseLocation(locationStore.lastLocation.location);
-        const isPublicInstance =
-            parsedLocation.accessType === 'public' ||
-            (parsedLocation.accessType === 'group' && parsedLocation.groupAccessType === 'public');
+        const isPublicInstance = isPublicLocation(locationStore.lastLocation.location);
         if (
             wristFilter[ctx.type] &&
             (wristFilter[ctx.type] === 'On' ||
