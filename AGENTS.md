@@ -63,7 +63,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 > - JS / Electron の依存バージョン: `package.json`
 > - .NET の TargetFramework: `Dotnet/VRCX-*.csproj`
 > - Vite の dev port / build target / outDir: `src/vite.config.js`
-> - フォーマッタ / Linter の設定値: `.oxfmtrc.json`、`eslint.config.mjs`、`.oxlintrc.json`
+> - フォーマッタ / Linter の設定値: `oxfmt.config.mts`、`oxlint.config.mts`（インデント幅・改行コード・printWidth などの基本値は `.editorconfig`）
 > - DB スキーマバージョン: `src/stores/vrcx.js`
 
 - **Frontend**: Vue、Pinia、Vue Router、Vite、TailwindCSS、shadcn-vue、reka-ui、LightningCSS、vue-i18n、Vitest、Vue Query、ECharts、Graphology + Sigma、vue-sonner
@@ -227,7 +227,7 @@ electron-builder.config.js # Electron パッケージ設定
 - ストアは引き続き `createGlobalStores()` で生成
 - ストア横断のワークフロー調整は `src/coordinators/`
 - coordinator のテストは `src/coordinators/__tests__/`
-- ESLint が **ストア境界ルール**を強制: 他ストア境界を越えた `xxxStore.foo = ...` および `xxxStore.foo++/--` を禁止
+- oxlint が **ストア境界ルール**を強制: 他ストア境界を越えた `xxxStore.foo = ...` および `xxxStore.foo++/--` を禁止
 
 ## 設定の永続化
 
@@ -246,6 +246,30 @@ electron-builder.config.js # Electron パッケージ設定
 - `VRCX_tablePageSize`
 - `VRCX_navPanelWidth`
 - `VRCX_tableDensity`
+
+## 通知 / 共有フィードのフィルタ
+
+入退室などの gamelog イベントは 3 つの出力面に分岐し、それぞれ独立したフィルタを持つ。
+
+- **noty**: デスクトップ通知 / VR オーバーレイ通知 / TTS。`sharedFeedFilters.noty`
+- **wrist**: VR オーバーレイの共有フィード。`sharedFeedFilters.wrist`
+- **GameLog ページ**: 上記フィルタの影響を受けない。DB への記録は無条件で、表示はページ独自の種別フィルタと VIP 絞り込みのみ
+
+選択肢の定義は `src/shared/constants/feedFilters.js`。noty と wrist は `baseOptions` を共有し、保存値は option の `label` 文字列そのもの（i18n キーではない）。
+
+`Everyone w/o Public` は **fork 独自の選択肢**で、`OnPlayerJoined` / `OnPlayerLeft` にのみ提示する。Public および Group Public インスタンスではフレンドのみ、それ以外のインスタンスでは全員を通す。public 判定は `src/stores/sharedFeed.js` の `isPublicLocation()` に集約してあり、`accessType === 'public'`、または `accessType === 'group'` かつ `groupAccessType === 'public'` を public とみなす。
+
+この値を扱う箇所は 3 つあり、選択肢を増減するときは揃えること。
+
+1. `src/shared/constants/feedFilters.js` — 選択肢の提示
+2. `src/stores/notification/index.js` の `queueGameLogNoty()` — noty 側の判定
+3. `src/stores/sharedFeed.js` — wrist 側の逐次判定と、`loadSharedFeed()` のバケット振り分け + 後段フィルタ
+
+注意点:
+
+- `loadSharedFeed()` は DB を `LIMIT` 付きで引いてから JS 側で絞るため、Public の履歴が多いとオーバーレイに残る履歴が薄くなる
+- 保存値の文字列を変更してもマイグレーションは無いため、既存設定に旧値が残るとどの分岐にも一致せず無言で通知が止まる
+- 復元時の通知再発火は `playNoty()` が作成 1 分より古いイベントを捨てることで防いでいる
 
 ## VRChat API
 
@@ -300,13 +324,15 @@ pnpm build-electron-arm64
 pnpm start-electron
 pnpm localization
 pnpm lint
-pnpm lint:eslint
-pnpm lint:oxlint
+pnpm lint:fix
+pnpm lint:fix-danger
 pnpm typecheck:js
 pnpm typecheck:vue
 pnpm typecheck:node
 pnpm format
 pnpm format:check
+pnpm dotnet_format
+pnpm dotnet_format:check
 pnpm build:licenses
 ```
 
@@ -320,9 +346,9 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 
 ## ツール / 規約
 
-- **フォーマッタ**: oxfmt（`.oxfmtrc.json`）。`pnpm format` / `pnpm format:check` で実行。Vue には別 override がある
-- **ESLint**: flat config（`eslint.config.mjs`）、`eslint-plugin-vue` + `eslint-plugin-oxlint`。`no-restricted-syntax` でストア境界ルールを強制
-- **oxlint**: `.oxlintrc.json`、`pnpm lint:oxlint` で実行
+- **フォーマッタ**: oxfmt（`oxfmt.config.mts`）。`pnpm format` / `pnpm format:check` で実行。Vue には別 override がある。インデント幅・改行コード・printWidth などは `.editorconfig` を参照する
+- **oxlint**: `oxlint.config.mts`、`pnpm lint` で実行。`oxlint-plugin-eslint` 経由の `eslint-js/no-restricted-syntax` でストア境界ルールを強制する。ESLint は廃止済み（upstream が oxlint に一本化）
+- **C# フォーマッタ**: `pnpm dotnet_format` / `pnpm dotnet_format:check`
 - **TypeScript 設定**: `allowJs`、`checkJs`、`strict: false`、`moduleResolution: bundler`、`noEmit`
 - **Vitest**: `jsdom`、`src/**/*.{test,spec}.js`、setup は `vitest.setup.js`
 - **パスエイリアス**: `@/*` → `./src/*`
@@ -367,6 +393,8 @@ dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platf
 - フロントエンドのビルドスクリプトは `pnpm prod` のみ。`prod-linux` / `prod-browser` は廃止され、全ターゲットが同じ成果物を使う
 - framework-dependent への切り替え後などに古い成果物が混在して.NETランタイム要求ダイアログが表示される場合は、リポジトリ直下の `build/` を全削除してから `build-scripts/build-all.ps1` を再実行する。
 - `build-scripts/build-all.ps1` は `7z` 実行時に失敗することがある（例: 7-Zip が PATH にない場合）。.NET ビルド、フロントエンドビルド、ライセンス生成、ジャンクション作成がすでに成功していれば、`7z` の失敗は無視して成功扱いにしてよい。
+- `build-scripts/build-all.ps1` は `pwsh`（PowerShell 7 以降）前提。Windows PowerShell 5.1 では `$IsWindows` が自動変数として存在しないため `if ($IsWindows)` が全て false になり、**.NET ビルドもフロントエンドビルドも zip もインストーラーも実行されないまま exit 0 で「成功」する**（`node_modules` の作り直しだけが走る）。`pwsh` が無い環境では、呼び出し側で `$IsWindows = $true` を設定してから実行するか、`dotnet build` と `pnpm prod` を個別に実行する。
+- `build-all.ps1` のインストーラー生成は、fork の `Version`（`Forked-AariyJP`）が数値でないため NSIS の `VIFileVersion` エラーで失敗する。`Installer/installer.nsi` には `PRODUCT_DISPLAY_VERSION` を別途 `!define` できる `!ifndef` フックがあるので、数値版と表示版を分ければ通せる。
 - 最近のプロジェクトの方向性: coordinator 抽出、Vue Query 導入、CSS のトークン化、Browser 機能の拡充、Diagnostics 強化、upstream 同期マージ
 
 ## フォーク固有のブランディング
