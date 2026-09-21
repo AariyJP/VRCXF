@@ -1,52 +1,53 @@
 # 技術スタックとアーキテクチャ
 
+> **具体的なバージョン値はここに書かない。** ドリフトを避けるため正本を読むこと。
+> JS/Electron の依存: `package.json` / .NET の TargetFramework: `Dotnet/VRCX-*.csproj` /
+> Vite の dev port・build target・outDir: `src/vite.config.js` / DB スキーマバージョン: `src/stores/vrcx.js`
+
 ## フロントエンド
 
-- Vue 3
-- Pinia
-- Vue Router (hash history)
-- Vite 8
-- TailwindCSS 4
-- shadcn-vue / reka-ui
-- vue-i18n
-- Vitest
-- @tanstack/vue-query
-- ECharts
-- Graphology + Sigma
-- vue-sonner
+Vue 3、Pinia、Vue Router (hash history)、Vite、TailwindCSS、shadcn-vue / reka-ui、LightningCSS、vue-i18n、Vitest、@tanstack/vue-query、ECharts、Graphology + Sigma、vue-sonner、@vueuse/core
 
 ## バックエンド / デスクトップ
 
-- C# / .NET 10: `Dotnet/VRCX-Cef.csproj`
-- C# / .NET 9: `Dotnet/VRCX-Electron.csproj` および `Dotnet/VRCX-Electron-arm64.csproj`
-- macOS/Linux で Electron 40
-- Windows で CEF/CefSharp 148
+- C# / .NET: Cef / Electron / Electron-arm64 の 3 csproj。**現在は 3 つとも同じ TargetFramework**（かつて Electron 側だけ古い世代だったが解消済み）
+- Windows: CEF/CefSharp、macOS/Linux: Electron + node-api-dotnet
 - SQLite
-- node-api-dotnet
-- Browser: `BROWSER` フラグ（`index.html` のランタイム判定）。.NET ランタイムなしでフロントエンドのみを一般ブラウザで動かす。`npm run dev` で Vite を起動し、Cloudflare Wrangler Pages(port 8788)は別プロセスで動かす
+- Windows CEF 版は **framework-dependent** ビルド。.NET ランタイムを同梱しない
+
+## 4 つのターゲット
+
+- **Windows**: CEF (CefSharp)。`Dotnet/Cef/`、`Dotnet/AppApi/Cef/`、`Dotnet/Overlay/Cef/`
+- **macOS/Linux**: Electron + node-api-dotnet。`src-electron/`、`Dotnet/AppApi/Electron/`、`Dotnet/Overlay/Electron/`
+- **Browser**: .NET ランタイムなしでフロントエンドのみを一般ブラウザで動かす。`src/ipc-browser/`、`functions/`、`BROWSER` フラグ（`index.html` のランタイム判定）。
+  **配布対象外ではない** — リリース CI が `VRCXF_bundle.zip` としてリリースアセットに含める（`.github/workflows/release.yml` の `build_bundle` ジョブ）
+- **VR オーバーレイ**: Windows CEF と Electron/共有メモリの 2 系統に分かれたまま
 
 ## 主要ディレクトリ
 
 - `src/api/`: VRChat API ラッパー
-- `src/components/`: 共通コンポーネントとダイアログ
-- `src/composables/`: Vue composables
+- `src/components/`: 共通コンポーネントとダイアログ（`ui/window-teleport/` を含む）
+- `src/composables/`: Vue composables（ポップアウト用 `usePortalDocument` / `useDialogPopoutModal` を含む）
+- `src/coordinators/`: auth/friend/game/user のフロー調整層
 - `src/ipc-electron/`: レンダラ向け Electron IPC ヘルパー
-- `src/ipc-browser/`: Browser 検証ターゲット向けネイティブ API モック (`index.js` のみ。fetch+Cookie中継の `WebApi`、sql.js on IndexedDB の `SQLite` 等。`LogWatcher`/`Discord`/ゲーム起動/レジストリ/スクショ等はスタブ)
-- `src/plugins/`: ブートストラッププラグイン (`dayjs`、`i18n`、`interopApi`、`noty`、`router`、`sentry`、`ui`)
+- `src/ipc-browser/`: Browser 向けネイティブ API モック（`index.js`、`md5.js`）
+- `src/lib/`: 共通ライブラリヘルパー。`activeWindowTracker.js` / `clipboard.js` / `modalPortalLayers.js` / `utils.js` / `table/`
+- `src/plugins/`: ブートストラッププラグイン
 - `src/public/`: Vite がコピーする静的アセット
-- `src/queries/`: Vue Query クライアント、key、cache、query ヘルパー
-- `src/services/`: request、websocket、webapi、database、config、sqlite、appConfig、jsonStorage、watchState
+- `src/queries/`: Vue Query クライアント、key、cache、エンティティクエリ
+- `src/services/`: request、websocket、webapi、database、config、security、`browserConsoleLog.js` 等
 - `src/shared/`: 定数と共通ユーティリティ
-- `src/coordinators/`: フロー調整層
-- `src/stores/gameLog/`、`src/stores/notification/`: ストアのサブモジュール
-- `src/views/MyAvatars/`: My Avatars ルート
+- `src/stores/`: `gameLog/`、`notification/`、`settings/` のサブモジュール
+- `src/workers/`: Activity の重い計算をレンダラから分離する Web Worker
 - `src/styles/globals.css` + `src/app.css`: スタイリングの分割
-- `src-electron/`: Electron メイン/プリロード/ビルドヘルパー
+- `src-electron/`: Electron メイン/プリロード/interop
+- `functions/api/1/[[path]].ts`: Browser 版の VRChat REST 中継 (Cloudflare Pages Functions)
+- `build-scripts/`: ランタイム取得、パッチ、リネーム、ライセンス生成、`build-all.ps1`
 - `Dotnet/AppApi/Common|Cef|Electron/`: ネイティブ API レイヤ
 
 ## アプリ起動順序
 
-`src/app.js` の現状の初期化順:
+`src/app.js`:
 
 1. `initPlugins()`
 2. `initPiniaPlugins()`
@@ -57,75 +58,24 @@
 7. `initSentry(app)`
 8. `app.mount('#root')`
 
-## ルートアプリシェル
+`src/services/browserConsoleLog.js` を無条件 import している（Diagnostics の DevTools Console は全プラットフォーム共通、メモリ内最大 500 件、永続化なし）。
 
-`src/App.vue` に含まれる要素:
+## ルート
 
-- `TooltipProvider`
-- `MacOSTitleBar`
-- `RouterView`
-- `Toaster`
-- `AlertDialogModal`
-- `PromptDialogModal`
-- `OtpDialogModal`
-- `VRCXUpdateDialog`
-- `#x-dialog-portal`
-
-## ルート一覧
-
-主な認証済みルート:
-
-- `/feed`
-- `/friends-locations`
-- `/game-log`
-- `/player-list`
-- `/search`
-- `/favorites/friends`
-- `/favorites/worlds`
-- `/favorites/avatars`
-- `/social/friend-log`
-- `/social/moderation`
-- `/social/friend-list`
-- `/my-avatars`
-- `/notification`
-- `/dashboard/:id`
-- `/charts/instance`
-- `/charts/mutual`
-- `/charts/hot-worlds`
-- `/tools`
-- `/tools/gallery`
-- `/tools/screenshot-metadata`
-- `/settings`
-
-ルーターは return ベースガードで、`/social` 自体をブロックする。
+`src/plugins/router.js` が正本。公開は `/login`、認証済みシェルは `/`。`/social` 自体はブロックし、未認証は `/login` へリダイレクト（`redirect` クエリを保持）。ガードは return ベース。
 
 ## グローバル
 
-`src/types/globals.d.ts` で型定義されているグローバル:
-
-- `AppApi`
-- `AppApiVr`
-- `WebApi`
-- `VRCXStorage`
-- `SQLite`
-- `LogWatcher`
-- `Discord`
-- `AssetBundleManager`
-- `webApiService`
-- `window.interopApi`
-- `window.electron`
-- `window.$pinia`
+`src/types/globals.d.ts`: `AppApi`、`AppApiVr`、`WebApi`、`VRCXStorage`、`SQLite`、`LogWatcher`、`Discord`、`AssetBundleManager`、`webApiService`、`window.interopApi`、`window.electron`、`window.$pinia`
 
 ## 永続化 / データ
 
-- 設定: `src/services/config.js`
+- 設定: `src/services/config.js`（`config:` プレフィックスの SQLite ベース repository）
 - ネイティブ KV ストレージ: `VRCXStorage`
-- 現在の DB バージョン: **16** (`VRCX_databaseVersion` config キー、`src/stores/vrcx.js` で管理)
-- DB スキーマモジュール: `feed`、`gameLog`、`notifications`、`moderation`、`friendLogHistory`、`friendLogCurrent`、`memos`、`avatarFavorites`、`avatarTags`、`friendFavorites`、`worldFavorites`、`mutualGraph`、`activityV2`、`tableAlter`、`tableFixes`、`tableSize`
+- DB バージョンは `VRCX_databaseVersion` config キー、`src/stores/vrcx.js` で管理（**現在値は同ファイルを読むこと**）
+- DB モジュール (`src/services/database/`): `feed`、`gameLog`、`notifications`、`moderation`、`friendLogHistory`、`friendLogCurrent`、`memos`、`avatarFavorites`、`avatarTags`、`friendFavorites`、`worldFavorites`、`mutualGraph`、`activityV2`、`printFavorites`、`tableAlter`、`tableFixes`、`tableSize`
+- Browser では `VRCXStorage` をブラウザストレージ、SQLite 本体と Cookie jar を IndexedDB で代替。DML/DDL 変更のみ検出して短間隔でまとめ保存、トランザクション中は保存せず COMMIT 後のみ
 
-## スタイリング / アセット
+## スタイリング
 
-- TailwindCSS 4 + CSS 変数
-- テーマは `src/styles/themes/`
-- 静的アセットは `src/public/`
-- Vite ビルドターゲットは現状 `chrome145`
+TailwindCSS + CSS 変数。テーマは `src/styles/themes/`（`blue`、`green`、`midnight`、`orange`、`red`、`rednight`、`rose`、`violet`、`yellow`。`rednight` はフォーク独自）。

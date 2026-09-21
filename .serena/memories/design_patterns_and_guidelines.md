@@ -33,10 +33,14 @@
 ### クロスプラットフォームパターン
 
 - フロントエンドは `WINDOWS` / `LINUX` / `BROWSER` で分岐
-- CEF と Electron プロキシ経路でネイティブバインディングが異なる。`BROWSER` は `src/ipc-browser/index.js` のブラウザ内モック（.NET ランタイムなし、開発/検証用で配布対象外）
+- CEF と Electron プロキシ経路でネイティブバインディングが異なる。`BROWSER` は `src/ipc-browser/index.js` のブラウザ内モック（.NET ランタイムなし。**配布対象**で、リリース CI が `VRCXF_bundle.zip` としてアセットに含める）
 - 共通機能は可能な限り `Dotnet/AppApi/Common/` に置く
 - 共有 UI コードから `window.electron` 専用 API を使う場合は注意する
 - `src/services/webapi.js` は `LINUX` のときのみ `ExecuteJson()`、それ以外(Windows/Browser)は `Execute()`(`{Item1,Item2}`形式)に分岐。Browser モックもこの形式に合わせている
+
+### ポップアウトウィンドウパターン（フォーク独自）
+
+UI コードでモジュールスコープの `document` / `window` / `navigator.clipboard` を直接使わない。ポップアウトした別ウィンドウ内では常にメインウィンドウを指してしまうため、`queryAcrossWindows()` / `usePortalTarget()` / `src/lib/clipboard.js` / `getFocusedWindow()` を経由する。詳細は `mem:popout_windows`。
 
 ### スタイリングパターン
 
@@ -50,7 +54,7 @@
 テストは対象に近い場所に置く:
 
 - 汎用ストアテスト: `src/stores/__tests__/`
-- coordinator テスト: `src/coordinators/__tests__/`
+- coordinator テスト: `src/coordinators/__tests__/`（`src/stores/coordinators/` ではない）
 - コンポーネント/ビューテスト: 各 `__tests__` 配下
 
 ただしテスト自体の追加・編集はエージェントの基本スコープ外 (`mem:testing_policy` 参照)。
