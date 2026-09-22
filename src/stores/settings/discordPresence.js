@@ -251,18 +251,10 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         let detailsUrl = state.lastLocationDetails.worldLink;
         let poweredBy = t('view.settings.discord_presence.rpc.powered_by_vrcx');
 
-        let partyId = `${state.lastLocationDetails.worldId}:${state.lastLocationDetails.instanceName}`;
-        let partySize = locationStore.lastLocation.playerList.size;
-        let partyMaxSize = state.lastLocationDetails.worldCapacity;
-        if (partySize > partyMaxSize) {
-            partyMaxSize = partySize;
-        }
-        if (partySize === 0) {
-            partyMaxSize = 0;
-        }
+        const partyId = 'vrchat';
+        const partySize = 0;
+        const partyMaxSize = 0;
         if (!discordInstance.value) {
-            partySize = 0;
-            partyMaxSize = 0;
             stateText = '';
         }
         let buttonText = 'Join';
@@ -306,11 +298,6 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             details += '\uFFA0'.repeat(2 - details.length);
         }
         if (hidePrivate) {
-            partyId = 'vrchat';
-            partySize = 0;
-            partyMaxSize = 0;
-            // buttonText = '';
-            // buttonUrl = '';
             detailsUrl = '';
             details = '';
             stateText = '';
@@ -323,7 +310,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         }
         Discord.SetAssets(
             details, // main text
-            '', // secondary text
+            statusName, // secondary text
             detailsUrl, // details url
 
             bigIcon, // big icon
@@ -335,9 +322,9 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             state.discordTime,
             endTime,
 
-            'party', // party id
-            partySize, // party size
-            partyMaxSize, // party max size
+            partyId,
+            partySize,
+            partyMaxSize,
             buttonText, // button text
             buttonUrl, // button url
             appId, // app id

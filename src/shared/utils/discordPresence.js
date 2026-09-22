@@ -201,19 +201,19 @@ export function getStatusInfo(status, discordHideInvite, t) {
         case 'active':
             return {
                 statusName: t('dialog.user.status.active'),
-                statusImage: 'active',
+                statusImage: 'online',
                 hidePrivate: false
             };
         case 'join me':
             return {
                 statusName: t('dialog.user.status.join_me'),
-                statusImage: 'joinme',
+                statusImage: 'join_me',
                 hidePrivate: false
             };
         case 'ask me':
             return {
                 statusName: t('dialog.user.status.ask_me'),
-                statusImage: 'askme',
+                statusImage: 'ask_me',
                 hidePrivate: discordHideInvite
             };
         case 'busy':
@@ -225,7 +225,7 @@ export function getStatusInfo(status, discordHideInvite, t) {
         default:
             return {
                 statusName: t('dialog.user.status.offline'),
-                statusImage: 'offline',
+                statusImage: '',
                 hidePrivate: true
             };
     }
