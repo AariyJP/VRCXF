@@ -24,7 +24,7 @@
                 <Input
                     v-model="searchQuery"
                     class="h-8 w-full md:mr-2 md:w-40"
-                    placeholder="Search friends"
+                    :placeholder="t('dialog.user.mutual_friends.search_placeholder')"
                     @click.stop />
                 <span class="md:mr-1.5">{{ t('dialog.user.groups.sort_by') }}</span>
                 <Select

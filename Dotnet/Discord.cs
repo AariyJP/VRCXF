@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using DiscordRPC;
+using Newtonsoft.Json;
 using NLog;
 
 namespace VRCX
@@ -18,9 +20,47 @@ namespace VRCX
         private string _discordAppId;
         private const string VrcxUrl = "https://hello.vrchat.com";
 
+        private sealed class PartyIdOnlyConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType) => objectType == typeof(Party);
+
+            public override bool CanRead => false;
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                var party = (Party)value;
+                if (party == null || string.IsNullOrEmpty(party.ID))
+                {
+                    writer.WriteNull();
+                    return;
+                }
+
+                writer.WriteStartObject();
+                writer.WritePropertyName("id");
+                writer.WriteValue(party.ID);
+                writer.WriteEndObject();
+            }
+        }
+
         static Discord()
         {
             Instance = new Discord();
+            var previous = JsonConvert.DefaultSettings;
+            JsonConvert.DefaultSettings = () =>
+            {
+                var settings = previous?.Invoke() ?? new JsonSerializerSettings();
+                if (!settings.Converters.OfType<PartyIdOnlyConverter>().Any())
+                {
+                    settings.Converters.Add(new PartyIdOnlyConverter());
+                }
+
+                return settings;
+            };
         }
 
         public Discord()
@@ -193,7 +233,7 @@ namespace VRCX
                         _presence.Timestamps.EndUnixMilliseconds = (ulong)endUnixMilliseconds;
                 }
 
-                if (partyMax == 0)
+                if (string.IsNullOrEmpty(partyId))
                 {
                     _presence.Party = null;
                 }

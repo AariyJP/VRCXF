@@ -4,7 +4,9 @@
 
 ## 推奨 Shell スタイル
 
-Shell が必要な場面では PowerShell を使う。
+Shell が必要な場面では PowerShell を使う。**文字化け回避のため、コマンドの先頭に `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;` を前置すること。**
+
+なお、この環境の PowerShell は Windows PowerShell 5.1 のため `&&` / `||` / 三項演算子 / `??` は使えない。`A; if ($?) { B }` の形にする。POSIX スクリプトが必要な場合は Bash ツール側を使う。
 
 よく使う読み取り専用コマンド:
 

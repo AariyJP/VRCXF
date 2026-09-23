@@ -111,6 +111,9 @@ src/
   ipc-electron/           # レンダラ向け Electron interop ヘルパー
   ipc-browser/            # Browser 向け API モック、sql.js/IndexedDB、Cookie、MD5
   lib/                    # 共通ライブラリヘルパー
+    activeWindowTracker.js  # ポップアウト: 複数 document の追跡と横断クエリ
+    clipboard.js            # ポップアウト: フォーカス中ウィンドウの clipboard を使う
+    modalPortalLayers.js    # ポップアウト: document ごとのモーダルポータル層
   localization/           # i18n JSON ファイル
   plugins/                # ブートストラッププラグイン (components, dayjs, i18n, interopApi, noty, router, sentry, ui)
   public/                 # Vite がコピーする静的アセット
@@ -158,8 +161,8 @@ Dotnet/
   IPC/                    # IPC 基盤
   ScreenshotMetadata/     # スクリーンショットメタデータ対応
   VRCX-Cef.csproj         # Windows ビルド
-  VRCX-Electron.csproj    # Electron x64 ビルド
-  VRCX-Electron-arm64.csproj
+  Directory.Build.props   # Platform から RuntimeIdentifier を決定
+  VRCX-Electron.csproj    # Electron ビルド（出力は build/Electron/<rid>/）
 electron-builder.config.js # Electron パッケージ設定
 ```
 
@@ -271,6 +274,40 @@ electron-builder.config.js # Electron パッケージ設定
 - 保存値の文字列を変更してもマイグレーションは無いため、既存設定に旧値が残るとどの分岐にも一致せず無言で通知が止まる
 - 復元時の通知再発火は `playNoty()` が作成 1 分より古いイベントを捨てることで防いでいる
 
+## 🪟 ポップアウトウィンドウ（フォーク独自）
+
+ダイアログを `window.open()` した別ウィンドウへ Teleport して表示できる。**upstream には存在しないフォーク独自のサブシステム**で、upstream をマージするたびに壊れやすい箇所。
+
+構成要素:
+
+- `src/components/ui/window-teleport/WindowTeleport.vue` — 子ウィンドウを開き、スタイルを複製して Vue のツリーを Teleport する
+- `src/lib/activeWindowTracker.js` — 開いている全 document を追跡し、`activeDocument` を保持する。`queryAcrossWindows()` / `queryAllAcrossWindows()` / `getFocusedWindow()` を提供
+- `src/composables/usePortalDocument.js` — provide/inject で「自分が属する document」を配下へ伝える。`usePortalTarget()`、クロスウィンドウの誤 dismiss を防ぐ `useCrossWindowDismissGuard()` を含む
+- `src/composables/useDialogPopoutModal.js` — ポップアウト内のダイアログでは `modal` を強制的に false にし、メインウィンドウが暗転して操作不能になるのを防ぐ
+- `src/lib/modalPortalLayers.js` — document ごとにモーダルポータル層を確保・解放する
+- `src/lib/clipboard.js` — `navigator.clipboard` をフォーカス中のウィンドウから取る。子ウィンドウでコピーが無反応になるのを防ぐ
+- 組み込み箇所: `src/App.vue`、`src/views/Layout/MainLayout.vue`、`src/components/dialogs/MainDialogContainer.vue`
+
+守るべき規約:
+
+- **`document` / `window` のグローバルを直接使わない。** モジュールスコープの `document` は常にメインウィンドウを指すため、ポップアウト内の要素には当たらない
+  - 要素探索は `document.getElementById()` / `querySelector()` ではなく `queryAcrossWindows()`
+  - ポータル先は `document.body` ではなく `usePortalTarget()` / `usePortalDocument()`
+  - クリップボードは `navigator.clipboard` ではなく `src/lib/clipboard.js`
+  - ウィンドウ参照は `window` ではなく `getFocusedWindow()`
+- upstream が新しく `document.*` を使うコードを入れてきたら、ポップアウト内で使われ得るコンポーネントかを確認する
+
+既知の未対応:
+
+- `src/components/ui/tabs/TabsUnderline.vue` の `getComputedStyle(document.documentElement).fontSize` は upstream 由来で、ポップアウト内ではメインウィンドウのルートを読む。両ウィンドウとも既定 16px のため現状は無害だが、ルートの font-size を可変にする場合は `usePortalDocument()` 経由に直す必要がある
+
+## 改行コード
+
+`.gitattributes` は **LF 既定**（2026-09-17 に upstream が CRLF 既定から転換）。`.cs` / `.csproj` / `.sln` / `.bat` / `.cmd` / `.nsi` / `.nsh` / `.manifest` / `.resx` など Windows 固有ファイルのみ CRLF。`.editorconfig` も同じ方針で揃えてある。
+
+- 改行コードだけの差分を含むコミットを作らない。エディタや `core.autocrlf` の設定ずれが原因のことが多い
+- 過去に blob 内へ CR が混入したファイルは、checkout し直しても `git diff` が消えないという症状を起こした（upstream PR vrcx-team/VRCX#1890 で修正済み）。同じ症状が再発した場合は `.git/info/attributes` に `* -text` を一時的に置いて `git checkout-index -f -a` で raw blob を書き戻すと回避できる
+
 ## VRChat API
 
 - REST エンドポイントベース: `https://api.vrchat.cloud/api/1`（Browser のみ同一オリジンの `/api/1` を経由。VRChat が CORS ヘッダーを返さないため）
@@ -339,10 +376,15 @@ pnpm build:licenses
 ## .NET ビルド
 
 ```bash
+dotnet build -c Release
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
-dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
+dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
+
+- リポジトリ直下の `dotnet build -c Release` は `VRCX.slnx` 全体をビルドする。CEF は常に x64 / framework-dependent で `build/Cef` に出力される。Platform 未指定時のソリューション既定は ARM64 のため、Electron は `build/Electron/<os>-arm64/` にしか出力されない（Windows では無害）
+- csproj を直接ビルドする場合は `-p:Platform` が必須（`Dotnet/Directory.Build.props` が未指定をエラーにする）
+- upstream 取り込みで `Dotnet/obj` の構成が `obj/<プロジェクト名>/` に変わった。古い `Dotnet/obj`、`Dotnet/obj1`、`Dotnet/DBMerger/obj` が残っていると属性重複エラーになるので削除する
 
 ## ツール / 規約
 
