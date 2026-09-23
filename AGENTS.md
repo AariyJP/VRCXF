@@ -161,8 +161,8 @@ Dotnet/
   IPC/                    # IPC 基盤
   ScreenshotMetadata/     # スクリーンショットメタデータ対応
   VRCX-Cef.csproj         # Windows ビルド
-  VRCX-Electron.csproj    # Electron x64 ビルド
-  VRCX-Electron-arm64.csproj
+  Directory.Build.props   # Platform から RuntimeIdentifier を決定
+  VRCX-Electron.csproj    # Electron ビルド（出力は build/Electron/<rid>/）
 electron-builder.config.js # Electron パッケージ設定
 ```
 
@@ -376,10 +376,15 @@ pnpm build:licenses
 ## .NET ビルド
 
 ```bash
+dotnet build -c Release
 dotnet build Dotnet\VRCX-Cef.csproj -p:Configuration=Release -p:Platform=x64
 dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=x64
-dotnet build Dotnet\VRCX-Electron-arm64.csproj -p:Configuration=Release -p:Platform=ARM64
+dotnet build Dotnet\VRCX-Electron.csproj -p:Configuration=Release -p:Platform=ARM64
 ```
+
+- リポジトリ直下の `dotnet build -c Release` は `VRCX.slnx` 全体をビルドする。CEF は常に x64 / framework-dependent で `build/Cef` に出力される。Platform 未指定時のソリューション既定は ARM64 のため、Electron は `build/Electron/<os>-arm64/` にしか出力されない（Windows では無害）
+- csproj を直接ビルドする場合は `-p:Platform` が必須（`Dotnet/Directory.Build.props` が未指定をエラーにする）
+- upstream 取り込みで `Dotnet/obj` の構成が `obj/<プロジェクト名>/` に変わった。古い `Dotnet/obj`、`Dotnet/obj1`、`Dotnet/DBMerger/obj` が残っていると属性重複エラーになるので削除する
 
 ## ツール / 規約
 
