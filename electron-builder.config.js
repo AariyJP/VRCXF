@@ -28,7 +28,7 @@ module.exports = {
     ],
     extraResources: [
         {
-            from: 'build/Electron/${os}-${arch}/',
+            from: `build/Electron/${process.platform === 'darwin' ? 'osx' : '${os}'}-\${arch}/`,
             to: 'app.asar.unpacked/build/Electron/'
         },
         {
@@ -82,7 +82,8 @@ module.exports = {
         target: ['dmg'],
         icon: 'images/VRCX.png',
         category: 'public.app-category.utilities',
-        executableName: 'VRCX'
+        executableName: 'VRCX',
+        minimumSystemVersion: '14.0'
     },
     toolsets: {
         appimage: '1.0.3'

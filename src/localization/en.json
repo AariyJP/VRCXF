@@ -758,7 +758,7 @@
                     "header": "Favorites"
                 },
                 "friend_requests": {
-                    "header": "Friend Reqeusts"
+                    "header": "Friend Requests"
                 }
             },
             "vr": {
@@ -1023,9 +1023,6 @@
             "notifications": {
                 "notifications": {
                     "header": "Notifications",
-                    "layout": "Notification View",
-                    "layout_notification_center": "Notification Center",
-                    "layout_table": "Notifications Page",
                     "notification_filter": "Notification Filters",
                     "test_notification": "Send Test Notification",
                     "test_message": "Test notification.",
@@ -1918,9 +1915,9 @@
                 "created": "Created",
                 "links": "Links",
                 "url": "Group URL",
-                "url_tooltip": "Copy URL to clipboard",
                 "id": "Group ID",
-                "id_tooltip": "Copy ID to clipboard",
+                "copy_id": "Copy ID",
+                "copy_url": "Copy URL",
                 "joined_at": "Joined At",
                 "roles": "Roles",
                 "role": "Role:",

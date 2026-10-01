@@ -65,14 +65,14 @@
         </SettingsGroup>
 
         <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.application.header')">
-            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.startup')">
+            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.startup')" toggle>
                 <Switch
                     :model-value="isStartAtWindowsStartup"
                     :ariaLabel="t('view.settings.general.application.startup')"
                     @update:modelValue="setIsStartAtWindowsStartup" />
             </SettingsItem>
 
-            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.minimized')">
+            <SettingsItem v-if="!isLinux" :label="t('view.settings.general.application.minimized')" toggle>
                 <Switch
                     :model-value="isStartAsMinimizedState"
                     :ariaLabel="t('view.settings.general.application.minimized')"
@@ -81,14 +81,15 @@
             <SettingsItem
                 v-else
                 :label="t('view.settings.general.application.minimized')"
-                :description="t('view.settings.general.application.startup_linux')">
+                :description="t('view.settings.general.application.startup_linux')"
+                toggle>
                 <Switch
                     :model-value="isStartAsMinimizedState"
                     :ariaLabel="t('view.settings.general.application.minimized')"
                     @update:modelValue="setIsStartAsMinimizedState" />
             </SettingsItem>
 
-            <SettingsItem v-if="!isMacOS" :label="t('view.settings.general.application.tray')">
+            <SettingsItem v-if="!isMacOS" :label="t('view.settings.general.application.tray')" toggle>
                 <Switch
                     :model-value="isCloseToTray"
                     :ariaLabel="t('view.settings.general.application.tray')"
@@ -98,7 +99,8 @@
             <SettingsItem
                 v-if="!isLinux"
                 :label="t('view.settings.general.application.disable_gpu_acceleration')"
-                :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')">
+                :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')"
+                toggle>
                 <Switch
                     :model-value="disableGpuAcceleration"
                     :ariaLabel="t('view.settings.general.application.disable_gpu_acceleration')"
@@ -108,7 +110,8 @@
             <SettingsItem
                 v-if="!isLinux"
                 :label="t('view.settings.general.application.disable_vr_overlay_gpu_acceleration')"
-                :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')">
+                :description="t('view.settings.general.application.disable_gpu_acceleration_tooltip')"
+                toggle>
                 <Switch
                     :model-value="disableVrOverlayGpuAcceleration"
                     @update:modelValue="setDisableVrOverlayGpuAcceleration" />

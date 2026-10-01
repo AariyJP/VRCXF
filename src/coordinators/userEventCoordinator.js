@@ -132,9 +132,13 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
-                database.addGPSToDatabase(feed);
+                const persistedFeed = await database.addGPSToDatabase(feed);
+                if (persistedFeed) {
+                    feedStore.addFeedEntry(persistedFeed);
+                }
+            } else {
+                feedStore.addFeedEntry(feed);
             }
             // clear previousLocation after GPS
             ref.$previousLocation = '';
@@ -146,7 +150,50 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         ref.$previousLocation = props.location[1];
         ref.$travelingToTime = now();
     }
-    if (props.iconUrl && props.iconUrl[0]) {
+    if (ref.bannerType === 'avatarBanner' && props.bannerUrl && props.bannerUrl[0]) {
+        const currentBannerUrl = props.bannerUrl[0];
+        const previousBannerUrl = props.bannerUrl[1];
+        let avatarInfo = {
+            ownerId: '',
+            avatarName: ''
+        };
+        try {
+            avatarInfo = await getAvatarName(currentBannerUrl);
+        } catch (err) {
+            console.log(err);
+        }
+        if (avatarInfo.ownerId) {
+            let previousAvatarInfo = {
+                ownerId: '',
+                avatarName: ''
+            };
+            try {
+                previousAvatarInfo = await getAvatarName(previousBannerUrl);
+            } catch (err) {
+                console.log(err);
+            }
+            feed = {
+                created_at: nowIso(),
+                type: 'Avatar',
+                userId: ref.id,
+                displayName: ref.displayName,
+                ownerId: avatarInfo.ownerId,
+                previousOwnerId: previousAvatarInfo.ownerId,
+                avatarName: avatarInfo.avatarName,
+                previousAvatarName: previousAvatarInfo.avatarName,
+                currentAvatarImageUrl: avatarInfo.ownerId ? currentBannerUrl : '',
+                currentAvatarThumbnailImageUrl: avatarInfo.ownerId ? currentBannerUrl : '',
+                previousCurrentAvatarImageUrl: previousAvatarInfo.ownerId ? previousBannerUrl : '',
+                previousCurrentAvatarThumbnailImageUrl: previousAvatarInfo.ownerId ? previousBannerUrl : ''
+            };
+            notificationStore.queueFeedNoty(feed);
+            sharedFeedStore.addEntry(feed);
+            const persistedFeed = await database.addAvatarToDatabase(feed);
+            if (persistedFeed) {
+                feedStore.addFeedEntry(persistedFeed);
+            }
+        }
+    } else if (props.iconUrl && props.iconUrl[0]) {
         const currentIconUrl = props.iconUrl[0];
         const previousIconUrl = props.iconUrl[1];
         let avatarInfo = {
@@ -184,9 +231,13 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
-                database.addAvatarToDatabase(feed);
+                const persistedFeed = await database.addAvatarToDatabase(feed);
+                if (persistedFeed) {
+                    feedStore.addFeedEntry(persistedFeed);
+                }
+            } else {
+                feedStore.addFeedEntry(feed);
             }
         }
     }
@@ -233,9 +284,13 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         };
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
-        feedStore.addFeedEntry(feed);
         if (appearanceSettingsStore.feedEnabled) {
-            database.addStatusToDatabase(feed);
+            const persistedFeed = await database.addStatusToDatabase(feed);
+            if (persistedFeed) {
+                feedStore.addFeedEntry(persistedFeed);
+            }
+        } else {
+            feedStore.addFeedEntry(feed);
         }
     }
     if (props.bio && props.bio[0] && props.bio[1]) {
@@ -257,9 +312,13 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         };
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
-        feedStore.addFeedEntry(feed);
         if (appearanceSettingsStore.feedEnabled) {
-            database.addBioToDatabase(feed);
+            const persistedFeed = await database.addBioToDatabase(feed);
+            if (persistedFeed) {
+                feedStore.addFeedEntry(persistedFeed);
+            }
+        } else {
+            feedStore.addFeedEntry(feed);
         }
     }
     if (props.note && props.note[0] !== null && props.note[0] !== props.note[1]) {
