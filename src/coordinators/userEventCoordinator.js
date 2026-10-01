@@ -188,9 +188,13 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            const persistedFeed = await database.addAvatarToDatabase(feed);
-            if (persistedFeed) {
-                feedStore.addFeedEntry(persistedFeed);
+            if (appearanceSettingsStore.feedEnabled) {
+                const persistedFeed = await database.addAvatarToDatabase(feed);
+                if (persistedFeed) {
+                    feedStore.addFeedEntry(persistedFeed);
+                }
+            } else {
+                feedStore.addFeedEntry(feed);
             }
         }
     } else if (props.iconUrl && props.iconUrl[0]) {
