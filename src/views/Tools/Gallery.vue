@@ -1,7 +1,7 @@
 <template>
     <div class="gallery-page x-container">
         <div class="flex items-center gap-2 ml-2">
-            <Button variant="ghost" size="sm" class="mr-3" @click="goBack">
+            <Button v-if="!isInPopout" variant="ghost" size="sm" class="mr-3" @click="goBack">
                 <ArrowLeft />
                 {{ t('nav_tooltip.tools') }}
             </Button>
@@ -594,7 +594,7 @@
         NumberFieldIncrement,
         NumberFieldInput
     } from '@/components/ui/number-field';
-    import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+    import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue';
     import { Button } from '@/components/ui/button';
     import { ButtonGroup } from '@/components/ui/button-group';
     import { Checkbox } from '@/components/ui/checkbox';
@@ -625,6 +625,7 @@
     } from '../../shared/utils';
     import { inventoryRequest, miscRequest, userRequest, vrcPlusIconRequest, vrcPlusImageRequest } from '../../api';
     import { useAdvancedSettingsStore, useAuthStore, useGalleryStore, useModalStore, useUserStore } from '../../stores';
+    import { PORTAL_DOCUMENT_KEY, isUsableDocument } from '../../composables/usePortalDocument';
     import { readFileAsBase64, withUploadTimeout } from '../../shared/utils/imageUpload';
     import { handleImageUploadInput } from '../../coordinators/imageUploadCoordinator';
     import { emojiAnimationStyleList, emojiAnimationStyleUrl } from '../../shared/constants';
@@ -638,6 +639,8 @@
     const { t } = useI18n();
     const router = useRouter();
     const modalStore = useModalStore();
+    const portalDocument = inject(PORTAL_DOCUMENT_KEY, null);
+    const isInPopout = computed(() => isUsableDocument(portalDocument?.value) && portalDocument.value !== document);
 
     const {
         galleryTable,

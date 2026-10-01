@@ -3,7 +3,14 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 import { toolDefinitionMap, toolDefinitions } from '../shared/constants';
-import { useAdvancedSettingsStore, useLaunchStore, useToolsStore, useVrcxStore } from '../stores';
+import {
+    useAdvancedSettingsStore,
+    useAppearanceSettingsStore,
+    useLaunchStore,
+    useToolsStore,
+    useUiStore,
+    useVrcxStore
+} from '../stores';
 
 /**
  * @param {object} definition
@@ -14,10 +21,12 @@ import { useAdvancedSettingsStore, useLaunchStore, useToolsStore, useVrcxStore }
  * @param {object} deps.advancedSettingsStore
  * @param {object} deps.launchStore
  * @param {object} deps.vrcxStore
+ * @param {object} [deps.appearanceSettingsStore]
+ * @param {object} [deps.uiStore]
  */
 export async function executeToolAction(
     definition,
-    { router, t, toolsStore, advancedSettingsStore, launchStore, vrcxStore }
+    { router, t, toolsStore, advancedSettingsStore, launchStore, vrcxStore, appearanceSettingsStore, uiStore }
 ) {
     if (!definition?.action) {
         return;
@@ -26,6 +35,10 @@ export async function executeToolAction(
     const { action } = definition;
 
     if (action.type === 'route') {
+        if (appearanceSettingsStore?.popoutEnabled) {
+            uiStore.addPopout(action.routeName, {}, t(definition.titleKey));
+            return;
+        }
         router.push({ name: action.routeName });
         return;
     }
@@ -72,6 +85,8 @@ export function useToolActions() {
     const advancedSettingsStore = useAdvancedSettingsStore();
     const launchStore = useLaunchStore();
     const vrcxStore = useVrcxStore();
+    const appearanceSettingsStore = useAppearanceSettingsStore();
+    const uiStore = useUiStore();
 
     async function triggerTool(toolOrKey) {
         const definition = typeof toolOrKey === 'string' ? toolDefinitionMap.get(toolOrKey) : toolOrKey;
@@ -82,7 +97,9 @@ export function useToolActions() {
             toolsStore,
             advancedSettingsStore,
             launchStore,
-            vrcxStore
+            vrcxStore,
+            appearanceSettingsStore,
+            uiStore
         });
     }
 
