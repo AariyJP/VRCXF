@@ -104,6 +104,25 @@
                         saveDiscordOption();
                     " />
             </SettingsItem>
+
+            <SettingsItem label="プレイ時間を延長（時間）">
+                <NumberField
+                    :model-value="discordTimeOffsetHours"
+                    :min="0"
+                    :step="1"
+                    :disabled="!discordActive"
+                    class="w-28"
+                    @update:modelValue="
+                        setDiscordTimeOffsetHours($event);
+                        saveDiscordOption();
+                    ">
+                    <NumberFieldContent>
+                        <NumberFieldDecrement />
+                        <NumberFieldInput />
+                        <NumberFieldIncrement />
+                    </NumberFieldContent>
+                </NumberField>
+            </SettingsItem>
         </SettingsGroup>
 
         <!-- Translation API -->
@@ -174,6 +193,13 @@
     import { ref } from 'vue';
     import { Languages } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
+    import {
+        NumberField,
+        NumberFieldContent,
+        NumberFieldDecrement,
+        NumberFieldIncrement,
+        NumberFieldInput
+    } from '@/components/ui/number-field';
     import { Switch } from '@/components/ui/switch';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
@@ -205,6 +231,7 @@
         setDiscordShowPlatform,
         setDiscordWorldIntegration,
         setDiscordWorldNameAsDiscordStatus,
+        setDiscordTimeOffsetHours,
         saveDiscordOption
     } = useDiscordPresenceSettingsStore();
 
@@ -216,7 +243,8 @@
         discordHideImage,
         discordShowPlatform,
         discordWorldIntegration,
-        discordWorldNameAsDiscordStatus
+        discordWorldNameAsDiscordStatus,
+        discordTimeOffsetHours
     } = storeToRefs(useDiscordPresenceSettingsStore());
 
     const { showVRChatConfig } = advancedSettingsStore;
