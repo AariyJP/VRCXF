@@ -1,8 +1,16 @@
 import { reactive, ref } from 'vue';
 import { defineStore } from 'pinia';
+import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 
-import { getGroupName, getLaunchURL, isRealInstance, isRpcWorld, parseLocation } from '../../shared/utils';
+import {
+    getGroupName,
+    getLaunchURL,
+    isRealInstance,
+    isRpcWorld,
+    openExternalLink,
+    parseLocation
+} from '../../shared/utils';
 import {
     getPlatformLabel,
     getRpcWorldConfig,
@@ -19,6 +27,7 @@ import { useUserStore } from '../user';
 import { useInstanceStore } from '../instance';
 
 import configRepository from '../../services/config';
+import { discordRemotePresence } from '../../services/discordRemotePresence';
 
 export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSettings', () => {
     const locationStore = useLocationStore();
@@ -56,6 +65,12 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
     const discordShowPlatform = ref(true);
     const discordWorldIntegration = ref(true);
     const discordWorldNameAsDiscordStatus = ref(false);
+    const discordRemoteRpc = ref(false);
+    const discordRemoteState = discordRemotePresence.state;
+
+    function getDiscordTransport() {
+        return discordRemoteRpc.value ? discordRemotePresence : Discord;
+    }
 
     function setDiscordActive() {
         discordActive.value = !discordActive.value;
@@ -89,6 +104,27 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordWorldNameAsDiscordStatus.value = !discordWorldNameAsDiscordStatus.value;
         configRepository.setBool('discordWorldNameAsDiscordStatus', discordWorldNameAsDiscordStatus.value);
     }
+    async function setDiscordRemoteRpc() {
+        await setIsDiscordActive(false);
+        discordRemoteRpc.value = !discordRemoteRpc.value;
+        configRepository.setBool('discordRemoteRpc', discordRemoteRpc.value);
+        saveDiscordOption();
+    }
+    async function linkDiscordRemote() {
+        try {
+            if (await discordRemotePresence.link(openExternalLink)) {
+                toast.success('Discord アカウントを連携しました');
+                saveDiscordOption();
+            }
+        } catch (err) {
+            console.error('Discord remote link failed', err);
+            toast.error(`Discord 連携に失敗しました: ${err.message}`);
+        }
+    }
+    async function unlinkDiscordRemote() {
+        await setIsDiscordActive(false);
+        discordRemotePresence.unlink();
+    }
 
     async function initDiscordPresenceSettings() {
         const [
@@ -99,7 +135,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             discordHideImageConfig,
             discordShowPlatformConfig,
             discordWorldIntegrationConfig,
-            discordWorldNameAsDiscordStatusConfig
+            discordWorldNameAsDiscordStatusConfig,
+            discordRemoteRpcConfig
         ] = await Promise.all([
             configRepository.getBool('discordActive', false),
             configRepository.getBool('discordInstance', true),
@@ -108,7 +145,9 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             configRepository.getBool('discordHideImage', false),
             configRepository.getBool('discordShowPlatform', true),
             configRepository.getBool('discordWorldIntegration', true),
-            configRepository.getBool('discordWorldNameAsDiscordStatus', false)
+            configRepository.getBool('discordWorldNameAsDiscordStatus', false),
+            configRepository.getBool('discordRemoteRpc', false),
+            discordRemotePresence.init()
         ]);
 
         discordActive.value = discordActiveConfig;
@@ -119,6 +158,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordShowPlatform.value = discordShowPlatformConfig;
         discordWorldIntegration.value = discordWorldIntegrationConfig;
         discordWorldNameAsDiscordStatus.value = discordWorldNameAsDiscordStatusConfig;
+        discordRemoteRpc.value = discordRemoteRpcConfig;
     }
 
     initDiscordPresenceSettings();
@@ -308,7 +348,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             activityType = ActivityType.Playing;
             statusDisplayType = StatusDisplayType.Name;
         }
-        Discord.SetAssets(
+        getDiscordTransport().SetAssets(
             details, // main text
             statusName, // secondary text
             detailsUrl, // details url
@@ -338,7 +378,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
      */
     async function setIsDiscordActive(active) {
         if (active !== state.isDiscordActive) {
-            state.isDiscordActive = await Discord.SetActive(active);
+            state.isDiscordActive = await getDiscordTransport().SetActive(active);
         }
     }
 
@@ -362,6 +402,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordShowPlatform,
         discordWorldIntegration,
         discordWorldNameAsDiscordStatus,
+        discordRemoteRpc,
+        discordRemoteState,
 
         setDiscordActive,
         setDiscordInstance,
@@ -371,6 +413,9 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         setDiscordShowPlatform,
         setDiscordWorldIntegration,
         setDiscordWorldNameAsDiscordStatus,
+        setDiscordRemoteRpc,
+        linkDiscordRemote,
+        unlinkDiscordRemote,
         updateDiscord,
         saveDiscordOption
     };

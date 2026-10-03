@@ -20,6 +20,23 @@
             </SettingsItem>
 
             <SettingsItem
+                label="アカウント連携で表示 (PoC)"
+                description="ローカルの Discord を使わず、連携した Discord アカウントへ直接 Rich Presence を送信します"
+                toggle>
+                <Switch
+                    :model-value="discordRemoteRpc"
+                    ariaLabel="アカウント連携で表示 (PoC)"
+                    @update:modelValue="setDiscordRemoteRpc" />
+            </SettingsItem>
+
+            <SettingsItem v-if="discordRemoteRpc" label="Discord アカウント" :description="discordRemoteStatus">
+                <Button v-if="discordRemoteState.linked" size="sm" variant="outline" @click="unlinkDiscordRemote">
+                    連携解除
+                </Button>
+                <Button v-else size="sm" variant="outline" @click="linkDiscordRemote">連携する</Button>
+            </SettingsItem>
+
+            <SettingsItem
                 :label="t('view.settings.discord_presence.discord_presence.world_integration')"
                 :description="t('view.settings.discord_presence.discord_presence.world_integration_tooltip')"
                 toggle>
@@ -171,7 +188,7 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import { Languages } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
     import { Switch } from '@/components/ui/switch';
@@ -205,6 +222,9 @@
         setDiscordShowPlatform,
         setDiscordWorldIntegration,
         setDiscordWorldNameAsDiscordStatus,
+        setDiscordRemoteRpc,
+        linkDiscordRemote,
+        unlinkDiscordRemote,
         saveDiscordOption
     } = useDiscordPresenceSettingsStore();
 
@@ -216,8 +236,21 @@
         discordHideImage,
         discordShowPlatform,
         discordWorldIntegration,
-        discordWorldNameAsDiscordStatus
+        discordWorldNameAsDiscordStatus,
+        discordRemoteRpc,
+        discordRemoteState
     } = storeToRefs(useDiscordPresenceSettingsStore());
+
+    const discordRemoteStatus = computed(() => {
+        const { userCode, linked, userName } = discordRemoteState.value;
+        if (userCode) {
+            return `認証コード: ${userCode}`;
+        }
+        if (!linked) {
+            return '未連携';
+        }
+        return userName ? `連携済み: ${userName}` : '連携済み';
+    });
 
     const { showVRChatConfig } = advancedSettingsStore;
 
