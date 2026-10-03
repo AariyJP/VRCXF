@@ -105,7 +105,7 @@ namespace VRCX
             if (_client == null && _active)
             {
                 _connected = false;
-                _client = new DiscordRpcClient(_discordAppId);
+                _client = new DiscordRpcClient(_discordAppId) { SkipIdenticalPresence = false };
                 _client.OnReady += (sender, e) =>
                 {
                     _connected = true;
