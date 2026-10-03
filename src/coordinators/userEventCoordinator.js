@@ -137,8 +137,6 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
                 if (persistedFeed) {
                     feedStore.addFeedEntry(persistedFeed);
                 }
-            } else {
-                feedStore.addFeedEntry(feed);
             }
             // clear previousLocation after GPS
             ref.$previousLocation = '';
@@ -193,8 +191,6 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
                 if (persistedFeed) {
                     feedStore.addFeedEntry(persistedFeed);
                 }
-            } else {
-                feedStore.addFeedEntry(feed);
             }
         }
     } else if (props.iconUrl && props.iconUrl[0]) {
@@ -240,8 +236,6 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
                 if (persistedFeed) {
                     feedStore.addFeedEntry(persistedFeed);
                 }
-            } else {
-                feedStore.addFeedEntry(feed);
             }
         }
     }
@@ -293,8 +287,6 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             if (persistedFeed) {
                 feedStore.addFeedEntry(persistedFeed);
             }
-        } else {
-            feedStore.addFeedEntry(feed);
         }
     }
     if (props.bio && props.bio[0] && props.bio[1]) {
@@ -321,8 +313,6 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             if (persistedFeed) {
                 feedStore.addFeedEntry(persistedFeed);
             }
-        } else {
-            feedStore.addFeedEntry(feed);
         }
     }
     if (props.note && props.note[0] !== null && props.note[0] !== props.note[1]) {
