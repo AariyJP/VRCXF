@@ -246,8 +246,8 @@ function changeAppThemeStyle(themeMode) {
     if (!themeConfig) {
         // fallback to system
         console.error('Invalid theme mode:', themeMode);
-        configRepository.setString('VRCX_ThemeMode', 'system');
-        themeMode = systemIsDarkMode() ? 'dark' : 'light';
+        configRepository.setString('VRCX_ThemeMode', 'rednight');
+        themeMode = 'rednight';
         themeConfig = THEME_CONFIG[themeMode];
     }
 
@@ -463,7 +463,7 @@ function changeHtmlLangAttribute(language) {
 }
 
 async function getThemeMode(configRepository) {
-    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'system');
+    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'rednight');
 
     let isDarkMode;
     if (initThemeMode === 'light') {
