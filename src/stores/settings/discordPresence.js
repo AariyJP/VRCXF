@@ -31,6 +31,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
 
     const state = reactive({
         isDiscordActive: false,
+        isDiscordConnected: false,
         discordTime: Date.now(),
         lastLocationDetails: {
             tag: '',
@@ -140,6 +141,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         }
         if (!discordActive.value || !isRealInstance(currentLocation)) {
             setIsDiscordActive(false);
+            state.isDiscordConnected = false;
             return;
         }
         if (currentLocation !== state.lastLocationDetails.tag) {
@@ -331,6 +333,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             activityType, // activity type
             statusDisplayType // status display type
         );
+        state.isDiscordConnected = await Discord.IsConnected();
     }
 
     /**
