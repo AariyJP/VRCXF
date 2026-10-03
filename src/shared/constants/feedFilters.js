@@ -15,7 +15,8 @@ const getOptions = (optionTypes) => {
             textKey: 'dialog.shared_feed_filters.everyone'
         },
         'Everyone w/o Public': {
-            label: 'Everyone w/o Public'
+            label: 'Everyone w/o Public',
+            text: 'Everyone w/o Public/Group'
         }
     };
     return optionTypes.map((type) => optionMap[type]);
