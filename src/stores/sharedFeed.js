@@ -99,7 +99,7 @@ export const useSharedFeedStore = defineStore('SharedFeed', () => {
 
     function isPublicLocation(location) {
         const parsed = parseLocation(location);
-        return parsed.accessType === 'public' || (parsed.accessType === 'group' && parsed.groupAccessType === 'public');
+        return parsed.accessType === 'public' || parsed.accessType === 'group';
     }
 
     async function loadSharedFeed() {

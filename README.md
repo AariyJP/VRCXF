@@ -25,7 +25,7 @@ winget install VRCXF.VRCXF
 - 🏪 **Microsoft Store 配布** — インストール・更新を Microsoft Store で自動的に！
 - 📴 **WebSocket オフラインモード** — VRChat の WebSocket 接続を切った状態（オフライン表示のまま）でも利用可能！ステータスバーからワンクリックで切り替えられます
 - 📃 **フィード無効化設定** — フィード収集とデータベース書き込みを丸ごとオフにして軽量化も可能！
-- 🔔 **通知フィルタ「Everyone w/o Public」** — Public インスタンスを除いた全員から通知を受信可能！Group Public インスタンスも Public として扱います
+- 🔔 **通知フィルタ「Everyone w/o Public/Group」** — Public と Group 系（Group / Group+ / Group Public）インスタンスを除いた全員から通知を受信可能！
 - 🧭 **フレンドロケーションの刷新** — カード表示への置き換え、滞在時間の表示、移動中（traveling）状態の可視化、インスタンス操作ボタンの拡充
 - 🩺 **診断コンソール** — アプリ内に DevTools 相当のコンソールを内蔵！
 - 💾 **データベースのインポート** — 既存の VRCX データベースをそのまま取り込めます！

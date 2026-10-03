@@ -260,7 +260,7 @@ electron-builder.config.js # Electron パッケージ設定
 
 選択肢の定義は `src/shared/constants/feedFilters.js`。noty と wrist は `baseOptions` を共有し、保存値は option の `label` 文字列そのもの（i18n キーではない）。
 
-`Everyone w/o Public` は **fork 独自の選択肢**で、`OnPlayerJoined` / `OnPlayerLeft` にのみ提示する。Public および Group Public インスタンスではフレンドのみ、それ以外のインスタンスでは全員を通す。public 判定は `src/stores/sharedFeed.js` の `isPublicLocation()` に集約してあり、`accessType === 'public'`、または `accessType === 'group'` かつ `groupAccessType === 'public'` を public とみなす。
+`Everyone w/o Public` は **fork 独自の選択肢**で（UI 上の表示名は `text` の `Everyone w/o Public/Group`、保存値は `label` のまま）、`OnPlayerJoined` / `OnPlayerLeft` にのみ提示する。Public および Group 系（Group / Group+ / Group Public）インスタンスではフレンドのみ、それ以外のインスタンスでは全員を通す。判定は `accessType === 'public'` または `accessType === 'group'` で、wrist 側は `src/stores/sharedFeed.js` の `isPublicLocation()`、noty 側は `queueGameLogNoty()` 内に同じ条件を持つ。
 
 この値を扱う箇所は 3 つあり、選択肢を増減するときは揃えること。
 
