@@ -17,6 +17,7 @@ namespace VRCX
         private DiscordRpcClient _client;
         private readonly Timer _timer;
         private bool _active;
+        private bool _connected;
         private string _discordAppId;
         private const string VrcxUrl = "https://hello.vrchat.com";
 
@@ -103,10 +104,16 @@ namespace VRCX
         {
             if (_client == null && _active)
             {
+                _connected = false;
                 _client = new DiscordRpcClient(_discordAppId);
                 _client.OnReady += (sender, e) =>
                 {
+                    _connected = true;
                     _logger.Info("Discord Rich Presence connected: {User}", e.User.DisplayName);
+                };
+                _client.OnClose += (sender, e) =>
+                {
+                    _connected = false;
                 };
                 _client.OnError += (sender, e) =>
                 {
@@ -114,6 +121,7 @@ namespace VRCX
                 };
                 _client.OnConnectionFailed += (sender, e) =>
                 {
+                    _connected = false;
                     _logger.Error("Discord Rich Presence connection failed: {Error}", e.Type);
                 };
                 _client.OnConnectionEstablished += (sender, e) =>
@@ -152,6 +160,11 @@ namespace VRCX
         {
             _active = active;
             return _active;
+        }
+
+        public bool IsConnected()
+        {
+            return _client != null && _connected;
         }
 
         // https://stackoverflow.com/questions/1225052/best-way-to-shorten-utf8-string-based-on-byte-length

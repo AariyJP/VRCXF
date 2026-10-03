@@ -178,6 +178,23 @@
                             </div>
                         </TooltipWrapper>
 
+                        <TooltipWrapper v-if="visibility.discord" :content="discordTooltip" side="top">
+                            <div
+                                class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
+                                @click="handleDiscordToggle">
+                                <span
+                                    class="inline-block size-2 rounded-full shrink-0"
+                                    :class="
+                                        discordPresenceState.isDiscordConnected
+                                            ? 'bg-status-online'
+                                            : discordPresenceState.isDiscordActive
+                                              ? 'bg-status-askme'
+                                              : 'bg-status-offline-alt'
+                                    " />
+                                <span class="text-foreground text-[11px]">Discord</span>
+                            </div>
+                        </TooltipWrapper>
+
                         <div
                             v-if="visibility.nowPlaying && nowPlaying.url"
                             class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border min-w-0 max-w-[400px]">
@@ -330,6 +347,12 @@
                     WebSocket
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    :model-value="visibility.discord"
+                    @select.prevent
+                    @update:model-value="toggleVisibility('discord')">
+                    Discord Presence
+                </ContextMenuCheckboxItem>
+                <ContextMenuCheckboxItem
                     :model-value="visibility.nowPlaying"
                     @select.prevent
                     @update:model-value="toggleVisibility('nowPlaying')">
@@ -405,6 +428,7 @@
         NumberFieldInput
     } from '@/components/ui/number-field';
     import {
+        useDiscordPresenceSettingsStore,
         useGameLogStore,
         useGameStore,
         useGeneralSettingsStore,
@@ -619,6 +643,21 @@
     const wsTooltip = computed(() => {
         const state = wsState.connected ? t('status_bar.ws_connected') : t('status_bar.ws_disconnected');
         return `WebSocket: ${state}`;
+    });
+
+    const discordPresenceSettingsStore = useDiscordPresenceSettingsStore();
+    const discordPresenceState = discordPresenceSettingsStore.state;
+
+    function handleDiscordToggle() {
+        discordPresenceSettingsStore.setDiscordActive();
+        discordPresenceSettingsStore.saveDiscordOption();
+    }
+
+    const discordTooltip = computed(() => {
+        const state = discordPresenceState.isDiscordConnected
+            ? t('status_bar.ws_connected')
+            : t('status_bar.ws_disconnected');
+        return `Discord Presence: ${state}`;
     });
 
     function handleWebSocketToggle() {

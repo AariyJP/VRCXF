@@ -841,6 +841,9 @@ const BrowserDiscord = {
     async SetAssets() {},
     async SetActive() {
         return false;
+    },
+    async IsConnected() {
+        return false;
     }
 };
 

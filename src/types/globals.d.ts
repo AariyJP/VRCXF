@@ -141,6 +141,7 @@ declare global {
             statusDisplayType: number
         ): Promise<void>;
         SetActive(active: boolean): Promise<boolean>;
+        IsConnected(): Promise<boolean>;
     };
 
     const AppApi: {
