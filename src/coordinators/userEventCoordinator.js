@@ -132,8 +132,8 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
+                feedStore.addFeedEntry(feed);
                 database.addGPSToDatabase(feed);
             }
             // clear previousLocation after GPS
@@ -184,8 +184,8 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
+                feedStore.addFeedEntry(feed);
                 database.addAvatarToDatabase(feed);
             }
         }
@@ -233,8 +233,8 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         };
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
-        feedStore.addFeedEntry(feed);
         if (appearanceSettingsStore.feedEnabled) {
+            feedStore.addFeedEntry(feed);
             database.addStatusToDatabase(feed);
         }
     }
@@ -257,8 +257,8 @@ export async function runHandleUserUpdateFlow(ref, props, { now = Date.now, nowI
         };
         notificationStore.queueFeedNoty(feed);
         sharedFeedStore.addEntry(feed);
-        feedStore.addFeedEntry(feed);
         if (appearanceSettingsStore.feedEnabled) {
+            feedStore.addFeedEntry(feed);
             database.addBioToDatabase(feed);
         }
     }

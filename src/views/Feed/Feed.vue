@@ -1,7 +1,12 @@
 <template>
     <div class="x-container feed x-container--auto-height" ref="feedRef">
-        <div v-if="!feedEnabled" class="flex h-full items-center justify-center text-muted-foreground">
-            現在、Feedは無効になっています。
+        <div v-if="!feedEnabled" class="mb-4 flex h-8 items-center">
+            <Switch
+                class="ml-2"
+                :model-value="feedEnabled"
+                ariaLabel="Feedを有効にする"
+                @update:modelValue="setFeedEnabled" />
+            <span class="ml-2 text-sm text-muted-foreground">Feedが無効になっています</span>
         </div>
         <DataTableLayout
             v-else
@@ -13,6 +18,11 @@
             :on-page-size-change="handlePageSizeChange">
             <template #toolbar>
                 <div class="mt-0 mx-0 mb-2" style="display: flex; align-items: center">
+                    <Switch
+                        class="ml-2"
+                        :model-value="feedEnabled"
+                        ariaLabel="Feedを有効にする"
+                        @update:modelValue="setFeedEnabled" />
                     <div style="flex: none; display: flex; align-items: center" class="mr-2">
                         <Popover v-model:open="popoverOpen">
                             <PopoverTrigger as-child>
@@ -147,6 +157,7 @@
     import { DataTableLayout } from '../../components/ui/data-table';
     import { InputGroupField } from '../../components/ui/input-group';
     import { RangeCalendar } from '../../components/ui/range-calendar';
+    import { Switch } from '../../components/ui/switch';
     import { Toggle } from '../../components/ui/toggle';
     import { columns as baseColumns } from './columns.jsx';
     import { useVrcxVueTable } from '../../lib/table/useVrcxVueTable';
@@ -155,6 +166,7 @@
     const { feedTableLookup } = useFeedStore();
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { weekStartsOn, feedEnabled } = storeToRefs(appearanceSettingsStore);
+    const { setFeedEnabled } = appearanceSettingsStore;
     const vrcxStore = useVrcxStore();
 
     const { t, locale } = useI18n();

@@ -74,8 +74,8 @@ export async function runUpdateFriendDelayedCheckFlow(
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
+                feedStore.addFeedEntry(feed);
                 database.addOnlineOfflineToDatabase(feed);
             }
         } else if (newState === 'online' && (ctx.state === 'offline' || ctx.state === 'active')) {
@@ -99,8 +99,8 @@ export async function runUpdateFriendDelayedCheckFlow(
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
-            feedStore.addFeedEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
+                feedStore.addFeedEntry(feed);
                 database.addOnlineOfflineToDatabase(feed);
             }
         }
