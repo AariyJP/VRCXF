@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, nextTick, onMounted, ref, useAttrs, watch } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, watch } from 'vue';
     import { X } from 'lucide-vue-next';
     import { cn } from '@/lib/utils';
     import { useVModel } from '@vueuse/core';
@@ -98,7 +98,7 @@
         if (!autosizeConfig.value) return;
         const el = resolveTextareaEl();
         if (!el) return;
-        const computedStyle = window.getComputedStyle(el);
+        const computedStyle = (el.ownerDocument.defaultView ?? window).getComputedStyle(el);
         const lineHeight = parseFloat(computedStyle.lineHeight) || 16;
         const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
         const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
@@ -131,10 +131,18 @@
         emit('change', value);
     }
 
+    let fontSet = null;
+
     onMounted(() => {
         if (autosizeConfig.value) {
             nextTick(resizeTextarea);
+            fontSet = resolveTextareaEl()?.ownerDocument?.fonts ?? null;
+            fontSet?.addEventListener('loadingdone', resizeTextarea);
         }
+    });
+
+    onBeforeUnmount(() => {
+        fontSet?.removeEventListener('loadingdone', resizeTextarea);
     });
 
     watch(
