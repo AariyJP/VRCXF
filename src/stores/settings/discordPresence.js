@@ -58,6 +58,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
     const discordWorldIntegration = ref(true);
     const discordWorldNameAsDiscordStatus = ref(false);
     const discordTimeOffsetHours = ref(0);
+    const discordPresenceEnabled = ref(true);
 
     function setDiscordActive() {
         discordActive.value = !discordActive.value;
@@ -90,6 +91,10 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
     function setDiscordWorldNameAsDiscordStatus() {
         discordWorldNameAsDiscordStatus.value = !discordWorldNameAsDiscordStatus.value;
         configRepository.setBool('discordWorldNameAsDiscordStatus', discordWorldNameAsDiscordStatus.value);
+    }
+    function setDiscordPresenceEnabled(enabled) {
+        discordPresenceEnabled.value = enabled;
+        saveDiscordOption();
     }
     function setDiscordTimeOffsetHours(hours) {
         discordTimeOffsetHours.value = Math.max(0, Math.floor(Number(hours) || 0));
@@ -147,7 +152,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
                 currentLocation = userStore.currentUser.$travelingToLocation;
             }
         }
-        if (!discordActive.value || !isRealInstance(currentLocation)) {
+        if (!discordActive.value || !discordPresenceEnabled.value || !isRealInstance(currentLocation)) {
             setIsDiscordActive(false);
             state.isDiscordConnected = false;
             return;
@@ -374,6 +379,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordWorldIntegration,
         discordWorldNameAsDiscordStatus,
         discordTimeOffsetHours,
+        discordPresenceEnabled,
 
         setDiscordActive,
         setDiscordInstance,
@@ -384,6 +390,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         setDiscordWorldIntegration,
         setDiscordWorldNameAsDiscordStatus,
         setDiscordTimeOffsetHours,
+        setDiscordPresenceEnabled,
         updateDiscord,
         saveDiscordOption
     };
