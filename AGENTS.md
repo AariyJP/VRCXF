@@ -274,6 +274,16 @@ electron-builder.config.js # Electron パッケージ設定
 - 保存値の文字列を変更してもマイグレーションは無いため、既存設定に旧値が残るとどの分岐にも一致せず無言で通知が止まる
 - 復元時の通知再発火は `playNoty()` が作成 1 分より古いイベントを捨てることで防いでいる
 
+## ゲームログの順番待ち処理（フォーク独自）
+
+C#（Windows は `Dotnet/LogWatcher.cs` から 1 行ずつ投げっぱなし）と Linux（`src/stores/updateLoop.js` の `Promise.all`）はゲームログを並列に渡してくる。並列のままだと、`OnLeftRoom`（`location-destination`）や `Joining`（`location`）の処理が `runLastLocationResetFlow()` の DB 待ちをしている間に同じ秒の `OnPlayerLeft` / `OnPlayerJoined` が先に処理され、入退室直後の通知抑止（`queueGameLogNoty()`）をすり抜けて VR 通知が一斉に出る。退室記録の二重書き込みも起きる。upstream 由来の問題で、upstream は未対応。
+
+fork では `src/coordinators/gameLogCoordinator.js` の `addGameLogEvent()` を promise チェーン（`gameLogEventTail`）で直列化している。既知のリスク:
+
+- **後続のつかえ**: 1 行の処理が長引くと後ろの行がすべて待たされる。待ちが発生するのは DB 書き込みと、YouTube API 有効時の `video-play`（`addGameLogVideo()` → `lookupYouTubeVideo()` のネットワーク待ち）。後者は通信が詰まると HTTP の既定タイムアウトまで後続を止め、1 分を超えると `playNoty()` がその間の通知を古いイベントとして捨てる
+- **停止の波及**: 途中の await が解決しないまま残ると、以前はその 1 行だけで済んだが、直列化後は再起動までゲームログ全体が止まる
+- 起動直後の未処理ログ読み込み（`updateGameLog()`）はこのチェーンの外で動くため、リアルタイムのログと混ざる余地が残っている
+
 ## 🪟 ポップアウトウィンドウ（フォーク独自）
 
 ダイアログを `window.open()` した別ウィンドウへ Teleport して表示できる。**upstream には存在しないフォーク独自のサブシステム**で、upstream をマージするたびに壊れやすい箇所。
