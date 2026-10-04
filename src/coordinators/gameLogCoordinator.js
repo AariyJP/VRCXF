@@ -438,13 +438,22 @@ export async function addGameLogEntry(gameLog, location) {
     }
 }
 
+let gameLogEventTail = Promise.resolve();
+
 /**
  * Parses raw game log JSON and delegates to addGameLogEntry.
  * Called from C# / updateLoop.
  *
  * @param {string} json
  */
-export async function addGameLogEvent(json) {
+export function addGameLogEvent(json) {
+    gameLogEventTail = gameLogEventTail
+        .then(() => processGameLogEvent(json))
+        .catch((err) => console.error('Failed to process game log event', err));
+    return gameLogEventTail;
+}
+
+async function processGameLogEvent(json) {
     const locationStore = useLocationStore();
 
     const rawLogs = JSON.parse(json);
