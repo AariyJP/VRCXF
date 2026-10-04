@@ -182,12 +182,21 @@
                             <div
                                 class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
                                 @click="handleDiscordToggle">
+                                <Ban
+                                    v-if="
+                                        !discordPresenceState.isDiscordConnected &&
+                                        discordPresenceSettingsStore.discordPresenceEnabled &&
+                                        !gameStore.isGameRunning
+                                    "
+                                    class="size-2! shrink-0 text-muted-foreground"
+                                    :stroke-width="3" />
                                 <span
+                                    v-else
                                     class="inline-block size-2 rounded-full shrink-0"
                                     :class="
                                         discordPresenceState.isDiscordConnected
                                             ? 'bg-status-online'
-                                            : discordPresenceState.isDiscordActive
+                                            : discordPresenceSettingsStore.discordPresenceEnabled
                                               ? 'bg-status-askme'
                                               : 'bg-status-offline-alt'
                                     " />
@@ -418,6 +427,7 @@
         ContextMenuTrigger
     } from '@/components/ui/context-menu';
     import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+    import { Ban } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import {
@@ -649,8 +659,9 @@
     const discordPresenceState = discordPresenceSettingsStore.state;
 
     function handleDiscordToggle() {
-        discordPresenceSettingsStore.setDiscordActive();
-        discordPresenceSettingsStore.saveDiscordOption();
+        discordPresenceSettingsStore.setDiscordPresenceEnabled(
+            !discordPresenceState.isDiscordConnected && !discordPresenceSettingsStore.discordPresenceEnabled
+        );
     }
 
     const discordTooltip = computed(() => {
