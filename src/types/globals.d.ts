@@ -11,6 +11,7 @@ declare global {
 
     interface Window {
         $pinia: any;
+        $bridge: any;
         $vr: any;
         $debug: AppDebug;
         AppApi: AppApi;
@@ -39,6 +40,8 @@ declare global {
             getClipboardText: () => Promise<string>;
             getNoUpdater: () => Promise<boolean>;
             setTrayIconNotification: (notify: boolean) => Promise<void>;
+            setThemeSource: (source: 'system' | 'light' | 'dark') => Promise<void>;
+            onSystemThemeChanged: (Function: (event: any, isDark: boolean) => void) => () => void;
             openFileDialog: (filters?: { name: string; extensions: string[] }[]) => Promise<string>;
             openDirectoryDialog: () => Promise<string>;
             desktopNotification: (displayName: string, body?: string, image?: string) => Promise<void>;
@@ -48,6 +51,7 @@ declare global {
             ) => () => void;
             onWindowStateChange: (Function: (event: any, state: { windowState: any }) => void) => () => void;
             onBrowserFocus: (Function: (event: any) => void) => () => void;
+            onBrowserBlur: (Function: (event: any) => void) => () => void;
             restartApp: () => Promise<void>;
             focusSelfWindow: () => Promise<void>;
             getOverlayWindow: () => Promise<boolean>;
@@ -111,6 +115,7 @@ declare global {
         Execute: (sql: string, args: string) => Promise<any[]>;
         ExecuteJson: (sql: string, args: string) => Promise<string>;
         ExecuteNonQuery: (sql: string, args: string) => Promise<Number>;
+        ExecuteInsert: (sql: string, args: string) => Promise<Number>;
     };
 
     const LogWatcher: {

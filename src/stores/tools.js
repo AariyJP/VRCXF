@@ -3,12 +3,16 @@ import { reactive, toRefs } from 'vue';
 
 const initialDialogState = () => ({
     groupCalendar: false,
+    blockedGroups: false,
+    groupInvites: false,
     noteExport: false,
     exportDiscordNames: false,
     exportFriendsList: false,
     exportAvatarsList: false,
     editInviteMessages: false,
-    autoChangeStatus: false
+    autoChangeStatus: false,
+    moderationReports: false,
+    infoPush: false
 });
 
 export const useToolsStore = defineStore('Tools', () => {

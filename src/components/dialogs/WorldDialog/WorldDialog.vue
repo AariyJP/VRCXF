@@ -502,6 +502,7 @@
         { value: 'JSON', label: t('dialog.world.json.header') }
     ]);
 
+    /** @type {import('vue').Ref<any>} */
     const treeData = ref({});
     const imageError = ref(false);
 

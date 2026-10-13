@@ -75,8 +75,10 @@ export async function runUpdateFriendDelayedCheckFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
-                feedStore.addFeedEntry(feed);
-                database.addOnlineOfflineToDatabase(feed);
+                const persistedFeed = await database.addOnlineOfflineToDatabase(feed);
+                if (persistedFeed) {
+                    feedStore.addFeedEntry(persistedFeed);
+                }
             }
         } else if (newState === 'online' && (ctx.state === 'offline' || ctx.state === 'active')) {
             ctx.ref.$previousLocation = '';
@@ -100,8 +102,10 @@ export async function runUpdateFriendDelayedCheckFlow(
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
             if (appearanceSettingsStore.feedEnabled) {
-                feedStore.addFeedEntry(feed);
-                database.addOnlineOfflineToDatabase(feed);
+                const persistedFeed = await database.addOnlineOfflineToDatabase(feed);
+                if (persistedFeed) {
+                    feedStore.addFeedEntry(persistedFeed);
+                }
             }
         }
         if (newState === 'active') {

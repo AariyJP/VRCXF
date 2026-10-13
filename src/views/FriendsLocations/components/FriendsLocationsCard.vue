@@ -26,7 +26,7 @@
                     :class="statusDotClass"></span>
                 <div class="friend-card__identity flex min-w-0 flex-col justify-center ml-2">
                     <div
-                        class="friend-card__name font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap"
+                        class="friend-card__name relative font-semibold leading-[1.3] overflow-hidden text-ellipsis whitespace-nowrap"
                         :style="{ color: friend.ref?.$userColour }"
                         :title="friend.name">
                         <Crown v-if="friend.isOwner" class="inline-block text-muted-foreground" />

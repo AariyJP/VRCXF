@@ -38,11 +38,12 @@ export const useUserStore = defineStore('User', () => {
     const { t } = useI18n();
 
     const currentUser = ref(
-        /** @type {import('../types/api/user').VrcxCurrentUser} */ ({
+        /** @type {import('@/types/vrcx').VrcxCurrentUser} */ {
             acceptedPrivacyVersion: 0,
             acceptedTOSVersion: 0,
             accountDeletionDate: null,
             accountDeletionLog: null,
+            accountStanding: '',
             activeFriends: [],
             ageVerificationStatus: '',
             ageVerified: false,
@@ -173,8 +174,10 @@ export const useUserStore = defineStore('User', () => {
             $languages: [],
             $locationTag: '',
             $travelingToLocation: ''
-        })
+        }
     );
+
+    const currentUserCredits = ref(null);
 
     const userDialog = ref({
         visible: false,
@@ -334,11 +337,17 @@ export const useUserStore = defineStore('User', () => {
     });
 
     const cachedUsers = shallowReactive(new Map());
+    const cachedProfiles = ref(new Map());
     const cachedUserIdsByDisplayName = shallowReactive(new Map());
 
     const cachedProfileEffects = shallowReactive(new Map());
     const cachedIconFrames = shallowReactive(new Map());
     const cachedNameplateEffects = shallowReactive(new Map());
+
+    const currentUserClientConfig = ref({
+        accessReduceDecorAnim: false,
+        configString: ''
+    });
 
     function addCachedUserDisplayNameEntry(displayName, userId) {
         if (!displayName || !userId) {
@@ -395,8 +404,17 @@ export const useUserStore = defineStore('User', () => {
         return cachedUsers.delete(userId);
     }
 
+    function deleteCachedProfile(userId) {
+        const ref = cachedProfiles.value.get(userId);
+        if (!ref) {
+            return false;
+        }
+        return cachedProfiles.value.delete(userId);
+    }
+
     function clearCachedUsers() {
         cachedUsers.clear();
+        cachedProfiles.value.clear();
         cachedUserIdsByDisplayName.clear();
     }
 
@@ -779,6 +797,13 @@ export const useUserStore = defineStore('User', () => {
     }
 
     /**
+     * @param {number | null} value
+     */
+    function setCurrentUserCredits(value) {
+        currentUserCredits.value = value;
+    }
+
+    /**
      * @param {object} value
      */
     function setSubsetOfLanguages(value) {
@@ -925,6 +950,23 @@ export const useUserStore = defineStore('User', () => {
         });
     }
 
+    async function toggleReducedProfileAnimations() {
+        const accessReduceDecorAnim = !currentUserClientConfig.value.accessReduceDecorAnim;
+        if (
+            !(await confirmCurrentUserToggle(t('dialog.user.info.reduced_profile_animations'), accessReduceDecorAnim))
+        ) {
+            return;
+        }
+        const { json } = await userRequest.saveClientConfig({ accessReduceDecorAnim });
+        currentUserClientConfig.value = json;
+    }
+
+    function getClientConfig() {
+        userRequest.getClientConfig().then(({ json }) => {
+            currentUserClientConfig.value = json;
+        });
+    }
+
     function changePassword(currentPassword, password) {
         return userRequest.saveCurrentUser({
             currentPassword,
@@ -944,6 +986,7 @@ export const useUserStore = defineStore('User', () => {
         (isLoggedIn) => {
             if (isLoggedIn) {
                 getCosmetics();
+                getClientConfig();
             }
         },
         { flush: 'sync' }
@@ -960,7 +1003,7 @@ export const useUserStore = defineStore('User', () => {
                 cachedIconFrames.set(frame.id, frame);
             });
         });
-        cosmeticsRequest.gatNameplateEffects().then(({ json }) => {
+        cosmeticsRequest.getNameplateEffects().then(({ json }) => {
             json.forEach((effect) => {
                 cachedNameplateEffects.set(effect.id, effect);
             });
@@ -971,6 +1014,7 @@ export const useUserStore = defineStore('User', () => {
         state,
 
         currentUser,
+        currentUserCredits,
         currentTravelers,
         userDialog,
         editProfileDialog,
@@ -979,17 +1023,20 @@ export const useUserStore = defineStore('User', () => {
         showUserDialogHistory,
         customUserTags,
         cachedUsers,
+        cachedProfiles,
         cachedUserIdsByDisplayName,
         isLocalUserVrcPlusSupporter,
         cachedProfileEffects,
         cachedIconFrames,
         cachedNameplateEffects,
+        currentUserClientConfig,
         applyUserLanguage,
         applyPresenceLocation,
         applyUserDialogLocation,
         setCachedUser,
         syncCachedUserDisplayName,
         deleteCachedUser,
+        deleteCachedProfile,
         clearCachedUsers,
         rebuildCachedUserDisplayNameIndex,
         sortUserDialogAvatars,
@@ -1005,12 +1052,14 @@ export const useUserStore = defineStore('User', () => {
         setCurrentUserTravelingToTime,
         setCurrentUser,
         setSubsetOfLanguages,
+        setCurrentUserCredits,
         markCurrentUserGameStarted,
         markCurrentUserGameStopped,
         checkNote,
         toggleSharedConnectionsOptOut,
         toggleDiscordFriendsOptOut,
         toggleAllowBooping,
+        toggleReducedProfileAnimations,
         toggleAvatarCopying,
         changePassword,
         changeContentFilterSettings,

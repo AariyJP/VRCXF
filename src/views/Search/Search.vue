@@ -48,7 +48,8 @@
                             <Item
                                 v-for="user in searchUserResults"
                                 :key="user.id"
-                                class="cursor-pointer hover:bg-muted x-hover-list rounded-none"
+                                size="sm"
+                                class="cursor-pointer gap-2 px-3 py-2 hover:bg-muted x-hover-list rounded-none"
                                 @click="showUserDialog(user.id)">
                                 <ItemMedia class="relative size-10">
                                     <Avatar class="size-full">
@@ -82,7 +83,7 @@
                                             :title="item.value" />
                                     </ItemTitle>
                                     <ItemDescription v-if="user.bio" class="line-clamp-1 text-xs!">
-                                        {{ user.bio }}
+                                        {{ replaceBioSymbols(user.bio) }}
                                     </ItemDescription>
                                 </ItemContent>
                             </Item>
@@ -260,7 +261,8 @@
                         <Item
                             v-for="group in searchGroupResults"
                             :key="group.id"
-                            class="cursor-pointer hover:bg-muted x-hover-list rounded-none"
+                            size="sm"
+                            class="cursor-pointer gap-2 px-3 py-2 hover:bg-muted x-hover-list rounded-none"
                             @click="showGroupDialog(group.id)">
                             <ItemMedia variant="image">
                                 <Avatar class="rounded-sm">
@@ -329,7 +331,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { useAppearanceSettingsStore, useAuthStore, useAvatarProviderStore, useSearchStore } from '../../stores';
-    import { convertFileUrlToImageUrl, languageClass } from '../../shared/utils';
+    import { convertFileUrlToImageUrl, languageClass, replaceBioSymbols } from '../../shared/utils';
     import { useUserDisplay } from '../../composables/useUserDisplay';
     import { showAvatarDialog } from '../../coordinators/avatarCoordinator';
     import { showGroupDialog } from '../../coordinators/groupCoordinator';
@@ -418,13 +420,14 @@
         clearGroupSearch
     } = useSearchGroup();
 
+    const pageSize = 60;
     const paginationConfig = computed(() => {
         switch (activeSearchTab.value) {
             case 'user':
                 return {
                     show: searchUserResults.value.length > 0 && !isSearchUserLoading.value,
                     prevDisabled: !searchUserParams.value.offset,
-                    nextDisabled: searchUserResults.value.length < 10,
+                    nextDisabled: searchUserResults.value.length < pageSize,
                     onPrev: () => handleMoreSearchUser(-1),
                     onNext: () => handleMoreSearchUser(1)
                 };
@@ -432,7 +435,7 @@
                 return {
                     show: searchWorldResults.value.length > 0 && !isSearchWorldLoading.value,
                     prevDisabled: !searchWorldParams.value.offset,
-                    nextDisabled: searchWorldResults.value.length < 10,
+                    nextDisabled: searchWorldResults.value.length < pageSize,
                     onPrev: () => moreSearchWorld(-1),
                     onNext: () => moreSearchWorld(1)
                 };
@@ -450,7 +453,7 @@
                 return {
                     show: searchGroupResults.value.length > 0 && !isSearchGroupLoading.value,
                     prevDisabled: !searchGroupParams.value.offset,
-                    nextDisabled: searchGroupResults.value.length < 10,
+                    nextDisabled: searchGroupResults.value.length < pageSize,
                     onPrev: () => moreSearchGroup(-1),
                     onNext: () => moreSearchGroup(1)
                 };

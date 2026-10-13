@@ -4,7 +4,6 @@ import { toast } from 'vue-sonner';
 import {
     useFriendStore,
     useGalleryStore,
-    useGroupStore,
     useInstanceStore,
     useNotificationStore,
     useSharedFeedStore,
@@ -12,7 +11,7 @@ import {
     useUserStore
 } from '../stores';
 import { applyUser, applyCurrentUser } from '../coordinators/userCoordinator';
-import { onGroupLeft, applyGroup, getGroupDialogGroup, handleGroupMember } from '../coordinators/groupCoordinator';
+import { onGroupLeft, applyGroup, handleGroupMember } from '../coordinators/groupCoordinator';
 import { handleFriendAdd, handleFriendDelete } from '../coordinators/friendRelationshipCoordinator';
 import { parseLocation } from '../shared/utils';
 import { AppDebug } from './appConfig';
@@ -229,7 +228,6 @@ function handlePipeline(args) {
     const notificationStore = useNotificationStore();
     const sharedFeedStore = useSharedFeedStore();
 
-    const groupStore = useGroupStore();
     const uiStore = useUiStore();
     const instanceStore = useInstanceStore();
     const { type, content, err } = args.json;
@@ -388,6 +386,7 @@ function handlePipeline(args) {
                 travelingToWorld: 'offline',
                 travelingToInstance: 'offline'
             };
+            // @ts-ignore
             applyUser(offlineJson);
             break;
 
@@ -409,6 +408,7 @@ function handlePipeline(args) {
                     travelingToWorld: $travelingToLocation1.worldId,
                     travelingToInstance: $travelingToLocation1.instanceId
                 };
+                // @ts-ignore
                 applyUser(jankLocationJson);
                 break;
             }
@@ -480,14 +480,10 @@ function handlePipeline(args) {
                 console.error('group-member-updated missing member', content);
                 break;
             }
-            const groupId1 = member.groupId;
-            if (groupStore.groupDialog.visible && groupStore.groupDialog.id === groupId1) {
-                getGroupDialogGroup(groupId1);
-            }
             handleGroupMember({
                 json: member,
                 params: {
-                    groupId: groupId1
+                    groupId: member.groupId
                 }
             });
             console.log('group-member-updated', member);
@@ -576,6 +572,10 @@ function handlePipeline(args) {
             notificationStore.queueNotificationNoty(noty);
             notificationStore.appendNotificationTableEntry(noty);
             sharedFeedStore.addEntry(noty);
+            break;
+
+        case 'economy-update':
+            userStore.setCurrentUserCredits(content?.walletBalance);
             break;
 
         default:

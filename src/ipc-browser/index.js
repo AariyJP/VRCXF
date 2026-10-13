@@ -748,13 +748,15 @@ async function buildRequest(options) {
         }
     }
 
-    return {
+    /** @type {RequestInit} */
+    const requestInit = {
         body,
         credentials: isVrchatApi ? 'include' : isLocalApi ? 'same-origin' : 'omit',
         headers,
         method,
         mode: 'cors'
     };
+    return requestInit;
 }
 
 async function executeFetch(options) {
