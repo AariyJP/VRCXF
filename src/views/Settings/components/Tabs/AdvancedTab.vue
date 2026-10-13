@@ -848,19 +848,26 @@
     function startBrowserConsoleResize(event) {
         event.preventDefault();
         stopBrowserConsoleResize?.();
+        const handle = event.currentTarget;
         const startY = event.clientY;
         const startHeight = browserConsoleHeight.value;
         const handlePointerMove = (pointerEvent) => {
             setBrowserConsoleHeight(startHeight + pointerEvent.clientY - startY);
         };
-        const handlePointerUp = () => stopBrowserConsoleResize?.();
+        const handlePointerEnd = () => stopBrowserConsoleResize?.();
         stopBrowserConsoleResize = () => {
-            globalThis.removeEventListener('pointermove', handlePointerMove);
-            globalThis.removeEventListener('pointerup', handlePointerUp);
+            handle.removeEventListener('pointermove', handlePointerMove);
+            handle.removeEventListener('pointerup', handlePointerEnd);
+            handle.removeEventListener('pointercancel', handlePointerEnd);
+            if (handle.hasPointerCapture?.(event.pointerId)) {
+                handle.releasePointerCapture(event.pointerId);
+            }
             stopBrowserConsoleResize = undefined;
         };
-        globalThis.addEventListener('pointermove', handlePointerMove);
-        globalThis.addEventListener('pointerup', handlePointerUp);
+        handle.addEventListener('pointermove', handlePointerMove);
+        handle.addEventListener('pointerup', handlePointerEnd);
+        handle.addEventListener('pointercancel', handlePointerEnd);
+        handle.setPointerCapture(event.pointerId);
     }
 
     function handleBrowserConsoleResizeKeydown(event) {
