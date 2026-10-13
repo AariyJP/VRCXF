@@ -1122,6 +1122,20 @@ const BrowserAppApi = new Proxy(
         },
         async OVRTNotification(hudNotification, wristNotification, title, body, timeout, opacity, image) {
             await showDesktopNotification(title, body, image);
+        },
+        async GoogleDriveGetStatus() {
+            return JSON.stringify({ configured: false, signedIn: false, email: '', backup: null, error: null });
+        },
+        async GoogleDriveSignIn() {
+            throw new Error('Google Drive backup is not supported in the browser.');
+        },
+        async GoogleDriveCancelSignIn() {},
+        async GoogleDriveSignOut() {},
+        async GoogleDriveBackup() {
+            throw new Error('Google Drive backup is not supported in the browser.');
+        },
+        async GoogleDriveRestore() {
+            return false;
         }
     },
     {

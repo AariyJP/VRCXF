@@ -217,6 +217,12 @@ declare global {
         OpenFolderSelectorDialog(defaultPath?: string): Promise<string>;
         OpenFileSelectorDialog(defaultPath?: string, defaultExt?: string, defaultFilter?: string): Promise<string>;
         ImportDatabase(source: string | ArrayBuffer): Promise<boolean>;
+        GoogleDriveGetStatus(): Promise<string>;
+        GoogleDriveSignIn(): Promise<string>;
+        GoogleDriveCancelSignIn(): Promise<void>;
+        GoogleDriveSignOut(): Promise<void>;
+        GoogleDriveBackup(): Promise<string>;
+        GoogleDriveRestore(): Promise<boolean>;
 
         // Game Handler
         OnProcessStateChanged(monitoredProcess: any): Promise<void>;
