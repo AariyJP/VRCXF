@@ -178,7 +178,7 @@
                             </div>
                         </TooltipWrapper>
 
-                        <TooltipWrapper v-if="visibility.discord" :content="discordTooltip" side="top">
+                        <TooltipWrapper v-if="visibility.discord && !BROWSER" :content="discordTooltip" side="top">
                             <div
                                 class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
                                 @click="handleDiscordToggle">
@@ -356,6 +356,7 @@
                     WebSocket
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    v-if="!BROWSER"
                     :model-value="visibility.discord"
                     @select.prevent
                     @update:model-value="toggleVisibility('discord')">
