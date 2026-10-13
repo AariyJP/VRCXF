@@ -305,43 +305,58 @@ class BrowserSQLiteRuntime {
         });
     }
 
-    async executeNonQuery(sql, args) {
-        await this.ready;
-        return this.enqueue(async () => {
-            const statement = sql.trim().replace(/;+$/, '').toUpperCase();
-            const isBegin = /^BEGIN\b/.test(statement);
-            const isCommit = /^(COMMIT|END)\b/.test(statement);
-            const isRollback = /^ROLLBACK\b/.test(statement);
-            const isDataChange = /^(INSERT|UPDATE|DELETE|REPLACE)\b/.test(statement);
-            const isSchemaChange = /^(CREATE|DROP|ALTER)\b/.test(statement);
-            const schemaVersion = isSchemaChange ? getSchemaVersion(this.db) : null;
-            this.db.run(sql, normalizeSqlArgs(args));
-            const rowsModified = this.db.getRowsModified();
-            const changed =
-                (isDataChange && rowsModified > 0) || (isSchemaChange && getSchemaVersion(this.db) !== schemaVersion);
+    applyNonQuery(sql, args) {
+        const statement = sql.trim().replace(/;+$/, '').toUpperCase();
+        const isBegin = /^BEGIN\b/.test(statement);
+        const isCommit = /^(COMMIT|END)\b/.test(statement);
+        const isRollback = /^ROLLBACK\b/.test(statement);
+        const isDataChange = /^(INSERT|UPDATE|DELETE|REPLACE)\b/.test(statement);
+        const isSchemaChange = /^(CREATE|DROP|ALTER)\b/.test(statement);
+        const schemaVersion = isSchemaChange ? getSchemaVersion(this.db) : null;
+        this.db.run(sql, normalizeSqlArgs(args));
+        const rowsModified = this.db.getRowsModified();
+        const changed =
+            (isDataChange && rowsModified > 0) || (isSchemaChange && getSchemaVersion(this.db) !== schemaVersion);
 
-            if (isBegin) {
-                this.inTransaction = true;
-                this.transactionDirty = false;
-            } else if (isRollback) {
-                this.inTransaction = false;
-                this.transactionDirty = false;
-                if (this.persistDirty) {
-                    this.schedulePersist();
-                }
-            } else if (isCommit) {
-                const shouldPersist = this.persistDirty || this.transactionDirty;
-                this.inTransaction = false;
-                this.transactionDirty = false;
-                if (shouldPersist) {
-                    this.schedulePersist();
-                }
-            } else if (this.inTransaction) {
-                this.transactionDirty ||= changed;
-            } else if (changed) {
+        if (isBegin) {
+            this.inTransaction = true;
+            this.transactionDirty = false;
+        } else if (isRollback) {
+            this.inTransaction = false;
+            this.transactionDirty = false;
+            if (this.persistDirty) {
                 this.schedulePersist();
             }
-            return rowsModified;
+        } else if (isCommit) {
+            const shouldPersist = this.persistDirty || this.transactionDirty;
+            this.inTransaction = false;
+            this.transactionDirty = false;
+            if (shouldPersist) {
+                this.schedulePersist();
+            }
+        } else if (this.inTransaction) {
+            this.transactionDirty ||= changed;
+        } else if (changed) {
+            this.schedulePersist();
+        }
+        return rowsModified;
+    }
+
+    async executeNonQuery(sql, args) {
+        await this.ready;
+        return this.enqueue(() => this.applyNonQuery(sql, args));
+    }
+
+    async executeInsert(sql, args) {
+        await this.ready;
+        return this.enqueue(() => {
+            const rowsModified = this.applyNonQuery(sql, args);
+            if (rowsModified <= 0) {
+                return 0;
+            }
+            const rowId = this.db.exec('SELECT last_insert_rowid()')[0]?.values?.[0]?.[0];
+            const numericRowId = Number(rowId);
+            return Number.isFinite(numericRowId) ? numericRowId : 0;
         });
     }
 
@@ -825,6 +840,9 @@ const BrowserSQLite = {
     },
     async ExecuteNonQuery(sql, args) {
         return browserSQLiteRuntime.executeNonQuery(sql, args);
+    },
+    async ExecuteInsert(sql, args) {
+        return browserSQLiteRuntime.executeInsert(sql, args);
     }
 };
 
