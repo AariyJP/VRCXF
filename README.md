@@ -1,16 +1,17 @@
 # <img src="images/VRCX.png" width="64" height="64" alt="VRCXF"> VRCXF
 
-VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat クライアントより便利に管理できるアシスタントアプリ VRCX のフォークです。
+VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat クライアントより便利に管理できるアシスタントアプリ [VRCX](https://github.com/vrcx-team/VRCX) のフォークです。
 本家の機能をそのまま継承しつつ、フォーク独自の改良を加えて [AariyJP](https://github.com/AariyJP) が保守しています。
-
 ## 📥 ダウンロード
 
-### Microsoft Store
+### Microsoft Store（Windows・おすすめ）
 
 <https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full>  
 <a href="https://apps.microsoft.com/detail/9nrr9b5q60z7?mode=full" target="_blank" rel="noopener noreferrer">
 <img src="https://get.microsoft.com/images/ja%20dark.svg" width="200" alt="Microsoft Store から入手"/>
 </a>
+
+インストールと更新は Microsoft Store が自動で行います。
 
 ### WinGet
 
@@ -18,20 +19,56 @@ VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat ク�
 winget install VRCXF.VRCXF
 ```
 
+### GitHub Releases
+
+[Releases](https://github.com/AariyJP/VRCXF/releases) から各プラットフォーム向けのファイルを入手できます。
+
+| プラットフォーム | ファイル |
+| --- | --- |
+| Windows | `VRCXF_Setup.exe`（インストーラー）、`VRCXF_<version>.msix` |
+| macOS（Apple Silicon） | `VRCXF_arm64.dmg` |
+| Linux | `VRCXF_x64.AppImage`、`VRCXF_arm64.AppImage` |
+| Web ブラウザ | `VRCXF_bundle.zip` |
+
+Windows 版の実行には .NET ランタイムが必要です（配布物には同梱していません）。
+
 ## ✨ フォーク独自の機能
 
-- 🪟 **ポップアウト** — ナビゲーションのボタンやメニュー項目の中クリックで、任意のビューやダイアログを別ウィンドウに切り離して並べられます。設定からの有効化が必要です
-- 📱 **モバイル対応** — 狭い画面でもレイアウトが破綻しないよう、ナビゲーション・テーブル・タブ・ページネーションをレスポンシブ化しています
-- 🏪 **Microsoft Store 配布** — インストール・更新を Microsoft Store で自動的に！
-- 📴 **WebSocket オフラインモード** — VRChat の WebSocket 接続を切った状態（オフライン表示のまま）でも利用可能！ステータスバーからワンクリックで切り替えられます
-- 📃 **フィード無効化設定** — フィード収集とデータベース書き込みを丸ごとオフにして軽量化も可能！
-- 🔔 **通知フィルタ「Everyone w/o Public/Group」** — Public と Group 系（Group / Group+ / Group Public）インスタンスを除いた全員から通知を受信可能！
-- 🧭 **フレンドロケーションの刷新** — カード表示への置き換え、滞在時間の表示、移動中（traveling）状態の可視化、インスタンス操作ボタンの拡充
-- 🩺 **診断コンソール** — アプリ内に DevTools 相当のコンソールを内蔵！
-- 💾 **データベースのインポート** — 既存の VRCX データベースをそのまま取り込めます！
-- 🔞 **年齢認証ステータスの変更** — ユーザーダイアログから自分の公開設定を切り替えられます！
-- 🎮 **Discord Rich Presence の改良** — ボタンのリンクにプロフィール URL を表示！
-- 🇯🇵 **日本語ユーザー向けの細かな調整**
+### 🪟 ポップアウト
+
+- ナビゲーションのボタンやメニュー項目の中クリックで、ビューやダイアログを別ウィンドウに切り離して並べられます
+- ツールのダイアログもポップアウトできます
+- Esc キーでポップアウトしたウィンドウを閉じられます
+- 設定からの有効化が必要です（デスクトップ版のみ）
+
+### 🔔 通知・フィード
+
+- **通知フィルタ「Everyone w/o Public/Group」** — Public と Group 系（Group / Group+ / Group Public）インスタンスではフレンドのみ、それ以外のインスタンスでは全員から通知を受け取れます。VR オーバーレイの共有フィードでも使えます
+- **ゲームログの順番処理** — 同じ秒に届いた入退室ログを順番に処理し、インスタンス移動直後に VR 通知が一斉に出る問題を防ぎます
+- **フィードの無効化** — フィード収集とデータベースへの書き込みを止めて軽量化できます。フィード画面から直接切り替えられます
+- **ログイン・ログアウト時のあいさつ通知を廃止**
+
+### 🎮 Discord Rich Presence
+
+- ステータスバーに Discord との接続状態を表示し、ワンクリックで切り替えられます
+- プレイ時間の表示にオフセットを設定できます
+- Online ステータスの表示に対応し、Discord 再接続後にプレゼンスを再送します
+- ボタンのリンクにプロフィール URL を使います
+
+### 💾 データ管理
+
+- **Google Drive バックアップ** — データベースを Google Drive のアプリ専用領域にバックアップし、そこから復元できます（デスクトップ版のみ）
+- **データベースのインポート** — 既存の VRCX データベースを取り込めます。取り込み前に SQLite として正しいファイルかを検査します
+- **診断コンソール** — アプリ内に DevTools 相当のコンソールを内蔵しています
+
+### 🧭 画面・操作
+
+- **フレンドロケーションの刷新** — カード表示への置き換え、滞在時間の表示、移動中（traveling）状態の可視化、インスタンス操作ボタンの拡充
+- **WebSocket オフラインモード** — VRChat の WebSocket 接続を切った状態（オフライン表示のまま）でも利用できます。ステータスバーからワンクリックで切り替えられます
+- **モバイル対応** — 狭い画面でもレイアウトが崩れないよう、ナビゲーション・テーブル・タブ・ページネーションをレスポンシブ化しています
+- **年齢認証ステータスの変更** — プロフィール編集から自分の公開設定を切り替えられます
+- **rednight テーマ** — 新しく追加したテーマで、初期テーマとして使われます
+- 🇯🇵 日本語ユーザー向けの細かな調整
 
 ## 🧰 主な機能（本家より継承）
 
