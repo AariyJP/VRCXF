@@ -933,6 +933,10 @@
             const imported = await AppApi.ImportDatabase(filePath);
             if (!imported) {
                 toast.error('有効な SQLite データベースファイルではないか、読み込みに失敗しました。');
+                return;
+            }
+            if (LINUX) {
+                window.electron.restartApp();
             }
         } catch (err) {
             toast.error(`インポートに失敗しました: ${err?.message ?? err}`);
