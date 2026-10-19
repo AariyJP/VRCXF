@@ -194,23 +194,17 @@ namespace VRCX
             {
                 SQLite.Instance.ExecuteNonQuery("VACUUM INTO @path", new Dictionary<string, object> { ["@path"] = snapshotPath });
 
-                var existing = await FindGoogleDriveBackupFile();
                 var length = new FileInfo(snapshotPath).Length;
 
-                using var initRequest = existing == null
-                    ? new HttpRequestMessage(HttpMethod.Post, "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable")
+                using var initRequest = new HttpRequestMessage(HttpMethod.Post,
+                    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id")
+                {
+                    Content = new StringContent(new JObject
                     {
-                        Content = new StringContent(new JObject
-                        {
-                            ["name"] = GoogleDriveBackupFileName,
-                            ["parents"] = new JArray("appDataFolder")
-                        }.ToString(Formatting.None), Encoding.UTF8, "application/json")
-                    }
-                    : new HttpRequestMessage(HttpMethod.Patch,
-                        $"https://www.googleapis.com/upload/drive/v3/files/{existing.Value<string>("id")}?uploadType=resumable")
-                    {
-                        Content = new StringContent("{}", Encoding.UTF8, "application/json")
-                    };
+                        ["name"] = GoogleDriveBackupFileName,
+                        ["parents"] = new JArray("appDataFolder")
+                    }.ToString(Formatting.None), Encoding.UTF8, "application/json")
+                };
                 initRequest.Headers.Add("X-Upload-Content-Type", GoogleDriveBackupContentType);
                 initRequest.Headers.Add("X-Upload-Content-Length", length.ToString());
 
@@ -226,6 +220,17 @@ namespace VRCX
                 uploadRequest.Content.Headers.ContentType = new MediaTypeHeaderValue(GoogleDriveBackupContentType);
                 uploadRequest.Content.Headers.ContentLength = length;
                 using var uploadResponse = await SendGoogleDriveRequest(uploadRequest);
+                var uploadedId = JObject.Parse(await uploadResponse.Content.ReadAsStringAsync()).Value<string>("id");
+
+                foreach (var file in await ListGoogleDriveBackupFiles())
+                {
+                    var id = file.Value<string>("id");
+                    if (id == uploadedId)
+                        continue;
+
+                    using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"https://www.googleapis.com/drive/v3/files/{id}");
+                    using var deleteResponse = await SendGoogleDriveRequest(deleteRequest);
+                }
             }
             finally
             {
@@ -314,16 +319,22 @@ namespace VRCX
 
         private static async Task<JObject> FindGoogleDriveBackupFile()
         {
+            var files = await ListGoogleDriveBackupFiles();
+            return files.Count > 0 ? (JObject)files[0] : null;
+        }
+
+        private static async Task<JArray> ListGoogleDriveBackupFiles()
+        {
             var query = BuildQueryString(new Dictionary<string, string>
             {
                 ["spaces"] = "appDataFolder",
                 ["q"] = $"name = '{GoogleDriveBackupFileName}' and trashed = false",
                 ["fields"] = "files(id,size,modifiedTime)",
                 ["orderBy"] = "modifiedTime desc",
-                ["pageSize"] = "1"
+                ["pageSize"] = "100"
             });
             var result = await SendGoogleDriveJson(HttpMethod.Get, $"https://www.googleapis.com/drive/v3/files?{query}");
-            return result["files"] is JArray { Count: > 0 } files ? (JObject)files[0] : null;
+            return result["files"] as JArray ?? new JArray();
         }
 
         private static async Task<JObject> SendGoogleDriveJson(HttpMethod method, string url)
