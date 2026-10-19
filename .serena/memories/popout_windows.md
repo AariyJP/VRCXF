@@ -17,12 +17,12 @@
 
 **モジュールスコープの `document` / `window` は常にメインウィンドウを指す**ため、ポップアウト内の要素には当たらない。
 
-| やりたいこと | 使わない | 使う |
-|---|---|---|
-| 要素探索 | `document.getElementById()` / `querySelector()` | `queryAcrossWindows()` |
-| ポータル先 | `document.body` | `usePortalTarget()` / `usePortalDocument()` |
-| クリップボード | `navigator.clipboard` | `src/lib/clipboard.js` |
-| ウィンドウ参照 | `window` | `getFocusedWindow()` |
+| やりたいこと   | 使わない                                        | 使う                                        |
+| -------------- | ----------------------------------------------- | ------------------------------------------- |
+| 要素探索       | `document.getElementById()` / `querySelector()` | `queryAcrossWindows()`                      |
+| ポータル先     | `document.body`                                 | `usePortalTarget()` / `usePortalDocument()` |
+| クリップボード | `navigator.clipboard`                           | `src/lib/clipboard.js`                      |
+| ウィンドウ参照 | `window`                                        | `getFocusedWindow()`                        |
 
 upstream が新しく `document.*` を使うコードを入れてきたら、ポップアウト内で使われ得るコンポーネントかを確認すること。
 

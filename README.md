@@ -2,6 +2,7 @@
 
 VRCXF は、VRChat のフレンド・ワールド・アバターを VRChat クライアントより便利に管理できるアシスタントアプリ [VRCX](https://github.com/vrcx-team/VRCX) のフォークです。
 本家の機能をそのまま継承しつつ、フォーク独自の改良を加えて [AariyJP](https://github.com/AariyJP) が保守しています。
+
 ## 📥 ダウンロード
 
 ### Microsoft Store（Windows・おすすめ）
@@ -23,12 +24,12 @@ winget install VRCXF.VRCXF
 
 [Releases](https://github.com/AariyJP/VRCXF/releases) から各プラットフォーム向けのファイルを入手できます。
 
-| プラットフォーム | ファイル |
-| --- | --- |
-| Windows | `VRCXF_Setup.exe`（インストーラー）、`VRCXF_<version>.msix` |
-| macOS（Apple Silicon） | `VRCXF_arm64.dmg` |
-| Linux | `VRCXF_x64.AppImage`、`VRCXF_arm64.AppImage` |
-| Web ブラウザ | `VRCXF_bundle.zip` |
+| プラットフォーム       | ファイル                                                    |
+| ---------------------- | ----------------------------------------------------------- |
+| Windows                | `VRCXF_Setup.exe`（インストーラー）、`VRCXF_<version>.msix` |
+| macOS（Apple Silicon） | `VRCXF_arm64.dmg`                                           |
+| Linux                  | `VRCXF_x64.AppImage`、`VRCXF_arm64.AppImage`                |
+| Web ブラウザ           | `VRCXF_bundle.zip`                                          |
 
 Windows 版の実行には .NET ランタイムが必要です（配布物には同梱していません）。
 
