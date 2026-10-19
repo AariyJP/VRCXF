@@ -429,8 +429,18 @@
         });
     }
 
-    function backupGoogleDrive() {
-        return runGoogleDriveAction('backup', async () => {
+    async function backupGoogleDrive() {
+        const { ok } = await modalStore.confirm({
+            title: 'Google Drive にバックアップ',
+            description:
+                'Google Drive 上の既存のバックアップは削除され、現在のデータベースで置き換えられます。削除したバックアップは元に戻せません。続行しますか？',
+            confirmText: 'バックアップ',
+            destructive: true
+        });
+        if (!ok) {
+            return;
+        }
+        await runGoogleDriveAction('backup', async () => {
             applyGoogleDriveStatus(await AppApi.GoogleDriveBackup());
             toast.success('Google Drive にバックアップしました。');
         });
