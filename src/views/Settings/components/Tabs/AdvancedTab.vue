@@ -300,6 +300,60 @@
                 @change="handleDbFileImport" />
         </SettingsGroup>
 
+        <SettingsGroup title="Google Drive バックアップ">
+            <template #description>
+                <p class="m-0">データベース (VRCX.sqlite3) を Google Drive のアプリ専用領域に保存・復元します。</p>
+            </template>
+
+            <SettingsItem label="Google アカウント" :description="googleDriveAccountText">
+                <Button
+                    v-if="googleDrive.status.signedIn"
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy"
+                    @click="signOutGoogleDrive">
+                    ログアウト
+                </Button>
+                <Button
+                    v-else-if="googleDrive.action === 'signIn'"
+                    size="sm"
+                    variant="outline"
+                    @click="cancelGoogleDriveSignIn">
+                    キャンセル
+                </Button>
+                <Button
+                    v-else
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.configured"
+                    @click="signInGoogleDrive">
+                    ログイン
+                </Button>
+            </SettingsItem>
+
+            <SettingsItem label="バックアップ" :description="googleDriveBackupText">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.signedIn"
+                    @click="backupGoogleDrive">
+                    {{ googleDrive.action === 'backup' ? 'アップロード中...' : '今すぐバックアップ' }}
+                </Button>
+            </SettingsItem>
+
+            <SettingsItem
+                label="復元"
+                description="Google Drive のバックアップで現在のデータベースを置き換え、アプリを再起動します。">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.backup"
+                    @click="restoreGoogleDrive">
+                    {{ googleDrive.action === 'restore' ? '復元中...' : '復元' }}
+                </Button>
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup :title="t('view.settings.advanced.advanced.database_cleanup.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.database_cleanup.auto_cleanup')"
@@ -586,7 +640,7 @@
         Trash2,
         TriangleAlert
     } from 'lucide-vue-next';
-    import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';
     import {
         DropdownMenu,
@@ -618,6 +672,7 @@
         useGeneralSettingsStore,
         useGroupStore,
         useInstanceStore,
+        useModalStore,
         usePhotonStore,
         useUiStore,
         useUserStore,
@@ -632,7 +687,8 @@
         clearBrowserConsoleLogs,
         executeBrowserConsoleCommand
     } from '@/services/browserConsoleLog';
-    import { openExternalLink } from '@/shared/utils';
+    import { formatDateFilter, formatFileSize, openExternalLink } from '@/shared/utils';
+    import * as googleDriveService from '@/services/googleDrive';
 
     import PhotonSettings from '../PhotonSettings.vue';
     import RegistryBackupDialog from '../../../Tools/dialogs/RegistryBackupDialog.vue';
@@ -659,6 +715,7 @@
 
     const { photonLoggingEnabled } = storeToRefs(usePhotonStore());
     const { branch } = storeToRefs(useVRCXUpdaterStore());
+    const { restartVRCX } = useVRCXUpdaterStore();
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { isDarkMode, feedEnabled } = storeToRefs(appearanceSettingsStore);
@@ -980,4 +1037,123 @@
             visits.value = args.json;
         });
     }
+
+    const modalStore = useModalStore();
+
+    const googleDrive = reactive({
+        status: { configured: false, signedIn: false, email: null, backup: null, error: null },
+        action: ''
+    });
+
+    const googleDriveBusy = computed(() => googleDrive.action !== '');
+
+    const googleDriveAccountText = computed(() => {
+        if (!googleDrive.status.configured) {
+            return 'このビルドでは Google Drive 連携が設定されていません。';
+        }
+        if (googleDrive.action === 'signIn') {
+            return 'ブラウザで Google の認証を完了してください。';
+        }
+        if (!googleDrive.status.signedIn) {
+            return '未ログイン';
+        }
+        return googleDrive.status.email || 'ログイン済み';
+    });
+
+    const googleDriveBackupText = computed(() => {
+        if (googleDrive.status.error) {
+            return `状態の取得に失敗しました: ${googleDrive.status.error}`;
+        }
+        const backup = googleDrive.status.backup;
+        if (!backup) {
+            return 'Google Drive にバックアップはありません。';
+        }
+        return `最終バックアップ: ${formatDateFilter(backup.modifiedTime, 'long')} (${formatFileSize(Number(backup.size))})`;
+    });
+
+    async function runGoogleDriveAction(action, task) {
+        if (googleDriveBusy.value) {
+            return;
+        }
+        googleDrive.action = action;
+        try {
+            await task();
+        } catch (err) {
+            if (!err?.cancelled) {
+                toast.error(`Google Drive: ${err?.message ?? err}`);
+            }
+            await refreshGoogleDriveStatus();
+        } finally {
+            googleDrive.action = '';
+        }
+    }
+
+    async function refreshGoogleDriveStatus() {
+        try {
+            googleDrive.status = await googleDriveService.getStatus();
+        } catch (err) {
+            console.error('Failed to get Google Drive status', err);
+        }
+    }
+
+    function signInGoogleDrive() {
+        return runGoogleDriveAction('signIn', async () => {
+            await googleDriveService.signIn();
+            await refreshGoogleDriveStatus();
+            toast.success('Google Drive にログインしました。');
+        });
+    }
+
+    function cancelGoogleDriveSignIn() {
+        googleDriveService.cancelSignIn();
+    }
+
+    function signOutGoogleDrive() {
+        return runGoogleDriveAction('signOut', async () => {
+            await googleDriveService.signOut();
+            await refreshGoogleDriveStatus();
+        });
+    }
+
+    async function backupGoogleDrive() {
+        const { ok } = await modalStore.confirm({
+            title: 'Google Drive にバックアップ',
+            description:
+                'Google Drive 上の既存のバックアップは削除され、現在のデータベースで置き換えられます。削除したバックアップは元に戻せません。続行しますか？',
+            confirmText: 'バックアップ',
+            destructive: true
+        });
+        if (!ok) {
+            return;
+        }
+        await runGoogleDriveAction('backup', async () => {
+            await googleDriveService.backup();
+            await refreshGoogleDriveStatus();
+            toast.success('Google Drive にバックアップしました。');
+        });
+    }
+
+    async function restoreGoogleDrive() {
+        const { ok } = await modalStore.confirm({
+            title: 'Google Drive から復元',
+            description: '現在のデータベースはバックアップの内容で上書きされ、アプリが再起動します。続行しますか？',
+            confirmText: '復元',
+            destructive: true
+        });
+        if (!ok) {
+            return;
+        }
+        await runGoogleDriveAction('restore', async () => {
+            const restored = await googleDriveService.restore();
+            if (!restored) {
+                throw new Error('バックアップが有効な SQLite データベースではないか、置き換えに失敗しました。');
+            }
+            restartVRCX(false);
+        });
+    }
+
+    onMounted(async () => {
+        googleDrive.status = await googleDriveService.getLocalStatus();
+        await refreshGoogleDriveStatus();
+    });
 </script>

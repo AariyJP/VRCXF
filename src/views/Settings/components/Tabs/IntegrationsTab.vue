@@ -183,60 +183,6 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup v-if="!BROWSER" title="Google Drive バックアップ">
-            <template #description>
-                <p class="m-0">データベース (VRCX.sqlite3) を Google Drive のアプリ専用領域に保存・復元します。</p>
-            </template>
-
-            <SettingsItem label="Google アカウント" :description="googleDriveAccountText">
-                <Button
-                    v-if="googleDrive.status.signedIn"
-                    size="sm"
-                    variant="outline"
-                    :disabled="googleDrive.busy"
-                    @click="signOutGoogleDrive">
-                    ログアウト
-                </Button>
-                <Button
-                    v-else-if="googleDrive.action === 'signIn'"
-                    size="sm"
-                    variant="outline"
-                    @click="cancelGoogleDriveSignIn">
-                    キャンセル
-                </Button>
-                <Button
-                    v-else
-                    size="sm"
-                    variant="outline"
-                    :disabled="googleDrive.busy || !googleDrive.status.configured"
-                    @click="signInGoogleDrive">
-                    ログイン
-                </Button>
-            </SettingsItem>
-
-            <SettingsItem label="バックアップ" :description="googleDriveBackupText">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    :disabled="googleDrive.busy || !googleDrive.status.signedIn"
-                    @click="backupGoogleDrive">
-                    {{ googleDrive.action === 'backup' ? 'アップロード中...' : '今すぐバックアップ' }}
-                </Button>
-            </SettingsItem>
-
-            <SettingsItem
-                label="復元"
-                description="Google Drive のバックアップで現在のデータベースを置き換え、アプリを再起動します。">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    :disabled="googleDrive.busy || !googleDrive.status.backup"
-                    @click="restoreGoogleDrive">
-                    {{ googleDrive.action === 'restore' ? '復元中...' : '復元' }}
-                </Button>
-            </SettingsItem>
-        </SettingsGroup>
-
         <TranslationApiDialog v-model:isTranslationApiDialogVisible="isTranslationApiDialogVisible" />
         <YouTubeApiDialog v-model:isYouTubeApiDialogVisible="isYouTubeApiDialogVisible" />
         <AvatarProviderDialog v-model:isAvatarProviderDialogVisible="isAvatarProviderDialogVisible" />
@@ -244,7 +190,7 @@
 </template>
 
 <script setup>
-    import { computed, onMounted, reactive, ref } from 'vue';
+    import { ref } from 'vue';
     import { Languages } from 'lucide-vue-next';
     import { Button } from '@/components/ui/button';
     import {
@@ -256,16 +202,12 @@
     } from '@/components/ui/number-field';
     import { Switch } from '@/components/ui/switch';
     import { storeToRefs } from 'pinia';
-    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
-
-    import { formatDateFilter, formatFileSize } from '@/shared/utils';
 
     import {
         useAdvancedSettingsStore,
         useAvatarProviderStore,
         useDiscordPresenceSettingsStore,
-        useModalStore,
         useVrStore
     } from '@/stores';
 
@@ -344,132 +286,4 @@
             advancedSettingsStore.setTranslationApi();
         }
     }
-
-    const modalStore = useModalStore();
-
-    const googleDrive = reactive({
-        status: { configured: false, signedIn: false, email: '', backup: null, error: null },
-        busy: false,
-        action: '',
-        signInCancelled: false
-    });
-
-    const googleDriveAccountText = computed(() => {
-        if (!googleDrive.status.configured) {
-            return 'このビルドでは Google Drive 連携が設定されていません。';
-        }
-        if (googleDrive.action === 'signIn') {
-            return 'ブラウザで Google の認証を完了してください。';
-        }
-        if (!googleDrive.status.signedIn) {
-            return '未ログイン';
-        }
-        return googleDrive.status.email || 'ログイン済み';
-    });
-
-    const googleDriveBackupText = computed(() => {
-        if (googleDrive.status.error) {
-            return `状態の取得に失敗しました: ${googleDrive.status.error}`;
-        }
-        const backup = googleDrive.status.backup;
-        if (!backup) {
-            return 'Google Drive にバックアップはありません。';
-        }
-        return `最終バックアップ: ${formatDateFilter(backup.modifiedTime, 'long')} (${formatFileSize(Number(backup.size))})`;
-    });
-
-    function applyGoogleDriveStatus(json) {
-        Object.assign(googleDrive.status, JSON.parse(json));
-    }
-
-    async function runGoogleDriveAction(action, task) {
-        if (googleDrive.busy) {
-            return;
-        }
-        googleDrive.busy = true;
-        googleDrive.action = action;
-        try {
-            await task();
-        } catch (err) {
-            if (!googleDrive.signInCancelled) {
-                toast.error(`Google Drive: ${err?.message ?? err}`);
-            }
-            await refreshGoogleDriveStatus();
-        } finally {
-            googleDrive.busy = false;
-            googleDrive.action = '';
-        }
-    }
-
-    async function refreshGoogleDriveStatus() {
-        try {
-            applyGoogleDriveStatus(await AppApi.GoogleDriveGetStatus());
-        } catch (err) {
-            console.error('Failed to get Google Drive status', err);
-        }
-    }
-
-    function signInGoogleDrive() {
-        googleDrive.signInCancelled = false;
-        return runGoogleDriveAction('signIn', async () => {
-            applyGoogleDriveStatus(await AppApi.GoogleDriveSignIn());
-            toast.success('Google Drive にログインしました。');
-        });
-    }
-
-    function cancelGoogleDriveSignIn() {
-        googleDrive.signInCancelled = true;
-        AppApi.GoogleDriveCancelSignIn();
-    }
-
-    function signOutGoogleDrive() {
-        return runGoogleDriveAction('signOut', async () => {
-            await AppApi.GoogleDriveSignOut();
-            await refreshGoogleDriveStatus();
-        });
-    }
-
-    async function backupGoogleDrive() {
-        const { ok } = await modalStore.confirm({
-            title: 'Google Drive にバックアップ',
-            description:
-                'Google Drive 上の既存のバックアップは削除され、現在のデータベースで置き換えられます。削除したバックアップは元に戻せません。続行しますか？',
-            confirmText: 'バックアップ',
-            destructive: true
-        });
-        if (!ok) {
-            return;
-        }
-        await runGoogleDriveAction('backup', async () => {
-            applyGoogleDriveStatus(await AppApi.GoogleDriveBackup());
-            toast.success('Google Drive にバックアップしました。');
-        });
-    }
-
-    async function restoreGoogleDrive() {
-        const { ok } = await modalStore.confirm({
-            title: 'Google Drive から復元',
-            description: '現在のデータベースはバックアップの内容で上書きされ、アプリが再起動します。続行しますか？',
-            confirmText: '復元',
-            destructive: true
-        });
-        if (!ok) {
-            return;
-        }
-        await runGoogleDriveAction('restore', async () => {
-            const restored = await AppApi.GoogleDriveRestore();
-            if (!restored) {
-                throw new Error('バックアップが有効な SQLite データベースではないか、置き換えに失敗しました。');
-            }
-            if (LINUX) {
-                window.electron.restartApp();
-            }
-        });
-    }
-
-    onMounted(() => {
-        if (!BROWSER) {
-            refreshGoogleDriveStatus();
-        }
-    });
 </script>

@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,17 +17,14 @@ namespace VRCX
     {
         private const string GoogleDriveClientId = "906543223879-p7nsbk0jnqegkoa4boa486ho2jtlssdr.apps.googleusercontent.com";
         private const string GoogleDriveClientSecret = "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";
-        private const string GoogleDriveScope = "https://www.googleapis.com/auth/drive.appdata";
-        private const string GoogleDriveRefreshTokenKey = "VRCX_GoogleDriveRefreshToken";
-        private const string GoogleDriveEmailKey = "VRCX_GoogleDriveEmail";
         private const string GoogleDriveBackupFileName = "VRCX.sqlite3";
         private const string GoogleDriveBackupContentType = "application/vnd.sqlite3";
+        private const string GoogleDriveTokenUrl = "https://oauth2.googleapis.com/token";
+        private const string GoogleDriveRevokeUrl = "https://oauth2.googleapis.com/revoke";
 
         private static readonly HttpClient GoogleDriveHttpClient = CreateGoogleDriveHttpClient();
         private static readonly SemaphoreSlim GoogleDriveLock = new(1, 1);
         private static CancellationTokenSource googleDriveSignInCts;
-        private static string googleDriveAccessToken;
-        private static DateTime googleDriveAccessTokenExpiry = DateTime.MinValue;
 
         private static HttpClient CreateGoogleDriveHttpClient()
         {
@@ -44,58 +40,52 @@ namespace VRCX
             return client;
         }
 
-        public async Task<string> GoogleDriveGetStatus()
+        public string GoogleDriveGetOAuthConfig()
         {
-            var status = new JObject
-            {
-                ["configured"] = !string.IsNullOrEmpty(GoogleDriveClientId),
-                ["signedIn"] = false,
-                ["email"] = null,
-                ["backup"] = null,
-                ["error"] = null
-            };
+            return new JObject { ["clientId"] = GoogleDriveClientId }.ToString(Formatting.None);
+        }
 
-            if (string.IsNullOrEmpty(VRCXStorage.Instance.Get(GoogleDriveRefreshTokenKey)))
-                return status.ToString(Formatting.None);
+        private static string GoogleDriveCredentialsPath =>
+            Path.Join(Program.AppDataDirectory, "GoogleDrive.json");
 
-            status["signedIn"] = true;
-            status["email"] = VRCXStorage.Instance.Get(GoogleDriveEmailKey);
-
+        public string GoogleDriveLoadCredentials()
+        {
             try
             {
-                var file = await FindGoogleDriveBackupFile();
-                if (file != null)
-                {
-                    status["backup"] = new JObject
-                    {
-                        ["modifiedTime"] = file["modifiedTime"],
-                        ["size"] = file["size"]
-                    };
-                }
+                if (!File.Exists(GoogleDriveCredentialsPath))
+                    return new JObject().ToString(Formatting.None);
+
+                return JObject.Parse(File.ReadAllText(GoogleDriveCredentialsPath, Encoding.UTF8))
+                    .ToString(Formatting.None);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to get Google Drive backup status");
-                status["error"] = ex.Message;
-                if (string.IsNullOrEmpty(VRCXStorage.Instance.Get(GoogleDriveRefreshTokenKey)))
-                    status["signedIn"] = false;
+                logger.Warn(ex, "Failed to read Google Drive credentials");
+                return new JObject().ToString(Formatting.None);
             }
-
-            return status.ToString(Formatting.None);
         }
 
-        public async Task<string> GoogleDriveSignIn()
+        public void GoogleDriveSaveCredentials(string credentialsJson)
         {
-            if (string.IsNullOrEmpty(GoogleDriveClientId))
-                throw new InvalidOperationException("Google Drive のクライアント ID が設定されていません。");
+            var credentials = JObject.Parse(credentialsJson);
+            if (string.IsNullOrEmpty(credentials.Value<string>("refreshToken")))
+            {
+                if (File.Exists(GoogleDriveCredentialsPath))
+                    File.Delete(GoogleDriveCredentialsPath);
+                return;
+            }
+
+            File.WriteAllText(GoogleDriveCredentialsPath, credentials.ToString(Formatting.Indented), Encoding.UTF8);
+        }
+
+        public async Task<string> GoogleDriveRequestAuthorizationCode(string requestJson)
+        {
+            var request = JObject.Parse(requestJson);
+            var state = request.Value<string>("state");
 
             GoogleDriveCancelSignIn();
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             googleDriveSignInCts = cts;
-
-            var verifier = ToBase64Url(RandomNumberGenerator.GetBytes(32));
-            var challenge = ToBase64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
-            var state = ToBase64Url(RandomNumberGenerator.GetBytes(16));
 
             var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
@@ -106,11 +96,11 @@ namespace VRCX
 
                 var authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" + BuildQueryString(new Dictionary<string, string>
                 {
-                    ["client_id"] = GoogleDriveClientId,
+                    ["client_id"] = request.Value<string>("clientId"),
                     ["redirect_uri"] = redirectUri,
                     ["response_type"] = "code",
-                    ["scope"] = GoogleDriveScope,
-                    ["code_challenge"] = challenge,
+                    ["scope"] = request.Value<string>("scope"),
+                    ["code_challenge"] = request.Value<string>("codeChallenge"),
                     ["code_challenge_method"] = "S256",
                     ["state"] = state,
                     ["access_type"] = "offline",
@@ -119,28 +109,11 @@ namespace VRCX
                 OpenLink(authUrl);
 
                 var code = await WaitForGoogleAuthorizationCode(listener, state, cts.Token);
-
-                var token = await PostGoogleToken(new Dictionary<string, string>
+                return new JObject
                 {
-                    ["client_id"] = GoogleDriveClientId,
-                    ["client_secret"] = GoogleDriveClientSecret,
                     ["code"] = code,
-                    ["code_verifier"] = verifier,
-                    ["grant_type"] = "authorization_code",
-                    ["redirect_uri"] = redirectUri
-                });
-
-                var refreshToken = token.Value<string>("refresh_token");
-                if (string.IsNullOrEmpty(refreshToken))
-                    throw new InvalidOperationException("Google からリフレッシュトークンを取得できませんでした。");
-
-                SetGoogleDriveAccessToken(token);
-                VRCXStorage.Instance.Set(GoogleDriveRefreshTokenKey, refreshToken);
-
-                var about = await SendGoogleDriveJson(HttpMethod.Get,
-                    "https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)");
-                VRCXStorage.Instance.Set(GoogleDriveEmailKey, about.SelectToken("user.emailAddress")?.ToString() ?? string.Empty);
-                VRCXStorage.Instance.Save();
+                    ["redirectUri"] = redirectUri
+                }.ToString(Formatting.None);
             }
             catch (OperationCanceledException)
             {
@@ -152,8 +125,6 @@ namespace VRCX
                 if (googleDriveSignInCts == cts)
                     googleDriveSignInCts = null;
             }
-
-            return await GoogleDriveGetStatus();
         }
 
         public void GoogleDriveCancelSignIn()
@@ -167,26 +138,30 @@ namespace VRCX
             }
         }
 
-        public async Task GoogleDriveSignOut()
+        public async Task<string> GoogleDriveExchangeToken(string formJson)
         {
-            var refreshToken = VRCXStorage.Instance.Get(GoogleDriveRefreshTokenKey);
-            ClearGoogleDriveCredentials();
-
-            if (string.IsNullOrEmpty(refreshToken))
-                return;
-
-            try
+            var form = new Dictionary<string, string>
             {
-                using var content = new FormUrlEncodedContent(new Dictionary<string, string> { ["token"] = refreshToken });
-                await GoogleDriveHttpClient.PostAsync("https://oauth2.googleapis.com/revoke", content);
-            }
-            catch (Exception ex)
-            {
-                logger.Warn(ex, "Failed to revoke Google Drive token");
-            }
+                ["client_id"] = GoogleDriveClientId,
+                ["client_secret"] = GoogleDriveClientSecret
+            };
+            foreach (var (key, value) in JObject.Parse(formJson))
+                form[key] = value?.ToString() ?? string.Empty;
+
+            using var content = new FormUrlEncodedContent(form);
+            using var response = await GoogleDriveHttpClient.PostAsync(GoogleDriveTokenUrl, content);
+            return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> GoogleDriveBackup()
+        public async Task GoogleDriveRevokeToken(string refreshToken)
+        {
+            using var content = new FormUrlEncodedContent(new Dictionary<string, string> { ["token"] = refreshToken });
+            using var response = await GoogleDriveHttpClient.PostAsync(GoogleDriveRevokeUrl, content);
+            if (!response.IsSuccessStatusCode)
+                logger.Warn("Failed to revoke Google Drive token ({status})", (int)response.StatusCode);
+        }
+
+        public async Task<string> GoogleDriveUploadDatabase(string accessToken)
         {
             await GoogleDriveLock.WaitAsync();
             var snapshotPath = Path.Join(Path.GetTempPath(), $"VRCX-gdrive-{Guid.NewGuid():N}.sqlite3");
@@ -208,7 +183,7 @@ namespace VRCX
                 initRequest.Headers.Add("X-Upload-Content-Type", GoogleDriveBackupContentType);
                 initRequest.Headers.Add("X-Upload-Content-Length", length.ToString());
 
-                using var initResponse = await SendGoogleDriveRequest(initRequest);
+                using var initResponse = await SendGoogleDriveRequest(initRequest, accessToken);
                 var uploadUrl = initResponse.Headers.Location
                     ?? throw new InvalidOperationException("Google Drive のアップロード先を取得できませんでした。");
 
@@ -219,40 +194,25 @@ namespace VRCX
                 };
                 uploadRequest.Content.Headers.ContentType = new MediaTypeHeaderValue(GoogleDriveBackupContentType);
                 uploadRequest.Content.Headers.ContentLength = length;
-                using var uploadResponse = await SendGoogleDriveRequest(uploadRequest);
-                var uploadedId = JObject.Parse(await uploadResponse.Content.ReadAsStringAsync()).Value<string>("id");
-
-                foreach (var file in await ListGoogleDriveBackupFiles())
-                {
-                    var id = file.Value<string>("id");
-                    if (id == uploadedId)
-                        continue;
-
-                    using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"https://www.googleapis.com/drive/v3/files/{id}");
-                    using var deleteResponse = await SendGoogleDriveRequest(deleteRequest);
-                }
+                using var uploadResponse = await SendGoogleDriveRequest(uploadRequest, accessToken);
+                return JObject.Parse(await uploadResponse.Content.ReadAsStringAsync()).Value<string>("id");
             }
             finally
             {
                 TryDeleteFile(snapshotPath);
                 GoogleDriveLock.Release();
             }
-
-            return await GoogleDriveGetStatus();
         }
 
-        public async Task<bool> GoogleDriveRestore()
+        public async Task<bool> GoogleDriveDownloadDatabase(string fileId, string accessToken)
         {
             await GoogleDriveLock.WaitAsync();
             var downloadPath = Path.Join(Path.GetTempPath(), $"VRCX-gdrive-{Guid.NewGuid():N}.sqlite3");
             try
             {
-                var file = await FindGoogleDriveBackupFile()
-                    ?? throw new FileNotFoundException("Google Drive にバックアップがありません。");
-
                 using (var request = new HttpRequestMessage(HttpMethod.Get,
-                           $"https://www.googleapis.com/drive/v3/files/{file.Value<string>("id")}?alt=media"))
-                using (var response = await SendGoogleDriveRequest(request, HttpCompletionOption.ResponseHeadersRead))
+                           $"https://www.googleapis.com/drive/v3/files/{fileId}?alt=media"))
+                using (var response = await SendGoogleDriveRequest(request, accessToken, HttpCompletionOption.ResponseHeadersRead))
                 await using (var output = File.Create(downloadPath))
                 {
                     await response.Content.CopyToAsync(output);
@@ -265,6 +225,20 @@ namespace VRCX
                 TryDeleteFile(downloadPath);
                 GoogleDriveLock.Release();
             }
+        }
+
+        private static async Task<HttpResponseMessage> SendGoogleDriveRequest(HttpRequestMessage request, string accessToken,
+            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await GoogleDriveHttpClient.SendAsync(request, completionOption);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            var statusCode = (int)response.StatusCode;
+            var body = await response.Content.ReadAsStringAsync();
+            response.Dispose();
+            throw new HttpRequestException($"Google Drive API エラー ({statusCode}): {body}");
         }
 
         private static async Task<string> WaitForGoogleAuthorizationCode(TcpListener listener, string state, CancellationToken cancellationToken)
@@ -317,106 +291,6 @@ namespace VRCX
             await stream.FlushAsync();
         }
 
-        private static async Task<JObject> FindGoogleDriveBackupFile()
-        {
-            var files = await ListGoogleDriveBackupFiles();
-            return files.Count > 0 ? (JObject)files[0] : null;
-        }
-
-        private static async Task<JArray> ListGoogleDriveBackupFiles()
-        {
-            var query = BuildQueryString(new Dictionary<string, string>
-            {
-                ["spaces"] = "appDataFolder",
-                ["q"] = $"name = '{GoogleDriveBackupFileName}' and trashed = false",
-                ["fields"] = "files(id,size,modifiedTime)",
-                ["orderBy"] = "modifiedTime desc",
-                ["pageSize"] = "100"
-            });
-            var result = await SendGoogleDriveJson(HttpMethod.Get, $"https://www.googleapis.com/drive/v3/files?{query}");
-            return result["files"] as JArray ?? new JArray();
-        }
-
-        private static async Task<JObject> SendGoogleDriveJson(HttpMethod method, string url)
-        {
-            using var request = new HttpRequestMessage(method, url);
-            using var response = await SendGoogleDriveRequest(request);
-            return JObject.Parse(await response.Content.ReadAsStringAsync());
-        }
-
-        private static async Task<HttpResponseMessage> SendGoogleDriveRequest(HttpRequestMessage request,
-            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetGoogleDriveAccessToken());
-            var response = await GoogleDriveHttpClient.SendAsync(request, completionOption);
-            if (response.IsSuccessStatusCode)
-                return response;
-
-            var body = await response.Content.ReadAsStringAsync();
-            response.Dispose();
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                googleDriveAccessToken = null;
-
-            throw new HttpRequestException($"Google Drive API エラー ({(int)response.StatusCode}): {body}");
-        }
-
-        private static async Task<string> GetGoogleDriveAccessToken()
-        {
-            if (!string.IsNullOrEmpty(googleDriveAccessToken) && DateTime.UtcNow < googleDriveAccessTokenExpiry)
-                return googleDriveAccessToken;
-
-            var refreshToken = VRCXStorage.Instance.Get(GoogleDriveRefreshTokenKey);
-            if (string.IsNullOrEmpty(refreshToken))
-                throw new InvalidOperationException("Google Drive にログインしていません。");
-
-            JObject token;
-            try
-            {
-                token = await PostGoogleToken(new Dictionary<string, string>
-                {
-                    ["client_id"] = GoogleDriveClientId,
-                    ["client_secret"] = GoogleDriveClientSecret,
-                    ["refresh_token"] = refreshToken,
-                    ["grant_type"] = "refresh_token"
-                });
-            }
-            catch (GoogleTokenException ex) when (ex.Error == "invalid_grant")
-            {
-                ClearGoogleDriveCredentials();
-                throw new InvalidOperationException("Google Drive の認証が失効しました。再度ログインしてください。");
-            }
-
-            SetGoogleDriveAccessToken(token);
-            return googleDriveAccessToken;
-        }
-
-        private static async Task<JObject> PostGoogleToken(Dictionary<string, string> form)
-        {
-            using var content = new FormUrlEncodedContent(form);
-            using var response = await GoogleDriveHttpClient.PostAsync("https://oauth2.googleapis.com/token", content);
-            var json = JObject.Parse(await response.Content.ReadAsStringAsync());
-            if (!response.IsSuccessStatusCode)
-                throw new GoogleTokenException(json.Value<string>("error"), json.Value<string>("error_description"));
-
-            return json;
-        }
-
-        private static void SetGoogleDriveAccessToken(JObject token)
-        {
-            googleDriveAccessToken = token.Value<string>("access_token");
-            var expiresIn = token.Value<int?>("expires_in") ?? 3600;
-            googleDriveAccessTokenExpiry = DateTime.UtcNow.AddSeconds(expiresIn - 60);
-        }
-
-        private static void ClearGoogleDriveCredentials()
-        {
-            googleDriveAccessToken = null;
-            googleDriveAccessTokenExpiry = DateTime.MinValue;
-            VRCXStorage.Instance.Remove(GoogleDriveRefreshTokenKey);
-            VRCXStorage.Instance.Remove(GoogleDriveEmailKey);
-            VRCXStorage.Instance.Save();
-        }
-
         private static string BuildQueryString(Dictionary<string, string> values)
         {
             var parts = new List<string>();
@@ -438,11 +312,6 @@ namespace VRCX
             return result;
         }
 
-        private static string ToBase64Url(byte[] bytes)
-        {
-            return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-        }
-
         private static void TryDeleteFile(string path)
         {
             try
@@ -453,17 +322,6 @@ namespace VRCX
             catch (Exception ex)
             {
                 logger.Warn(ex, "Failed to delete temporary file {path}", path);
-            }
-        }
-
-        private sealed class GoogleTokenException : Exception
-        {
-            public string Error { get; }
-
-            public GoogleTokenException(string error, string description)
-                : base($"Google 認証エラー: {description ?? error}")
-            {
-                Error = error;
             }
         }
     }

@@ -217,12 +217,15 @@ declare global {
         OpenFolderSelectorDialog(defaultPath?: string): Promise<string>;
         OpenFileSelectorDialog(defaultPath?: string, defaultExt?: string, defaultFilter?: string): Promise<string>;
         ImportDatabase(source: string | ArrayBuffer): Promise<boolean>;
-        GoogleDriveGetStatus(): Promise<string>;
-        GoogleDriveSignIn(): Promise<string>;
+        GoogleDriveGetOAuthConfig(): Promise<string>;
+        GoogleDriveLoadCredentials(): Promise<string>;
+        GoogleDriveSaveCredentials(credentialsJson: string): Promise<void>;
+        GoogleDriveRequestAuthorizationCode(requestJson: string): Promise<string>;
         GoogleDriveCancelSignIn(): Promise<void>;
-        GoogleDriveSignOut(): Promise<void>;
-        GoogleDriveBackup(): Promise<string>;
-        GoogleDriveRestore(): Promise<boolean>;
+        GoogleDriveExchangeToken(formJson: string): Promise<string>;
+        GoogleDriveRevokeToken(refreshToken: string): Promise<void>;
+        GoogleDriveUploadDatabase(accessToken: string): Promise<string>;
+        GoogleDriveDownloadDatabase(fileId: string, accessToken: string): Promise<boolean>;
 
         // Game Handler
         OnProcessStateChanged(monitoredProcess: any): Promise<void>;

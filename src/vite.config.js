@@ -169,6 +169,11 @@ export default defineConfig(({ mode }) => {
                     target: 'http://127.0.0.1:8788',
                     changeOrigin: true,
                     secure: false
+                },
+                '/api/google': {
+                    target: 'http://127.0.0.1:8788',
+                    changeOrigin: true,
+                    secure: false
                 }
             }
         },

@@ -412,9 +412,95 @@ class BrowserSQLiteRuntime {
             return true;
         });
     }
+
+    async exportDatabase() {
+        await this.ready;
+        let bytes = new Uint8Array(0);
+        await this.enqueue(async () => {
+            bytes = this.db.export();
+        });
+        return bytes;
+    }
 }
 
 const browserSQLiteRuntime = new BrowserSQLiteRuntime();
+
+const GOOGLE_OAUTH_MESSAGE_SOURCE = 'vrcxf-google-oauth';
+const GOOGLE_OAUTH_CALLBACK_PATH = '/google-oauth-callback.html';
+const googleDriveCredentialsKey = 'vrcx-google-drive-credentials';
+
+async function exportDatabaseBlob() {
+    return new Blob([await browserSQLiteRuntime.exportDatabase()], { type: 'application/vnd.sqlite3' });
+}
+
+let googleOAuthPopup = null;
+
+function closeGoogleOAuthPopup() {
+    if (googleOAuthPopup && !googleOAuthPopup.closed) {
+        googleOAuthPopup.close();
+    }
+    googleOAuthPopup = null;
+}
+
+function requestAuthorizationCodeViaPopup(request) {
+    closeGoogleOAuthPopup();
+    const popup = window.open('about:blank', 'vrcxf-google-oauth', 'width=520,height=640');
+    if (!popup) {
+        return Promise.reject(new Error('ポップアップがブロックされました。許可してからもう一度お試しください。'));
+    }
+    googleOAuthPopup = popup;
+
+    const redirectUri = `${window.location.origin}${GOOGLE_OAUTH_CALLBACK_PATH}`;
+    const params = new URLSearchParams({
+        client_id: request.clientId,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        scope: request.scope,
+        code_challenge: request.codeChallenge,
+        code_challenge_method: 'S256',
+        state: request.state,
+        access_type: 'offline',
+        prompt: 'consent'
+    });
+    popup.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+
+    return new Promise((resolve, reject) => {
+        let pollTimer;
+
+        const finish = (error, code) => {
+            window.removeEventListener('message', onMessage);
+            clearInterval(pollTimer);
+            closeGoogleOAuthPopup();
+            if (error) {
+                reject(error);
+                return;
+            }
+            resolve(JSON.stringify({ code, redirectUri }));
+        };
+
+        const onMessage = (event) => {
+            if (event.origin !== window.location.origin || event.data?.source !== GOOGLE_OAUTH_MESSAGE_SOURCE) {
+                return;
+            }
+            if (event.data.error) {
+                finish(new Error(`Google の認証が拒否されました: ${event.data.error}`));
+                return;
+            }
+            if (event.data.state !== request.state) {
+                finish(new Error('不正な認証応答です。'));
+                return;
+            }
+            finish(null, event.data.code);
+        };
+
+        window.addEventListener('message', onMessage);
+        pollTimer = setInterval(() => {
+            if (popup.closed) {
+                finish(new Error('Google の認証がキャンセルされました。'));
+            }
+        }, 500);
+    });
+}
 
 if (typeof document !== 'undefined') {
     const flushPersist = () => {
@@ -1141,19 +1227,71 @@ const BrowserAppApi = new Proxy(
         async OVRTNotification(hudNotification, wristNotification, title, body, timeout, opacity, image) {
             await showDesktopNotification(title, body, image);
         },
-        async GoogleDriveGetStatus() {
-            return JSON.stringify({ configured: false, signedIn: false, email: '', backup: null, error: null });
+        async GoogleDriveLoadCredentials() {
+            return localStorage.getItem(googleDriveCredentialsKey) ?? '{}';
         },
-        async GoogleDriveSignIn() {
-            throw new Error('Google Drive backup is not supported in the browser.');
+        async GoogleDriveSaveCredentials(credentialsJson) {
+            if (!JSON.parse(credentialsJson).refreshToken) {
+                localStorage.removeItem(googleDriveCredentialsKey);
+                return;
+            }
+            localStorage.setItem(googleDriveCredentialsKey, credentialsJson);
         },
-        async GoogleDriveCancelSignIn() {},
-        async GoogleDriveSignOut() {},
-        async GoogleDriveBackup() {
-            throw new Error('Google Drive backup is not supported in the browser.');
+        async GoogleDriveGetOAuthConfig() {
+            try {
+                const response = await fetch('/api/google/config');
+                if (!response.ok) {
+                    return JSON.stringify({ clientId: '' });
+                }
+                return JSON.stringify({ clientId: (await response.json()).clientId ?? '' });
+            } catch {
+                return JSON.stringify({ clientId: '' });
+            }
         },
-        async GoogleDriveRestore() {
-            return false;
+        GoogleDriveRequestAuthorizationCode(requestJson) {
+            return requestAuthorizationCodeViaPopup(JSON.parse(requestJson));
+        },
+        async GoogleDriveCancelSignIn() {
+            closeGoogleOAuthPopup();
+        },
+        async GoogleDriveExchangeToken(formJson) {
+            const response = await fetch('/api/google/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: formJson
+            });
+            return response.text();
+        },
+        async GoogleDriveRevokeToken(refreshToken) {
+            await fetch('/api/google/revoke', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: refreshToken })
+            });
+        },
+        async GoogleDriveUploadDatabase(accessToken) {
+            const metadata = JSON.stringify({ name: 'VRCX.sqlite3', parents: ['appDataFolder'] });
+            const body = new FormData();
+            body.append('metadata', new Blob([metadata], { type: 'application/json' }));
+            body.append('file', await exportDatabaseBlob());
+
+            const response = await fetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+                { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body }
+            );
+            if (!response.ok) {
+                throw new Error(`Google Drive API エラー (${response.status}): ${await response.text()}`);
+            }
+            return (await response.json()).id;
+        },
+        async GoogleDriveDownloadDatabase(fileId, accessToken) {
+            const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (!response.ok) {
+                throw new Error(`Google Drive API エラー (${response.status}): ${await response.text()}`);
+            }
+            return browserSQLiteRuntime.importDatabase(await response.arrayBuffer());
         }
     },
     {
