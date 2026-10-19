@@ -9,24 +9,24 @@ VRCXF 本体（Web）側の Google Drive バックアップは、共通ロジッ
 iOS アプリは Browser ビルド（`build/html`）を `WKURLSchemeHandler` 経由で `<scheme>://app` から配信している。`src/index.html` のランタイム判定は次のとおりで、iOS では `CefSharp` も `window.electron` も存在しないため `BROWSER === true` になる。
 
 ```js
-BROWSER = typeof CefSharp === 'undefined' && typeof window.electron === 'undefined'
+BROWSER = typeof CefSharp === 'undefined' && typeof window.electron === 'undefined';
 ```
 
 したがって **iOS では既定で `src/ipc-browser/index.js` の実装が使われる**。Swift 側がフックを担うには、JS 側に「ネイティブブリッジがあればそちらへ委譲する」シムが必要になる（§3）。
 
 ### iOS で Swift 実装が必要なフック
 
-| フック | iOS での担当 | 理由 |
-| --- | --- | --- |
-| `GoogleDriveGetOAuthConfig` | **Swift** | iOS 専用 OAuth クライアント ID を返すため |
-| `GoogleDriveRequestAuthorizationCode` | **Swift** | `window.open` が WKWebView で成立しない。`ASWebAuthenticationSession` を使う |
-| `GoogleDriveCancelSignIn` | **Swift** | 認証セッションのキャンセル |
-| `GoogleDriveExchangeToken` | **Swift** | 独自スキームオリジンから Google のトークンエンドポイントへ直接 `fetch` できるか保証がないため |
-| `GoogleDriveRevokeToken` | **Swift** | 同上 |
-| `GoogleDriveLoadCredentials` | Browser 実装を流用 | `localStorage` |
-| `GoogleDriveSaveCredentials` | Browser 実装を流用 | `localStorage` |
-| `GoogleDriveUploadDatabase` | Browser 実装を流用 | sql.js の `export()` + `fetch`。Drive API は CORS 対応 |
-| `GoogleDriveDownloadDatabase` | Browser 実装を流用 | `fetch` + 既存の `importDatabase` |
+| フック                                | iOS での担当       | 理由                                                                                          |
+| ------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| `GoogleDriveGetOAuthConfig`           | **Swift**          | iOS 専用 OAuth クライアント ID を返すため                                                     |
+| `GoogleDriveRequestAuthorizationCode` | **Swift**          | `window.open` が WKWebView で成立しない。`ASWebAuthenticationSession` を使う                  |
+| `GoogleDriveCancelSignIn`             | **Swift**          | 認証セッションのキャンセル                                                                    |
+| `GoogleDriveExchangeToken`            | **Swift**          | 独自スキームオリジンから Google のトークンエンドポイントへ直接 `fetch` できるか保証がないため |
+| `GoogleDriveRevokeToken`              | **Swift**          | 同上                                                                                          |
+| `GoogleDriveLoadCredentials`          | Browser 実装を流用 | `localStorage`                                                                                |
+| `GoogleDriveSaveCredentials`          | Browser 実装を流用 | `localStorage`                                                                                |
+| `GoogleDriveUploadDatabase`           | Browser 実装を流用 | sql.js の `export()` + `fetch`。Drive API は CORS 対応                                        |
+| `GoogleDriveDownloadDatabase`         | Browser 実装を流用 | `fetch` + 既存の `importDatabase`                                                             |
 
 Swift 側の実装は **5 本**。
 
@@ -50,26 +50,35 @@ https://www.googleapis.com/auth/drive.appdata
 
 1. OAuth クライアント ID を新規作成（アプリケーションの種類: **iOS**）
 2. バンドル ID にアプリの bundle identifier を設定
-3. 発行された **クライアント ID** を Swift 側に埋め込む（secret は発行されない）
-4. `Info.plist` の `CFBundleURLTypes` に逆ドメイン形式のスキームを登録
+3. 発行された **クライアント ID** を `VRCXF/Info.plist` の `GoogleDriveClientID` キーに設定する（secret は発行されない）。3 ターゲットが同じ `Info.plist` を使うため設定は 1 か所で済む
+4. `CFBundleURLTypes` への登録は不要。`ASWebAuthenticationSession` が `callbackURLScheme` で指定したスキームを自前で受け取るため
 
-## 3. JS 側の委譲シム（VRCXF 本体の未実装分）
+リダイレクト URI は Swift 側がクライアント ID から導出する。
 
-`src/ipc-browser/index.js` の Google Drive フックを、ネイティブブリッジがあればそちらへ委譲する形に変更する必要がある。Swift 側は次のメッセージハンドラ名を公開する。
+```
+com.googleusercontent.apps.<クライアント ID から .apps.googleusercontent.com を除いた部分>:/oauth2redirect
+```
+
+## 3. JS 側の委譲シム
+
+`src/ipc-browser/index.js` に実装済み。Swift 側は次のメッセージハンドラ名を公開する。
 
 ```
 window.webkit.messageHandlers.googleDrive
 ```
 
-JS からの呼び出しは単一ハンドラに対する `postMessage` とし、`{ method, args }` を渡して戻り値を受け取る。
+JS からの呼び出しは単一ハンドラに対する `postMessage` とし、`{ method, args }` を渡して戻り値を受け取る。ブリッジが存在しない場合は Browser 実装へフォールバックする。
 
 ```js
-const nativeGoogleDrive = globalThis.webkit?.messageHandlers?.googleDrive ?? null;
-
-function callNativeGoogleDrive(method, args) {
-    return nativeGoogleDrive.postMessage({ method, args });
+function delegateToNativeGoogleDrive(method, args) {
+  const bridge = globalThis.webkit?.messageHandlers?.googleDrive;
+  return bridge ? bridge.postMessage({ method, args }) : null;
 }
 ```
+
+`args` は文字列の配列で、Swift 側は `args[0]` のみを読む。`GoogleDriveGetOAuthConfig` と `GoogleDriveCancelSignIn` は空配列を渡す。
+
+`GoogleDriveGetOAuthConfig` / `GoogleDriveRequestAuthorizationCode` / `GoogleDriveExchangeToken` は文字列で resolve する。`GoogleDriveCancelSignIn` / `GoogleDriveRevokeToken` は値なしで resolve する。失敗時は reject され、エラーメッセージは英語の短い説明になる。
 
 `WKScriptMessageHandlerWithReply`（iOS 14+）を使うと `postMessage` が Promise を返すため、既存のフック定義（すべて `Promise` を返す）とそのまま噛み合う。片方向の `WKScriptMessageHandler` では戻り値を返せないので使えない。
 
@@ -135,17 +144,17 @@ Swift 側の責務:
 1. リダイレクト URI を自分で決める（`com.googleusercontent.apps.<...>:/oauth2redirect`）
 2. 認可 URL を組み立てる。クエリは以下を**すべて**付与する
 
-   | パラメータ | 値 |
-   | --- | --- |
-   | `client_id` | 引数の `clientId` |
-   | `redirect_uri` | Swift が決めたリダイレクト URI |
-   | `response_type` | `code` |
-   | `scope` | 引数の `scope` |
-   | `code_challenge` | 引数の `codeChallenge` |
-   | `code_challenge_method` | `S256` |
-   | `state` | 引数の `state` |
-   | `access_type` | `offline` |
-   | `prompt` | `consent` |
+   | パラメータ              | 値                             |
+   | ----------------------- | ------------------------------ |
+   | `client_id`             | 引数の `clientId`              |
+   | `redirect_uri`          | Swift が決めたリダイレクト URI |
+   | `response_type`         | `code`                         |
+   | `scope`                 | 引数の `scope`                 |
+   | `code_challenge`        | 引数の `codeChallenge`         |
+   | `code_challenge_method` | `S256`                         |
+   | `state`                 | 引数の `state`                 |
+   | `access_type`           | `offline`                      |
+   | `prompt`                | `consent`                      |
 
    `access_type=offline` と `prompt=consent` は **リフレッシュトークンを確実に得るために必須**。欠けると共通層が「Google からリフレッシュトークンを取得できませんでした。」で失敗する。
 
@@ -230,12 +239,12 @@ Swift 側の責務: 受け取ったフィールドに `client_id` を加えて `
 
 以下は Swift 実装不要。委譲シムは `nativeGoogleDrive` が無いか、該当メソッドを公開していない場合に既存の Browser 実装へフォールバックする。
 
-| フック | Browser 実装の挙動 |
-| --- | --- |
-| `GoogleDriveLoadCredentials` | `localStorage` の `vrcx-google-drive-credentials` を返す。未保存なら `"{}"` |
-| `GoogleDriveSaveCredentials` | `refreshToken` が空なら削除、それ以外は JSON をそのまま保存 |
-| `GoogleDriveUploadDatabase` | sql.js の `export()` を `Blob` にして multipart で `appDataFolder` にアップロード。アップロードしたファイル ID を返す |
-| `GoogleDriveDownloadDatabase` | `alt=media` で取得し、既存の `importDatabase` で IndexedDB ごと差し替える。成否を `boolean` で返す |
+| フック                        | Browser 実装の挙動                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `GoogleDriveLoadCredentials`  | `localStorage` の `vrcx-google-drive-credentials` を返す。未保存なら `"{}"`                                           |
+| `GoogleDriveSaveCredentials`  | `refreshToken` が空なら削除、それ以外は JSON をそのまま保存                                                           |
+| `GoogleDriveUploadDatabase`   | sql.js の `export()` を `Blob` にして multipart で `appDataFolder` にアップロード。アップロードしたファイル ID を返す |
+| `GoogleDriveDownloadDatabase` | `alt=media` で取得し、既存の `importDatabase` で IndexedDB ごと差し替える。成否を `boolean` で返す                    |
 
 資格情報の JSON 形状:
 
@@ -266,17 +275,18 @@ Swift 側で**実装してはならない**責務。二重実装すると不整�
 
 Swift 側:
 
+- [x] `WKScriptMessageHandlerWithReply` を実装し、`addScriptMessageHandler(_:contentWorld:name:)` で `googleDrive` として登録
+- [x] `GoogleDriveGetOAuthConfig` / `RequestAuthorizationCode` / `CancelSignIn` / `ExchangeToken` / `RevokeToken` の 5 メソッドをディスパッチ
+- [x] `ASWebAuthenticationSession` の `presentationContextProvider` を実装
+- [x] `state` 検証を実装
+- [x] `ExchangeToken` がエラーレスポンスのボディをそのまま返すことを確認
 - [ ] Google Cloud Console で iOS タイプの OAuth クライアントを作成し、クライアント ID を取得
-- [ ] `Info.plist` の `CFBundleURLTypes` に逆ドメイン形式スキームを登録
-- [ ] `WKScriptMessageHandlerWithReply` を実装し、`addScriptMessageHandler(_:contentWorld:name:)` で `googleDrive` として登録
-- [ ] `GoogleDriveGetOAuthConfig` / `RequestAuthorizationCode` / `CancelSignIn` / `ExchangeToken` / `RevokeToken` の 5 メソッドをディスパッチ
-- [ ] `ASWebAuthenticationSession` の `presentationContextProvider` を実装
-- [ ] `state` 検証を実装
-- [ ] `ExchangeToken` がエラーレスポンスのボディをそのまま返すことを確認
+- [ ] クライアント ID を `Info.plist` の `GoogleDriveClientID` に設定
+- [ ] 実機 / シミュレータでの動作確認
 
-VRCXF 本体側（別途実装が必要）:
+VRCXF 本体側:
 
-- [ ] `src/ipc-browser/index.js` にネイティブブリッジ委譲シムを追加
-- [ ] ブリッジ非在時に既存の Browser 実装へフォールバックすることを確認
+- [x] `src/ipc-browser/index.js` にネイティブブリッジ委譲シムを追加
+- [x] ブリッジ非在時に既存の Browser 実装へフォールバック
 
 `VRCXF.xcodeproj/project.pbxproj` は Xcode が管理するため直接編集しない。新規ファイルの追加は Xcode 上で行う。

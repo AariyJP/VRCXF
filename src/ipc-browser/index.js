@@ -429,6 +429,11 @@ const GOOGLE_OAUTH_MESSAGE_SOURCE = 'vrcxf-google-oauth';
 const GOOGLE_OAUTH_CALLBACK_PATH = '/google-oauth-callback.html';
 const googleDriveCredentialsKey = 'vrcx-google-drive-credentials';
 
+function delegateToNativeGoogleDrive(method, args) {
+    const bridge = globalThis.webkit?.messageHandlers?.googleDrive;
+    return bridge ? bridge.postMessage({ method, args }) : null;
+}
+
 async function exportDatabaseBlob() {
     return new Blob([await browserSQLiteRuntime.exportDatabase()], { type: 'application/vnd.sqlite3' });
 }
@@ -1238,6 +1243,10 @@ const BrowserAppApi = new Proxy(
             localStorage.setItem(googleDriveCredentialsKey, credentialsJson);
         },
         async GoogleDriveGetOAuthConfig() {
+            const native = delegateToNativeGoogleDrive('GoogleDriveGetOAuthConfig', []);
+            if (native) {
+                return native;
+            }
             try {
                 const response = await fetch('/api/google/config');
                 if (!response.ok) {
@@ -1249,12 +1258,24 @@ const BrowserAppApi = new Proxy(
             }
         },
         GoogleDriveRequestAuthorizationCode(requestJson) {
-            return requestAuthorizationCodeViaPopup(JSON.parse(requestJson));
+            return (
+                delegateToNativeGoogleDrive('GoogleDriveRequestAuthorizationCode', [requestJson]) ??
+                requestAuthorizationCodeViaPopup(JSON.parse(requestJson))
+            );
         },
         async GoogleDriveCancelSignIn() {
+            const native = delegateToNativeGoogleDrive('GoogleDriveCancelSignIn', []);
+            if (native) {
+                await native;
+                return;
+            }
             closeGoogleOAuthPopup();
         },
         async GoogleDriveExchangeToken(formJson) {
+            const native = delegateToNativeGoogleDrive('GoogleDriveExchangeToken', [formJson]);
+            if (native) {
+                return native;
+            }
             const response = await fetch('/api/google/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1263,6 +1284,11 @@ const BrowserAppApi = new Proxy(
             return response.text();
         },
         async GoogleDriveRevokeToken(refreshToken) {
+            const native = delegateToNativeGoogleDrive('GoogleDriveRevokeToken', [refreshToken]);
+            if (native) {
+                await native;
+                return;
+            }
             await fetch('/api/google/revoke', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
