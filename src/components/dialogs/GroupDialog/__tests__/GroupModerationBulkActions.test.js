@@ -65,6 +65,7 @@ describe('GroupModerationBulkActions.vue', () => {
     });
 
     describe('rendering', () => {
+
         test('renders selected users section', () => {
             const wrapper = mountComponent();
             expect(wrapper.text()).toContain('dialog.group_member_moderation.selected_users');
@@ -210,6 +211,7 @@ describe('GroupModerationBulkActions.vue', () => {
     });
 
     describe('events', () => {
+
         test('emits delete-user when removing a selected user', async () => {
             const user = {
                 id: 'usr_1',
