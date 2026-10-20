@@ -1,4 +1,4 @@
-import type { CurrentUser, Favorite, Group, Instance, Notification, User, World } from 'vrchat';
+import type { CurrentUser, Favorite, Group, Instance, Notification, UpdateInstanceRequest, User, World } from 'vrchat';
 
 // cursed line to convert Date and bigint to expected types
 export type Json<T> = T extends Date
@@ -83,6 +83,36 @@ export interface VrcxGroup extends Json<Group> {
 export interface VrcxInstance extends Json<Instance> {
     $fetchedAt: string;
     $disabledContentSettings: string[];
+}
+
+export interface InstanceCount {
+    asOf: string;
+    events: number;
+    instances: number;
+}
+
+export interface VrcxUpdateInstanceRequest {
+    location: string;
+    calendarEntryId?: UpdateInstanceRequest['calendarEntryId'];
+    displayName?: string | null;
+}
+
+export interface MarketplaceAvatarSearchParams {
+    n: number;
+    offset: number;
+    search: string;
+    releaseStatus: string;
+    order: string;
+    marketplace: string;
+    metadata: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    performanceAtLeast?: string;
+    platform?: string;
+    minUnityVersion?: string;
+    maxUnityVersion?: string;
+    minAssetVersion?: number;
+    maxAssetVersion?: number;
 }
 
 export interface VrcxWorld extends Json<World> {

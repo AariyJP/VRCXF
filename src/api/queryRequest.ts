@@ -4,7 +4,9 @@ import avatarRequest from './avatar';
 import favoriteRequest from './favorite';
 
 import groupRequest from './group';
+import instanceRequest from './instance';
 import inventoryRequest from './inventory';
+import marketplaceRequest from './marketplace';
 import miscRequest from './misc';
 import userRequest from './user';
 
@@ -173,6 +175,11 @@ const registry = Object.freeze({
         policy: entityQueryPolicies.visits,
         queryFn: () => miscRequest.getVisits()
     },
+    instanceCount: {
+        key: () => queryKeys.instanceCount(),
+        policy: entityQueryPolicies.instanceCount,
+        queryFn: () => instanceRequest.getInstanceCount()
+    },
     file: {
         key: (params) => queryKeys.file(params.fileId),
         policy: entityQueryPolicies.fileObject,
@@ -191,7 +198,7 @@ const registry = Object.freeze({
     vrchatCredits: {
         key: () => queryKeys.vrchatCredits(),
         policy: entityQueryPolicies.vrchatCredits,
-        queryFn: () => miscRequest.getVRChatCredits()
+        queryFn: () => marketplaceRequest.getVRChatCredits()
     }
 });
 

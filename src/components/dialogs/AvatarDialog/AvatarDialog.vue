@@ -212,10 +212,26 @@
                                         <RefreshCw class="size-4" />
                                         {{ t('dialog.avatar.actions.refresh') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem @click="avatarDialogCommand('Share')">
-                                        <Share2 class="size-4" />
-                                        {{ t('dialog.avatar.actions.share') }}
-                                    </DropdownMenuItem>
+                                    <DropdownMenuSub>
+                                        <DropdownMenuSubTrigger @click="avatarDialogCommand('Share')">
+                                            <Share2 class="size-4 mr-2" />
+                                            <span>{{ t('dialog.avatar.actions.share') }}</span>
+                                        </DropdownMenuSubTrigger>
+                                        <DropdownMenuSubContent side="right" align="start" class="w-56">
+                                            <DropdownMenuItem @click="avatarDialogCommand('Share')">
+                                                <Copy class="size-4" />
+                                                {{ t('dialog.avatar.info.copy_url') }}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem @click="avatarDialogCommand('Copy Avatar Name')">
+                                                <Copy class="size-4" />
+                                                {{ t('dialog.avatar.info.copy_name') }}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem @click="avatarDialogCommand('Copy Avatar ID')">
+                                                <Copy class="size-4" />
+                                                {{ t('dialog.avatar.info.copy_id') }}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                         v-if="avatarDialog.isBlocked"
@@ -555,7 +571,7 @@
                                 </div>
                                 <div
                                     v-for="listing in avatarDialog.ref.publishedListings"
-                                    :key="listing.id"
+                                    :key="listing.listingId"
                                     class="box-border flex items-center p-1.5 text-[13px] w-full cursor-default">
                                     <div class="relative inline-block flex-none size-24 mr-2.5">
                                         <img
@@ -578,6 +594,18 @@
                                             style="text-overflow: ellipsis; text-wrap: auto"
                                             v-text="listing.description"></span>
                                     </div>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        class="flex-none ml-2"
+                                        :disabled="isListingOwned(listing) || !canPurchaseListing(listing)"
+                                        @click="purchaseListing(listing)">
+                                        {{
+                                            isListingOwned(listing)
+                                                ? t('view.search.store.owned')
+                                                : t('view.search.store.buy')
+                                        }}
+                                    </Button>
                                 </div>
                             </div>
                             <div class="my-2 text-xs rounded-xl bg-(--profile-card) p-3">
@@ -694,10 +722,13 @@
         DropdownMenuContent,
         DropdownMenuItem,
         DropdownMenuSeparator,
+        DropdownMenuSub,
+        DropdownMenuSubContent,
+        DropdownMenuSubTrigger,
         DropdownMenuTrigger
     } from '../../ui/dropdown-menu';
     import { Badge } from '../../ui/badge';
-    import { avatarRequest, miscRequest } from '../../../api';
+    import { avatarRequest, marketplaceRequest, miscRequest } from '../../../api';
     import { database } from '../../../services/database';
     import { formatJsonVars } from '../../../shared/utils/base/ui';
     import { queryAcrossWindows } from '../../../lib/activeWindowTracker';
@@ -719,8 +750,9 @@
     import SetAvatarTagsDialog from './SetAvatarTagsDialog.vue';
     import { AppDebug } from '@/services/appConfig';
 
-    const { sortUserDialogAvatars } = useUserStore();
-    const { userDialog, currentUser } = storeToRefs(useUserStore());
+    const { sortUserDialogAvatars, getAllProductPurchases } = useUserStore();
+    const { userDialog, currentUser, currentUserCredits, ownedListingIds, ownedProductIds } =
+        storeToRefs(useUserStore());
     const avatarStore = useAvatarStore();
     const { cachedAvatarModerations, cachedAvatars } = avatarStore;
     const { avatarDialog } = storeToRefs(avatarStore);
@@ -924,6 +956,17 @@
         treeData.value = {};
         getAvatarTimeSpent();
         getAvatarMemo();
+    }
+
+    function isListingOwned(listing) {
+        return (
+            ownedListingIds.value.has(listing.listingId) ||
+            ownedProductIds.value.has(avatarDialog.value.ref.productId)
+        );
+    }
+
+    function canPurchaseListing(listing) {
+        return currentUserCredits.value !== null && currentUserCredits.value >= listing.priceTokens;
     }
 
     function getAvatarTimeSpent() {
@@ -1152,5 +1195,30 @@
             console.error('Failed to delete gallery image', error);
         }
         await getAvatarGallery(avatarId);
+    }
+
+    async function purchaseListing(listing) {
+        const { ok } = await modalStore.confirm({
+            title: t('confirm.title'),
+            description: t('dialog.avatar.info.purchase_confirm', {
+                name: listing.displayName,
+                price: commaNumber(listing.priceTokens)
+            })
+        });
+        if (!ok) {
+            return;
+        }
+        try {
+            await marketplaceRequest.purchaseListing({
+                listingId: listing.listingId,
+                totalPrice: listing.priceTokens,
+                quantity: 1
+            });
+            toast.success(t('dialog.avatar.info.purchase_success'));
+        } catch (error) {
+            console.error('Failed to purchase listing', error);
+        } finally {
+            getAllProductPurchases();
+        }
     }
 </script>

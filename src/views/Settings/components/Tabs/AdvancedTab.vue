@@ -461,6 +461,9 @@
                     <span v-if="visits !== null" class="text-sm text-muted-foreground">{{
                         t('view.profile.game_info.user_online', { count: visits })
                     }}</span>
+                    <span v-if="instanceCount !== null" class="text-sm text-muted-foreground">{{
+                        t('view.profile.game_info.instances_active', { count: instanceCount })
+                    }}</span>
                     <Button size="sm" variant="outline" @click="getVisits">{{ t('common.actions.refresh') }}</Button>
                 </div>
             </SettingsItem>
@@ -758,6 +761,7 @@
 
     const configTreeData = ref({});
     const visits = ref(null);
+    const instanceCount = ref(null);
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
     const dbFileInputRef = ref(null);
@@ -1035,6 +1039,9 @@
     function getVisits() {
         queryRequest.fetch('visits').then((args) => {
             visits.value = args.json;
+        });
+        queryRequest.fetch('instanceCount').then((args) => {
+            instanceCount.value = args.json.instances;
         });
     }
 

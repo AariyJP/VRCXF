@@ -357,6 +357,18 @@
                 "sort_update": "Sort by update",
                 "sort_created": "Sort by created"
             },
+            "marketplace": {
+                "header": "Marketplace"
+            },
+            "store": {
+                "header": "VRChat Store",
+                "refresh_tooltip": "Refresh store",
+                "free": "Free",
+                "vrc_plus_price": "{price} with VRC+",
+                "credits": "{credits}V",
+                "buy": "Buy",
+                "owned": "Owned"
+            },
             "group": {
                 "header": "Group"
             }
@@ -736,6 +748,7 @@
                 "header": "Game Info",
                 "online_users": "Online Users",
                 "user_online": "{count} users online.",
+                "instances_active": "{count} active instances.",
                 "refresh": "Click to refresh"
             },
             "config_json": "Config JSON",
@@ -1424,6 +1437,7 @@
                 "instance_users": "Users:",
                 "instance_friends_tooltip": "Friends in this instance",
                 "instance_game_version": "Game Version:",
+                "instance_languages": "Languages:",
                 "last_join": "Last Join",
                 "instance_queuing_enabled": "Queuing Enabled",
                 "instance_disabled_content": "Disabled Content:",
@@ -1463,6 +1477,7 @@
                 "instance_age_restricted": "Restricted",
                 "instance_age_restricted_tooltip": "In an age-restricted instance",
                 "close_instance": "Close Instance",
+                "rename_instance": "Rename Instance",
                 "instance_age_gated": "Age Gated",
                 "instance_role_restricted": "Role Restricted",
                 "instance_calendar_event": "Calendar Event",
@@ -1473,7 +1488,8 @@
                 "instance_minimum_avatar_performance": "Minimum Avatar Performance",
                 "current_instance": "Current Instance",
                 "economy_creator": "Economy Creator",
-                "instance_announcement_tooltip": "Send Instance Announcement"
+                "instance_announcement_tooltip": "Send Instance Announcement",
+                "instance_calendar_link_tooltip": "Assign Group Event"
             },
             "groups": {
                 "header": "Groups",
@@ -1528,6 +1544,7 @@
                 "all": "All",
                 "public": "Public",
                 "private": "Private",
+                "purchased": "Purchased",
                 "group_by": "Group by:"
             },
             "json": {
@@ -1676,6 +1693,9 @@
                 "time_spent": "Time Spent",
                 "description": "Description"
             },
+            "store": {
+                "header": "Store"
+            },
             "json": {
                 "header": "JSON"
             }
@@ -1739,6 +1759,7 @@
                 "id_tooltip": "Copy to clipboard",
                 "copy_id": "Copy ID",
                 "copy_url": "Copy URL",
+                "copy_name": "Copy Name",
                 "created_at": "Created At",
                 "last_updated": "Last Updated",
                 "version": "Version",
@@ -1752,6 +1773,8 @@
                 "memo": "Memo",
                 "memo_placeholder": "Click to add a memo",
                 "listings": "Listings",
+                "purchase_confirm": "Purchase {name} for {price} VRC Credits? VRC Credits are purchased with real money and this purchase cannot be reversed.",
+                "purchase_success": "Purchase successful",
                 "gallery": "Gallery",
                 "gallery_move_left": "Move Left",
                 "gallery_move_right": "Move Right",
@@ -1796,6 +1819,7 @@
             "starts_at": "Starts At",
             "ends_at": "Ends At",
             "invalid_date_range": "The event must end after it starts.",
+            "start_in_past": "The event must start in the future.",
             "access_type": "Access",
             "access_group": "Group",
             "access_public": "Public",
@@ -2920,6 +2944,14 @@
             "select_image": "Select Image",
             "sending": "Sending...",
             "send": "Send Announcement"
+        },
+        "instance_calendar_link": {
+            "header": "Assign Group Event",
+            "event": "Event",
+            "no_events": "No events starting within the next 6 hours or ended within the last 6 hours",
+            "assign": "Assign",
+            "remove": "Remove Link",
+            "saving": "Saving..."
         }
     },
     "confirm": {
@@ -3021,6 +3053,10 @@
             "cancel": "Cancel",
             "ok": "OK",
             "input_error": "Valid number is required"
+        },
+        "rename_instance": {
+            "header": "Rename Instance",
+            "description": "Enter instance name, leave empty to clear"
         },
         "rename_avatar": {
             "header": "Rename Avatar",
@@ -3187,6 +3223,7 @@
         },
         "instance": {
             "closed": "Instance closed",
+            "renamed": "Instance renamed",
             "removed_form_queue": "Removed instance {worldName} from queue",
             "not_allowed": "You're not allowed to access this instance",
             "create_failed": "Failed to create instance",
