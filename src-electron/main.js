@@ -328,7 +328,6 @@ function createWindow() {
         height,
         icon: path.join(rootDir, 'images/VRCX.png'),
         autoHideMenuBar: true,
-        titleBarStyle: 'hiddenInset',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
