@@ -83,7 +83,8 @@ module.exports = {
         icon: 'images/VRCX.png',
         category: 'public.app-category.utilities',
         executableName: 'VRCX',
-        minimumSystemVersion: '14.0'
+        minimumSystemVersion: '14.0',
+        identity: null
     },
     win: {
         artifactName: 'VRCX_Version.${ext}',
