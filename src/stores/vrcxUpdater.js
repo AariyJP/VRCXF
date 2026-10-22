@@ -24,6 +24,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
 
     const arch = ref('x64');
     const noUpdater = ref(false);
+    const isPackaged = ref(false);
     const isMacOS = computed(() => navigator.platform.includes('Mac'));
 
     const appVersion = ref('');
@@ -60,7 +61,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         if (isMacOS.value) {
             noUpdater.value = true;
         }
-        if (BROWSER || (WINDOWS && (await AppApi.IsPackaged()))) noUpdater.value = true;
+        if (WINDOWS) isPackaged.value = await AppApi.IsPackaged();
+        if (BROWSER || isPackaged.value) noUpdater.value = true;
 
         const [VRCX_autoUpdateVRCX, VRCX_id] = await Promise.all([
             configRepository.getString('VRCX_autoUpdateVRCX', 'Auto Download'),
@@ -100,6 +102,21 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         if (autoUpdateVRCX.value !== 'Off' && !checkedForUpdatesDuringAnnouncement) {
             await checkForVRCXUpdate();
         }
+        if (isPackaged.value) checkForMicrosoftStoreUpdate();
+    }
+
+    async function checkForMicrosoftStoreUpdate(manual = false) {
+        if (!(await AppApi.CheckMicrosoftStoreUpdate())) {
+            if (manual) toast('最新バージョンです');
+            return;
+        }
+        toast('Microsoft Storeで新バージョンが利用可能です', {
+            duration: 5000,
+            action: {
+                label: '更新',
+                onClick: () => AppApi.InstallMicrosoftStoreUpdate()
+            }
+        });
     }
 
     const currentVersion = computed(() => appVersion.value.replace(' (Linux)', ''));
@@ -507,6 +524,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         updateInProgress,
         updateProgress,
         noUpdater,
+        isPackaged,
 
         setAutoUpdateVRCX,
         setBranch,
@@ -515,6 +533,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         closeWhatsNewDialog,
         openChangeLogDialogOnly,
         checkForVRCXUpdate,
+        checkForMicrosoftStoreUpdate,
         loadBranchVersions,
         installVRCXUpdate,
         showVRCXUpdateDialog,

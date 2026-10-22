@@ -190,6 +190,8 @@ declare global {
         CurrentLanguage(): Promise<string>;
         GetVersion(): Promise<string>;
         IsPackaged(): Promise<boolean>;
+        CheckMicrosoftStoreUpdate(): Promise<boolean>;
+        InstallMicrosoftStoreUpdate(): Promise<boolean>;
         VrcClosedGracefully(): Promise<boolean>;
         GetColourBulk(userIds: string[]): Promise<Record<string, number>>;
         SetAppLauncherSettings(enabled: boolean, killOnExit: boolean, runProcessOnce: boolean): Promise<void>;
