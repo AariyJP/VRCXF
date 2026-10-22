@@ -270,7 +270,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         return { downloadUrl, hashString, size };
     }
     async function checkForVRCXUpdate() {
-        if (BROWSER) {
+        if (BROWSER || currentVersion.value.includes(' 0.0.0-')) {
             return false;
         }
         if (
