@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -113,6 +114,15 @@ namespace VRCX
         public override bool CheckForUpdateExe()
         {
             return File.Exists(Path.Join(Program.AppDataDirectory, "update.exe"));
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetCurrentPackageFullName(ref int packageFullNameLength, StringBuilder packageFullName);
+
+        public bool IsPackaged()
+        {
+            var length = 0;
+            return GetCurrentPackageFullName(ref length, null) != 15700;
         }
 
         public override void ExecuteVrOverlayFunction(string function, string json)

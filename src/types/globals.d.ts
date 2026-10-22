@@ -189,6 +189,7 @@ declare global {
         CurrentCulture(): Promise<string>;
         CurrentLanguage(): Promise<string>;
         GetVersion(): Promise<string>;
+        IsPackaged(): Promise<boolean>;
         VrcClosedGracefully(): Promise<boolean>;
         GetColourBulk(userIds: string[]): Promise<Record<string, number>>;
         SetAppLauncherSettings(enabled: boolean, killOnExit: boolean, runProcessOnce: boolean): Promise<void>;
