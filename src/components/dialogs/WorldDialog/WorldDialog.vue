@@ -336,6 +336,9 @@
                 <template #Instances>
                     <WorldDialogInstancesTab />
                 </template>
+                <template #Store>
+                    <WorldDialogStoreTab ref="storeTabRef" />
+                </template>
                 <template #JSON>
                     <DialogJsonTab
                         class="rounded-xl bg-(--profile-card) p-2"
@@ -440,6 +443,7 @@
     import ImageCropDialog from '../ImageCropDialog.vue';
     import WorldDialogInfo from './WorldDialogInfo.vue';
     import WorldDialogInstancesTab from './WorldDialogInstancesTab.vue';
+    import WorldDialogStoreTab from './WorldDialogStoreTab.vue';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
 
     import NewInstanceDialog from '../NewInstanceDialog/NewInstanceDialog.vue';
@@ -499,10 +503,13 @@
 
     const worldDialogTabs = computed(() => [
         { value: 'Instances', label: t('dialog.world.instances.header') },
+        ...(worldDialog.value.ref.storeId ? [{ value: 'Store', label: t('dialog.world.store.header') }] : []),
         { value: 'JSON', label: t('dialog.world.json.header') }
     ]);
 
+    /** @type {import('vue').Ref<any>} */
     const treeData = ref({});
+    const storeTabRef = ref(null);
     const imageError = ref(false);
 
     watch(
@@ -536,12 +543,18 @@
      */
     function handleWorldDialogTab(tabName) {
         worldDialog.value.lastActiveTab = tabName;
-        if (tabName === 'JSON') {
+        if (tabName === 'Store') {
+            storeTabRef.value?.getWorldListings();
+        } else if (tabName === 'JSON') {
             refreshWorldDialogTreeData();
         }
     }
 
     function loadLastActiveTab() {
+        if (worldDialog.value.lastActiveTab === 'Store' && !worldDialog.value.ref.storeId) {
+            worldDialog.value.activeTab = 'Instances';
+            worldDialog.value.lastActiveTab = 'Instances';
+        }
         handleWorldDialogTab(worldDialog.value.lastActiveTab);
     }
 

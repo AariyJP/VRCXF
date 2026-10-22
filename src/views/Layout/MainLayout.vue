@@ -33,12 +33,7 @@
                                 </RouterView>
                             </ResizablePanel>
 
-                            <ResizableHandle
-                                with-handle
-                                :class="[
-                                    isAsideCollapsed(layout) ? 'opacity-100' : 'opacity-0',
-                                    'z-20 [&>div]:-translate-x-1/2'
-                                ]"></ResizableHandle>
+                            <ResizableHandle class="z-20 opacity-0"></ResizableHandle>
                             <ResizablePanel
                                 ref="asidePanelRef"
                                 :default-size="asideDefaultSize"
@@ -51,47 +46,42 @@
                             </ResizablePanel>
                         </template>
                     </ResizablePanelGroup>
+                    <TooltipWrapper v-if="showAsideExpandButton" side="left" :content="t('nav_tooltip.expand_sidebar')">
+                        <Button
+                            variant="outline"
+                            size="icon-sm"
+                            class="absolute right-0 top-1/2 z-30 -translate-y-1/2 rounded-r-none"
+                            :aria-label="t('nav_tooltip.expand_sidebar')"
+                            @click="asidePanelRef?.expand()">
+                            <ChevronLeft />
+                        </Button>
+                    </TooltipWrapper>
                 </SidebarInset>
             </SidebarProvider>
             <StatusBar />
         </div>
 
         <!-- ## Dialogs ## -->
-        <MainDialogContainer></MainDialogContainer>
-
-        <InviteGroupDialog></InviteGroupDialog>
-
-        <GroupEditDialog></GroupEditDialog>
-
-        <GroupEventEditDialog></GroupEventEditDialog>
-
-        <FullscreenImagePreview></FullscreenImagePreview>
-
-        <LaunchDialog></LaunchDialog>
-
-        <LaunchOptionsDialog></LaunchOptionsDialog>
-
-        <FriendImportDialog></FriendImportDialog>
-
-        <WorldImportDialog></WorldImportDialog>
-
-        <AvatarImportDialog></AvatarImportDialog>
-
-        <ChooseFavoriteGroupDialog></ChooseFavoriteGroupDialog>
-
-        <VRChatConfigDialog></VRChatConfigDialog>
-
-        <PrimaryPasswordDialog></PrimaryPasswordDialog>
-
-        <SendBoopDialog></SendBoopDialog>
-
-        <GlobalToolsDialogs></GlobalToolsDialogs>
-
-        <ChangelogDialog></ChangelogDialog>
-
-        <WhatsNewDialog></WhatsNewDialog>
-
-        <SpotlightDialog></SpotlightDialog>
+        <MainDialogContainer />
+        <InviteGroupDialog />
+        <GroupEditDialog />
+        <GroupEventEditDialog />
+        <FullscreenImagePreview />
+        <LaunchDialog />
+        <LaunchOptionsDialog />
+        <FriendImportDialog />
+        <WorldImportDialog />
+        <AvatarImportDialog />
+        <ChooseFavoriteGroupDialog />
+        <VRChatConfigDialog />
+        <PrimaryPasswordDialog />
+        <SendBoopDialog />
+        <InventoryBundleDialog />
+        <ModerationReportDialog />
+        <GlobalToolsDialogs />
+        <ChangelogDialog />
+        <WhatsNewDialog />
+        <SpotlightDialog />
 
         <WindowTeleport
             v-for="view in popoutViews"
@@ -111,7 +101,10 @@
     import { computed, defineAsyncComponent, nextTick, onUnmounted, ref, watch } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useRouter } from 'vue-router';
+    import { useI18n } from 'vue-i18n';
+    import { ChevronLeft } from 'lucide-vue-next';
 
+    import { Button } from '../../components/ui/button';
     import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../components/ui/resizable';
     import { SidebarInset, SidebarProvider } from '../../components/ui/sidebar';
     import { useAppearanceSettingsStore } from '../../stores/settings/appearance';
@@ -127,10 +120,12 @@
     import GlobalToolsDialogs from '../Tools/components/GlobalToolsDialogs.vue';
     import GroupEditDialog from '../../components/dialogs/GroupDialog/GroupEditDialog.vue';
     import GroupEventEditDialog from '../../components/dialogs/GroupDialog/GroupEventEditDialog.vue';
+    import InventoryBundleDialog from '../../components/dialogs/InventoryBundleDialog.vue';
     import InviteGroupDialog from '../../components/dialogs/InviteGroupDialog.vue';
     import LaunchDialog from '../../components/dialogs/LaunchDialog.vue';
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';
     import MainDialogContainer from '../../components/dialogs/MainDialogContainer.vue';
+    import ModerationReportDialog from '../../components/dialogs/ModerationReportDialog.vue';
     import NavMenu from '../../components/nav-menu/NavMenu.vue';
     import PrimaryPasswordDialog from '../Settings/dialogs/PrimaryPasswordDialog.vue';
     import SendBoopDialog from '../../components/dialogs/SendBoopDialog.vue';
@@ -175,6 +170,7 @@
     };
 
     const popoutViews = computed(() => popouts.value.map(resolvePopoutView));
+    const { t } = useI18n();
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { navWidth, isNavCollapsed } = storeToRefs(appearanceSettingsStore);
@@ -231,12 +227,12 @@
         asideMaxPx,
         mainDefaultSize,
         handleLayout,
-        isAsideCollapsed,
         isAsideCollapsedStatic,
         isSideBarTabShow
     } = useMainLayoutResizable();
 
     const asidePanelRef = ref(null);
+    const showAsideExpandButton = computed(() => isSideBarTabShow.value && isAsideCollapsedStatic.value);
     let restoreAsideAfterHiddenRoute = false;
 
     watch(isSideBarTabShow, async (show) => {

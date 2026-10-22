@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, nextTick, onMounted, ref, useAttrs, watch } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, watch } from 'vue';
     import { X } from 'lucide-vue-next';
     import { cn } from '@/lib/utils';
     import { useVModel } from '@vueuse/core';
@@ -15,6 +15,7 @@
         clearable: { type: Boolean, default: false },
         showCount: { type: Boolean, default: false },
         maxlength: { type: Number, required: false },
+        rows: { type: Number, required: false },
         autosize: { type: [Boolean, Object], default: false }
     });
 
@@ -52,6 +53,7 @@
                         .join('; ');
                 }
                 if (s && typeof s === 'object') {
+                    /** @type {Record<string, any>} */
                     const next = { ...s };
                     delete next.display;
                     return next;
@@ -98,7 +100,7 @@
         if (!autosizeConfig.value) return;
         const el = resolveTextareaEl();
         if (!el) return;
-        const computedStyle = window.getComputedStyle(el);
+        const computedStyle = (el.ownerDocument.defaultView ?? window).getComputedStyle(el);
         const lineHeight = parseFloat(computedStyle.lineHeight) || 16;
         const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
         const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
@@ -131,10 +133,18 @@
         emit('change', value);
     }
 
+    let fontSet = null;
+
     onMounted(() => {
         if (autosizeConfig.value) {
             nextTick(resizeTextarea);
+            fontSet = resolveTextareaEl()?.ownerDocument?.fonts ?? null;
+            fontSet?.addEventListener('loadingdone', resizeTextarea);
         }
+    });
+
+    onBeforeUnmount(() => {
+        fontSet?.removeEventListener('loadingdone', resizeTextarea);
     });
 
     watch(
@@ -156,6 +166,7 @@
             ref="textareaRef"
             v-model="modelValue"
             :class="inputClass"
+            :rows="props.rows"
             v-bind="inputAttrs"
             @input="handleInput"
             @change="handleChange" />

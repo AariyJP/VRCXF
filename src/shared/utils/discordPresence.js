@@ -200,7 +200,7 @@ export function getStatusInfo(status, discordHideInvite, t) {
     switch (status) {
         case 'active':
             return {
-                statusName: t('dialog.user.status.active'),
+                statusName: t('dialog.user.status.online'),
                 statusImage: 'online',
                 hidePrivate: false
             };

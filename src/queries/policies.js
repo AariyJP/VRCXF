@@ -8,6 +8,12 @@ export const entityQueryPolicies = Object.freeze({
         retry: 1,
         refetchOnWindowFocus: false
     }),
+    profile: Object.freeze({
+        staleTime: 20 * SECOND,
+        gcTime: 90 * SECOND,
+        retry: 1,
+        refetchOnWindowFocus: false
+    }),
     avatar: Object.freeze({
         staleTime: 60 * SECOND,
         gcTime: 300 * SECOND,
@@ -81,7 +87,13 @@ export const entityQueryPolicies = Object.freeze({
         refetchOnWindowFocus: false
     }),
     visits: Object.freeze({
-        staleTime: 30 * MINUTE,
+        staleTime: 4 * MINUTE,
+        gcTime: 120 * MINUTE,
+        retry: 1,
+        refetchOnWindowFocus: false
+    }),
+    instanceCount: Object.freeze({
+        staleTime: 4 * MINUTE,
         gcTime: 120 * MINUTE,
         retry: 1,
         refetchOnWindowFocus: false

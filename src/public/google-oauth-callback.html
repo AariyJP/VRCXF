@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>VRCXF</title>
+        <style>
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #0a0a0a;
+                color: #fafafa;
+                font-family: system-ui, sans-serif;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <p id="message">Google Drive との連携を完了しています...</p>
+        <script>
+            (function () {
+                var params = new URLSearchParams(window.location.search);
+                var payload = {
+                    source: 'vrcxf-google-oauth',
+                    code: params.get('code'),
+                    state: params.get('state'),
+                    error: params.get('error')
+                };
+
+                if (!window.opener) {
+                    document.getElementById('message').textContent =
+                        'このページは VRCXF から開かれていません。タブを閉じてください。';
+                    return;
+                }
+
+                window.opener.postMessage(payload, window.location.origin);
+                document.getElementById('message').textContent = payload.error
+                    ? '認証がキャンセルされました。このタブを閉じてください。'
+                    : 'VRCXFとGoogle Driveの連携が完了しました。';
+                window.close();
+            })();
+        </script>
+    </body>
+</html>

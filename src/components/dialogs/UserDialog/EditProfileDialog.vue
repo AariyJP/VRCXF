@@ -1214,7 +1214,7 @@
             return;
         }
 
-        /** @type {Partial<import('../../../types/api/user').GetCurrentUserResponse>} */
+        /** @type {import('vrchat').UpdateUserRequest} */
         const userPayload = {};
         if (D.status !== currentUser.value.status) {
             userPayload.status = D.status;
@@ -1229,7 +1229,7 @@
             userPayload.ageVerificationStatus = D.ageVerificationStatus;
         }
 
-        /** @type {Partial<import('../../../types/api/profile').selfProfile>} */
+        /** @type {import('vrchat').UpdateProfileRequest} */
         const profilePayload = {};
         if (D.bio !== D.selfProfileRef.bio) {
             profilePayload.bio = D.bio;

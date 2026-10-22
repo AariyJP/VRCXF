@@ -1,7 +1,7 @@
 <template>
     <div class="screenshot-metadata-page x-container flex flex-col overflow-hidden">
         <div class="flex items-center gap-2 ml-2">
-            <Button variant="ghost" size="sm" class="mr-3" @click="goBack">
+            <Button v-if="!isInPopout" variant="ghost" size="sm" class="mr-3" @click="goBack">
                 <ArrowLeft />
                 {{ t('nav_tooltip.tools') }}
             </Button>
@@ -320,8 +320,9 @@
 <script setup>
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { useMagicKeys, whenever } from '@vueuse/core';
-    import { onMounted, onUnmounted, reactive, ref, computed } from 'vue';
+    import { onMounted, onUnmounted, reactive, ref, computed, inject } from 'vue';
     import { useGalleryStore, useUserStore, useVrcxStore } from '@/stores';
+    import { PORTAL_DOCUMENT_KEY, isUsableDocument } from '@/composables/usePortalDocument';
     import {
         ArrowLeft,
         ArrowRight,
@@ -352,6 +353,8 @@
 
     const router = useRouter();
     const { t } = useI18n();
+    const portalDocument = inject(PORTAL_DOCUMENT_KEY, null);
+    const isInPopout = computed(() => isUsableDocument(portalDocument?.value) && portalDocument.value !== document);
 
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
@@ -670,17 +673,26 @@
             }
             screenshotMetadataSearchInputs.value = 0;
 
-            if (D.search === '') {
-                screenshotMetadataResetSearch();
-                if (D.metadata.filePath !== null) {
-                    getAndDisplayScreenshot(D.metadata.filePath, true);
+            const search = D.search.trim();
+            if (search.length < 3) {
+                D.searchIndex = null;
+                D.searchResults = null;
+                searchResultsData.value = [];
+                selectedSearchFilePath.value = null;
+                searchViewMode.value = 'detail';
+
+                if (search.length === 0) {
+                    screenshotMetadataResetSearch();
+                    if (D.metadata.filePath !== null) {
+                        getAndDisplayScreenshot(D.metadata.filePath, true);
+                    }
                 }
                 return;
             }
 
             const searchType = D.searchTypes.indexOf(D.searchType);
             D.loading = true;
-            AppApi.FindScreenshotsBySearch(D.search, searchType)
+            AppApi.FindScreenshotsBySearch(search, searchType)
                 .then(async (json) => {
                     const results = JSON.parse(json);
 
@@ -698,7 +710,7 @@
                     D.searchIndex = 0;
                     D.searchResults = results;
 
-                    const enriched = await loadSearchResultsMetadata(results, D.search, searchType);
+                    const enriched = await loadSearchResultsMetadata(results, search, searchType);
                     searchResultsData.value = enriched;
                     searchViewMode.value = 'table';
                 })

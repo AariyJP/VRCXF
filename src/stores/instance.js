@@ -617,10 +617,9 @@ export const useInstanceStore = defineStore('Instance', () => {
             return;
         }
         const instances = {};
-        if (D.ref.instances) {
-            for (instance of D.ref.instances) {
-                // instance = [ instanceId, occupants ]
-                const instanceId = instance[0];
+        if (D.ref.slimInstances) {
+            for (instance of D.ref.slimInstances) {
+                const { instanceId, n_users } = instance;
                 instances[instanceId] = {
                     id: instanceId,
                     tag: `${D.id}:${instanceId}`,
@@ -628,7 +627,10 @@ export const useInstanceStore = defineStore('Instance', () => {
                     friendCount: 0,
                     users: [],
                     shortName: '',
-                    ref: {}
+                    ref: {
+                        userCount: n_users,
+                        capacity: D.ref.capacity
+                    }
                 };
             }
         }
@@ -1134,7 +1136,7 @@ export const useInstanceStore = defineStore('Instance', () => {
 
     function updatePlayerListDebounce() {
         const users = [];
-        const pushUser = function (ref) {
+        const pushUser = function (ref, profileRef) {
             let photonId = -1;
             let isFriend = false;
             let isBlocked = false;
@@ -1201,6 +1203,7 @@ export const useInstanceStore = defineStore('Instance', () => {
             }
             users.push({
                 ref,
+                profileRef,
                 displayName: ref.displayName,
                 timer: ref.$location_at,
                 $trustSortNum: ref.$trustSortNum ?? 0,
@@ -1222,8 +1225,9 @@ export const useInstanceStore = defineStore('Instance', () => {
         const playersInInstance = locationStore.lastLocation.playerList;
         if (playersInInstance.size > 0) {
             let ref = userStore.cachedUsers.get(userStore.currentUser.id);
+            let profileRef = userStore.cachedProfiles.get(userStore.currentUser.id);
             if (typeof ref !== 'undefined' && playersInInstance.has(ref.id)) {
-                pushUser(ref);
+                pushUser(ref, profileRef);
             }
             for (const player of playersInInstance.values()) {
                 // if friend isn't in instance add them
@@ -1235,8 +1239,9 @@ export const useInstanceStore = defineStore('Instance', () => {
                 });
                 if (addUser) {
                     ref = userStore.cachedUsers.get(player.userId);
+                    profileRef = userStore.cachedProfiles.get(player.userId);
                     if (typeof ref !== 'undefined') {
-                        pushUser(ref);
+                        pushUser(ref, profileRef);
                     } else {
                         let { joinTime } = locationStore.lastLocation.playerList.get(player.userId);
                         if (!joinTime) {
@@ -1248,7 +1253,7 @@ export const useInstanceStore = defineStore('Instance', () => {
                             $location_at: joinTime,
                             $online_for: joinTime
                         };
-                        pushUser(ref);
+                        pushUser(ref, profileRef);
                     }
                 }
             }

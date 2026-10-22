@@ -31,6 +31,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
 
     const state = reactive({
         isDiscordActive: false,
+        isDiscordConnected: false,
         discordTime: Date.now(),
         lastLocationDetails: {
             tag: '',
@@ -56,6 +57,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
     const discordShowPlatform = ref(true);
     const discordWorldIntegration = ref(true);
     const discordWorldNameAsDiscordStatus = ref(false);
+    const discordTimeOffsetHours = ref(0);
+    const discordPresenceEnabled = ref(true);
 
     function setDiscordActive() {
         discordActive.value = !discordActive.value;
@@ -89,6 +92,14 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordWorldNameAsDiscordStatus.value = !discordWorldNameAsDiscordStatus.value;
         configRepository.setBool('discordWorldNameAsDiscordStatus', discordWorldNameAsDiscordStatus.value);
     }
+    function setDiscordPresenceEnabled(enabled) {
+        discordPresenceEnabled.value = enabled;
+        saveDiscordOption();
+    }
+    function setDiscordTimeOffsetHours(hours) {
+        discordTimeOffsetHours.value = Math.max(0, Math.floor(Number(hours) || 0));
+        configRepository.setInt('discordTimeOffsetHours', discordTimeOffsetHours.value);
+    }
 
     async function initDiscordPresenceSettings() {
         const [
@@ -99,7 +110,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             discordHideImageConfig,
             discordShowPlatformConfig,
             discordWorldIntegrationConfig,
-            discordWorldNameAsDiscordStatusConfig
+            discordWorldNameAsDiscordStatusConfig,
+            discordTimeOffsetHoursConfig
         ] = await Promise.all([
             configRepository.getBool('discordActive', false),
             configRepository.getBool('discordInstance', true),
@@ -108,7 +120,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             configRepository.getBool('discordHideImage', false),
             configRepository.getBool('discordShowPlatform', true),
             configRepository.getBool('discordWorldIntegration', true),
-            configRepository.getBool('discordWorldNameAsDiscordStatus', false)
+            configRepository.getBool('discordWorldNameAsDiscordStatus', false),
+            configRepository.getInt('discordTimeOffsetHours', 0)
         ]);
 
         discordActive.value = discordActiveConfig;
@@ -119,6 +132,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordShowPlatform.value = discordShowPlatformConfig;
         discordWorldIntegration.value = discordWorldIntegrationConfig;
         discordWorldNameAsDiscordStatus.value = discordWorldNameAsDiscordStatusConfig;
+        discordTimeOffsetHours.value = discordTimeOffsetHoursConfig;
     }
 
     initDiscordPresenceSettings();
@@ -138,8 +152,9 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
                 currentLocation = userStore.currentUser.$travelingToLocation;
             }
         }
-        if (!discordActive.value || !isRealInstance(currentLocation)) {
+        if (!discordActive.value || !discordPresenceEnabled.value || !isRealInstance(currentLocation)) {
             setIsDiscordActive(false);
+            state.isDiscordConnected = false;
             return;
         }
         if (currentLocation !== state.lastLocationDetails.tag) {
@@ -319,7 +334,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             statusImage, // small icon
             statusName, // small icon hover text
 
-            state.discordTime,
+            state.discordTime - discordTimeOffsetHours.value * 3600000,
             endTime,
 
             partyId,
@@ -331,6 +346,7 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
             activityType, // activity type
             statusDisplayType // status display type
         );
+        state.isDiscordConnected = await Discord.IsConnected();
     }
 
     /**
@@ -362,6 +378,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         discordShowPlatform,
         discordWorldIntegration,
         discordWorldNameAsDiscordStatus,
+        discordTimeOffsetHours,
+        discordPresenceEnabled,
 
         setDiscordActive,
         setDiscordInstance,
@@ -371,6 +389,8 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
         setDiscordShowPlatform,
         setDiscordWorldIntegration,
         setDiscordWorldNameAsDiscordStatus,
+        setDiscordTimeOffsetHours,
+        setDiscordPresenceEnabled,
         updateDiscord,
         saveDiscordOption
     };

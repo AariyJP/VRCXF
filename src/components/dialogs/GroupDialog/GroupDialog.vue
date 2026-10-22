@@ -203,6 +203,15 @@
                                             </DropdownMenuItem>
                                         </DropdownMenuSubContent>
                                     </DropdownMenuSub>
+                                    <DropdownMenuItem
+                                        v-if="
+                                            groupDialog.inGroup &&
+                                            !hasGroupPermission(groupDialog.ref, 'group-roles-manage')
+                                        "
+                                        @click="groupDialogCommand('Manage Roles')">
+                                        <ShieldCheck class="size-4" />
+                                        {{ t('dialog.group.actions.view_roles') }}
+                                    </DropdownMenuItem>
 
                                     <template v-if="hasGroupModerationPermission(groupDialog.ref)">
                                         <DropdownMenuSeparator />
@@ -217,6 +226,12 @@
                                             @click="groupDialogCommand('Moderation Tools')">
                                             <Settings class="size-4" />
                                             {{ t('dialog.group.actions.moderation_tools') }}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            v-if="hasGroupPermission(groupDialog.ref, 'group-roles-manage')"
+                                            @click="groupDialogCommand('Manage Roles')">
+                                            <ShieldCheck class="size-4" />
+                                            {{ t('dialog.group.actions.manage_roles') }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             v-if="hasGroupPermission(groupDialog.ref, 'group-invites-manage')"
@@ -449,6 +464,17 @@
                             </template>
                         </div>
                     </div>
+                    <div class="flex justify-between items-center gap-2 text-xs">
+                        <span class="text-muted-foreground">{{ t('dialog.group.info.id') }}</span>
+                        <Button
+                            class="-mr-1.5 h-5 gap-1 px-1.5 text-xs font-normal text-muted-foreground has-[>svg]:px-1.5"
+                            size="sm"
+                            variant="ghost"
+                            @click="copyToClipboard(groupDialog.id)">
+                            <Copy class="size-3" />
+                            {{ t('dialog.group.info.copy_id') }}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -587,6 +613,9 @@
                 <template #Photos>
                     <GroupDialogPhotosTab ref="photosTabRef" />
                 </template>
+                <template #Store>
+                    <GroupDialogStoreTab ref="storeTabRef" />
+                </template>
                 <template #JSON>
                     <DialogJsonTab
                         class="rounded-xl bg-(--profile-card) p-2"
@@ -626,6 +655,7 @@
         RefreshCw,
         Settings,
         Share2,
+        ShieldCheck,
         Ticket,
         Trash2,
         X,
@@ -683,10 +713,11 @@
     import GroupDialogMembersTab from './GroupDialogMembersTab.vue';
     import GroupDialogPhotosTab from './GroupDialogPhotosTab.vue';
     import GroupDialogPostsTab from './GroupDialogPostsTab.vue';
+    import GroupDialogStoreTab from './GroupDialogStoreTab.vue';
     import GroupPostEditDialog from './GroupPostEditDialog.vue';
     import GroupTransferDialog from './GroupTransferDialog.vue';
     import { showUserDialog } from '../../../coordinators/userCoordinator';
-    import { showGroupMemberModerationDialog } from '../../../coordinators/groupCoordinator';
+    import { showGroupMemberModerationDialog, showGroupRolesDialog } from '../../../coordinators/groupCoordinator';
 
     const { t } = useI18n();
     const groupDialogTabs = computed(() => [
@@ -694,6 +725,7 @@
         { value: 'Posts', label: t('dialog.group.posts.header') },
         { value: 'Members', label: t('dialog.group.members.header') },
         { value: 'Photos', label: t('dialog.group.gallery.header') },
+        ...(groupDialog.value.ref.storeId ? [{ value: 'Store', label: t('dialog.group.store.header') }] : []),
         { value: 'JSON', label: t('dialog.group.json.header') }
     ]);
 
@@ -722,6 +754,7 @@
         setGroupEventAnnouncements,
         showPreviousInstancesListDialog,
         showGroupMemberModerationDialog,
+        showGroupRolesDialog,
         showInviteGroupDialog: (groupId, userId) => {
             if (groupId) {
                 inviteGroupDialog.value.groupId = groupId;
@@ -743,6 +776,7 @@
     });
 
     const groupDialogTabCurrentName = ref('0');
+    /** @type {import('vue').Ref<any>} */
     const treeData = ref({});
     const imageError = ref(false);
     const bannerError = ref(false);
@@ -756,6 +790,7 @@
     );
     const membersTabRef = ref(null);
     const photosTabRef = ref(null);
+    const storeTabRef = ref(null);
 
     const selectedGalleryFile = ref({
         selectedFileId: '',
@@ -807,7 +842,6 @@
                         ...groupDialog.value,
                         ref: { ...groupDialog.value.ref, isRepresenting: args.params.isRepresenting }
                     });
-                    getGroupDialogGroup(groupId);
                 }
                 refetchActiveEntityQuery(queryKeys.representedGroup(currentUser.value.id));
             });
@@ -896,12 +930,19 @@
             membersTabRef.value?.getGroupDialogGroupMembers();
         } else if (tabName === 'Photos') {
             photosTabRef.value?.getGroupGalleries();
+        } else if (tabName === 'Store') {
+            storeTabRef.value?.getGroupListings();
         } else if (tabName === 'JSON') {
             refreshGroupDialogTreeData();
         }
     }
 
     function loadLastActiveTab() {
+        if (groupDialog.value.lastActiveTab === 'Store' && !groupDialog.value.ref.storeId) {
+            groupDialog.value.activeTab = 'Info';
+            groupDialogTabCurrentName.value = 'Info';
+            groupDialog.value.lastActiveTab = 'Info';
+        }
         handleGroupDialogTab(groupDialog.value.lastActiveTab);
     }
 

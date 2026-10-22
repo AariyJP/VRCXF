@@ -75,14 +75,14 @@ jobs:
         with:
           script-file: Installer/installer.nsi
           additional-plugin-paths: Installer/Plugins
-      - run: Move-Item -LiteralPath Installer/VRCX_Setup.exe -Destination VRCXF_Setup.exe
+      - run: Move-Item -LiteralPath Installer/VRCX_Setup_x64.exe -Destination VRCXF_Setup_x64.exe
       - uses: softprops/action-gh-release@v3
         with:
           tag_name: '${{ needs.set_version.outputs.version }}'
           draft: true
           files: |
             VRCXF_${{ needs.set_version.outputs.version }}.msix
-            VRCXF_Setup.exe
+            VRCXF_Setup_x64.exe
 
   build_linux:
     runs-on: ubuntu-latest

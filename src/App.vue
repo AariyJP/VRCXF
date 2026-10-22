@@ -1,11 +1,8 @@
 <template>
     <TooltipProvider>
-        <MacOSTitleBar></MacOSTitleBar>
-
         <div
             id="x-app"
-            class="flex w-screen h-screen overflow-hidden cursor-default [&>.x-container]:pt-[15px]"
-            :class="{ 'pt-7': isMacOS }">
+            class="flex w-screen h-screen overflow-hidden cursor-default [&>.x-container]:pt-[15px]">
             <RouterView></RouterView>
             <Toaster position="top-center" :theme="theme"></Toaster>
 
@@ -38,7 +35,6 @@
 
     import AlertDialogModal from './components/ui/alert-dialog/AlertDialogModal.vue';
     import DatabaseUpgradeDialog from './components/dialogs/DatabaseUpgradeDialog.vue';
-    import MacOSTitleBar from './components/MacOSTitleBar.vue';
     import OpenExternalLinkDialog from './components/dialogs/OpenExternalLinkDialog.vue';
     import OtpDialogModal from './components/ui/dialog/OtpDialogModal.vue';
     import PromptDialogModal from './components/ui/dialog/PromptDialogModal.vue';
@@ -48,7 +44,6 @@
 
     console.log(`isLinux: ${LINUX}`);
 
-    const isMacOS = computed(() => navigator.platform.includes('Mac'));
 
     const theme = computed(() => {
         return store.appearanceSettings.isDarkMode ? 'dark' : 'light';
@@ -60,10 +55,11 @@
 
     if (typeof window !== 'undefined') {
         window.$pinia = store;
-        // Bridge: attach coordinator functions to store for C# IPC callbacks
-        store.game.updateIsGameRunning = runUpdateIsGameRunningFlow;
-        store.game.updateIsHmdAfk = runUpdateIsHmdAfkFlow;
-        store.gameLog.addGameLogEvent = addGameLogEvent;
+        window.$bridge = {
+            updateIsGameRunning: runUpdateIsGameRunningFlow,
+            updateIsHmdAfk: runUpdateIsHmdAfkFlow,
+            addGameLogEvent
+        };
     }
 
     onBeforeMount(() => {

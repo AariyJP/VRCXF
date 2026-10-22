@@ -106,7 +106,9 @@
                         </TooltipWrapper>
                         <span v-if="userDialog.ref.pronouns" class="basis-full h-0"></span>
                         <TooltipWrapper v-if="userDialog.ref.pronouns" side="top" :content="t('dialog.user.pronouns')">
-                            <span class="x-grey font-mono text-xs" v-text="userDialog.ref.pronouns"></span>
+                            <span
+                                class="x-grey font-mono text-xs"
+                                v-text="replaceBioSymbols(userDialog.ref.pronouns)"></span>
                         </TooltipWrapper>
                     </div>
                     <template v-if="userDialog.ref.id === currentUser.id">
@@ -147,6 +149,23 @@
                         class="name h-5 px-1.5 text-[11px] leading-none"
                         :class="userDialog.ref.$trustClass">
                         <Shield class="h-2.5 w-2.5" /> {{ userDialog.ref.$trustLevel }}
+                    </Badge>
+                </TooltipWrapper>
+                <TooltipWrapper
+                    v-if="userDialog.id === currentUser.id && currentUser.accountStanding"
+                    side="top"
+                    :content="t('dialog.user.tags.account_standing')">
+                    <Badge
+                        variant="outline"
+                        class="h-5 px-1.5 text-[11px] leading-none capitalize"
+                        :class="
+                            currentUser.accountStanding === 'good'
+                                ? 'text-green-500 border-green-500!'
+                                : 'text-red-500 border-red-500!'
+                        ">
+                        <ShieldCheck v-if="currentUser.accountStanding === 'good'" class="h-2.5 w-2.5" />
+                        <ShieldAlert v-else class="h-2.5 w-2.5" />
+                        {{ currentUser.accountStanding }}
                     </Badge>
                 </TooltipWrapper>
                 <TooltipWrapper
@@ -369,6 +388,16 @@
                             : t('dialog.user.info.avatar_cloning_deny')
                     }}</span>
                 </div>
+                <div
+                    class="flex justify-between items-center text-xs cursor-pointer hover:text-foreground"
+                    @click="toggleReducedProfileAnimations">
+                    <span class="text-muted-foreground">{{ t('dialog.user.info.reduced_profile_animations') }}</span>
+                    <span class="text-muted-foreground">{{
+                        currentUserClientConfig.accessReduceDecorAnim
+                            ? t('dialog.user.info.avatar_cloning_allow')
+                            : t('dialog.user.info.avatar_cloning_deny')
+                    }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -462,6 +491,8 @@
         Info,
         Monitor,
         Shield,
+        ShieldAlert,
+        ShieldCheck,
         Smartphone,
         Hand,
         UserPlus,
@@ -476,7 +507,14 @@
     import { useI18n } from 'vue-i18n';
 
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-    import { copyToClipboard, formatDateFilter, languageClass, openDiscordProfile } from '../../../shared/utils';
+    import {
+        convertFileUrlToImageUrl,
+        copyToClipboard,
+        formatDateFilter,
+        languageClass,
+        openDiscordProfile,
+        replaceBioSymbols
+    } from '../../../shared/utils';
     import { useUserDisplay } from '../../../composables/useUserDisplay';
     import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
     import { useGalleryStore, useUserStore } from '../../../stores';
@@ -515,9 +553,14 @@
 
     const { t } = useI18n();
 
-    const { userDialog, currentUser } = storeToRefs(useUserStore());
-    const { toggleSharedConnectionsOptOut, toggleDiscordFriendsOptOut, toggleAvatarCopying, toggleAllowBooping } =
-        useUserStore();
+    const { userDialog, currentUser, currentUserClientConfig } = storeToRefs(useUserStore());
+    const {
+        toggleSharedConnectionsOptOut,
+        toggleDiscordFriendsOptOut,
+        toggleAvatarCopying,
+        toggleAllowBooping,
+        toggleReducedProfileAnimations
+    } = useUserStore();
 
     const { showFullscreenImageDialog } = useGalleryStore();
     const { userStatusClass } = useUserDisplay();

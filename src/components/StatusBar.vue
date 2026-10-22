@@ -178,6 +178,32 @@
                             </div>
                         </TooltipWrapper>
 
+                        <TooltipWrapper v-if="visibility.discord && !BROWSER" :content="discordTooltip" side="top">
+                            <div
+                                class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border cursor-pointer hover:bg-accent"
+                                @click="handleDiscordToggle">
+                                <Ban
+                                    v-if="
+                                        !discordPresenceState.isDiscordConnected &&
+                                        discordPresenceSettingsStore.discordPresenceEnabled &&
+                                        !gameStore.isGameRunning
+                                    "
+                                    class="size-2! shrink-0 text-muted-foreground"
+                                    :stroke-width="3" />
+                                <span
+                                    v-else
+                                    class="inline-block size-2 rounded-full shrink-0"
+                                    :class="
+                                        discordPresenceState.isDiscordConnected
+                                            ? 'bg-status-online'
+                                            : discordPresenceSettingsStore.discordPresenceEnabled
+                                              ? 'bg-status-askme'
+                                              : 'bg-status-offline-alt'
+                                    " />
+                                <span class="text-foreground text-[11px]">Discord</span>
+                            </div>
+                        </TooltipWrapper>
+
                         <div
                             v-if="visibility.nowPlaying && nowPlaying.url"
                             class="flex items-center gap-1 px-2 h-[22px] whitespace-nowrap border-r border-border min-w-0 max-w-[400px]">
@@ -330,6 +356,13 @@
                     WebSocket
                 </ContextMenuCheckboxItem>
                 <ContextMenuCheckboxItem
+                    v-if="!BROWSER"
+                    :model-value="visibility.discord"
+                    @select.prevent
+                    @update:model-value="toggleVisibility('discord')">
+                    Discord Presence
+                </ContextMenuCheckboxItem>
+                <ContextMenuCheckboxItem
                     :model-value="visibility.nowPlaying"
                     @select.prevent
                     @update:model-value="toggleVisibility('nowPlaying')">
@@ -395,6 +428,7 @@
         ContextMenuTrigger
     } from '@/components/ui/context-menu';
     import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+    import { Ban } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
     import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import {
@@ -405,6 +439,7 @@
         NumberFieldInput
     } from '@/components/ui/number-field';
     import {
+        useDiscordPresenceSettingsStore,
         useGameLogStore,
         useGameStore,
         useGeneralSettingsStore,
@@ -477,7 +512,7 @@
 
     const gameSessionText = computed(() => {
         if (!gameStore.isGameRunning || !userStore.currentUser.$online_for) return '';
-        const elapsed = now.value - userStore.currentUser.$online_for;
+        const elapsed = now.value.getTime() - userStore.currentUser.$online_for;
         return elapsed > 0 ? timeToText(elapsed) : '';
     });
 
@@ -488,7 +523,7 @@
 
     const gameSessionDetailText = computed(() => {
         if (!gameStore.isGameRunning || !userStore.currentUser.$online_for) return '-';
-        const elapsed = now.value - userStore.currentUser.$online_for;
+        const elapsed = now.value.getTime() - userStore.currentUser.$online_for;
         return elapsed > 0 ? timeToText(elapsed, true) : '-';
     });
 
@@ -544,7 +579,7 @@
     let lastMsgCount = wsState.messageCount;
 
     const wsCanvasRef = ref(null);
-    const now = useNow({ interval: 1000 });
+    const now = useNow({ scheduler: (cb) => useIntervalFn(cb, 1000) });
 
     useIntervalFn(() => {
         const delta = wsState.messageCount - lastMsgCount;
@@ -621,6 +656,22 @@
         return `WebSocket: ${state}`;
     });
 
+    const discordPresenceSettingsStore = useDiscordPresenceSettingsStore();
+    const discordPresenceState = discordPresenceSettingsStore.state;
+
+    function handleDiscordToggle() {
+        discordPresenceSettingsStore.setDiscordPresenceEnabled(
+            !discordPresenceState.isDiscordConnected && !discordPresenceSettingsStore.discordPresenceEnabled
+        );
+    }
+
+    const discordTooltip = computed(() => {
+        const state = discordPresenceState.isDiscordConnected
+            ? t('status_bar.ws_connected')
+            : t('status_bar.ws_disconnected');
+        return `Discord Presence: ${state}`;
+    });
+
     function handleWebSocketToggle() {
         if (wsState.connected || isWebSocketEnabled.value) {
             disableWebSocket();
@@ -630,7 +681,7 @@
     }
 
     const appUptimeText = computed(() => {
-        const elapsedSeconds = Math.floor((now.value - vrcxStore.appStartAt) / 1000);
+        const elapsedSeconds = Math.floor((now.value.getTime() - vrcxStore.appStartAt) / 1000);
         return formatAppUptime(elapsedSeconds);
     });
 

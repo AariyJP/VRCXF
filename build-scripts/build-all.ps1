@@ -28,7 +28,7 @@ Set-Content -Path "Version" -Value "Forked-AariyJP" -NoNewline
 
 $Date = Get-Date -format yyyyMMdd
 $ZipName = "VRCX_" + $Date + ".zip"
-$SetupName = "VRCX_" + $Date + "_Setup.exe"
+$SetupName = "VRCX_" + $Date + "_Setup_x64.exe"
 
 Write-Host "Building .Net..." -ForegroundColor Green
 
@@ -101,7 +101,7 @@ if ($IsWindows) {
     $nsisPath = "C:\Program Files (x86)\NSIS\makensis.exe"
     &$nsisPath installer.nsi
     Start-Sleep -Seconds 1
-    Move-Item VRCX_Setup.exe ..\$SetupName -Force
+    Move-Item VRCX_Setup_x64.exe ..\$SetupName -Force
     cd ..
 
     Write-Host "Creating SHA256-hash..." -ForegroundColor Green

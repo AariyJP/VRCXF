@@ -260,7 +260,7 @@ electron-builder.config.js # Electron パッケージ設定
 
 選択肢の定義は `src/shared/constants/feedFilters.js`。noty と wrist は `baseOptions` を共有し、保存値は option の `label` 文字列そのもの（i18n キーではない）。
 
-`Everyone w/o Public` は **fork 独自の選択肢**で、`OnPlayerJoined` / `OnPlayerLeft` にのみ提示する。Public および Group Public インスタンスではフレンドのみ、それ以外のインスタンスでは全員を通す。public 判定は `src/stores/sharedFeed.js` の `isPublicLocation()` に集約してあり、`accessType === 'public'`、または `accessType === 'group'` かつ `groupAccessType === 'public'` を public とみなす。
+`Everyone w/o Public` は **fork 独自の選択肢**で（UI 上の表示名は `text` の `Everyone w/o Public/Group`、保存値は `label` のまま）、`OnPlayerJoined` / `OnPlayerLeft` にのみ提示する。Public および Group 系（Group / Group+ / Group Public）インスタンスではフレンドのみ、それ以外のインスタンスでは全員を通す。判定は `accessType === 'public'` または `accessType === 'group'` で、wrist 側は `src/stores/sharedFeed.js` の `isPublicLocation()`、noty 側は `queueGameLogNoty()` 内に同じ条件を持つ。
 
 この値を扱う箇所は 3 つあり、選択肢を増減するときは揃えること。
 
@@ -273,6 +273,16 @@ electron-builder.config.js # Electron パッケージ設定
 - `loadSharedFeed()` は DB を `LIMIT` 付きで引いてから JS 側で絞るため、Public の履歴が多いとオーバーレイに残る履歴が薄くなる
 - 保存値の文字列を変更してもマイグレーションは無いため、既存設定に旧値が残るとどの分岐にも一致せず無言で通知が止まる
 - 復元時の通知再発火は `playNoty()` が作成 1 分より古いイベントを捨てることで防いでいる
+
+## ゲームログの順番待ち処理（フォーク独自）
+
+C#（Windows は `Dotnet/LogWatcher.cs` から 1 行ずつ投げっぱなし）と Linux（`src/stores/updateLoop.js` の `Promise.all`）はゲームログを並列に渡してくる。並列のままだと、`OnLeftRoom`（`location-destination`）や `Joining`（`location`）の処理が `runLastLocationResetFlow()` の DB 待ちをしている間に同じ秒の `OnPlayerLeft` / `OnPlayerJoined` が先に処理され、入退室直後の通知抑止（`queueGameLogNoty()`）をすり抜けて VR 通知が一斉に出る。退室記録の二重書き込みも起きる。upstream 由来の問題で、upstream は未対応。
+
+fork では `src/coordinators/gameLogCoordinator.js` の `addGameLogEvent()` を promise チェーン（`gameLogEventTail`）で直列化している。既知のリスク:
+
+- **後続のつかえ**: 1 行の処理が長引くと後ろの行がすべて待たされる。待ちが発生するのは DB 書き込みと、YouTube API 有効時の `video-play`（`addGameLogVideo()` → `lookupYouTubeVideo()` のネットワーク待ち）。後者は通信が詰まると HTTP の既定タイムアウトまで後続を止め、1 分を超えると `playNoty()` がその間の通知を古いイベントとして捨てる
+- **停止の波及**: 途中の await が解決しないまま残ると、以前はその 1 行だけで済んだが、直列化後は再起動までゲームログ全体が止まる
+- 起動直後の未処理ログ読み込み（`updateGameLog()`）はこのチェーンの外で動くため、リアルタイムのログと混ざる余地が残っている
 
 ## 🪟 ポップアウトウィンドウ（フォーク独自）
 

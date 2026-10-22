@@ -18,7 +18,7 @@ import {
     sanitizeNotificationJson
 } from '../../shared/utils';
 import { getUserMemo } from '../../coordinators/memoCoordinator';
-import { friendRequest, instanceRequest, notificationRequest, queryRequest } from '../../api';
+import { friendRequest, instanceRequest, inventoryRequest, notificationRequest, queryRequest } from '../../api';
 import {
     getNotificationMessage,
     getUserIdFromNoty as getUserIdFromNotyBase,
@@ -29,7 +29,6 @@ import { getNotificationCategory, getNotificationTs } from '../../shared/utils/n
 import { AppDebug } from '../../services/appConfig';
 import { createOverlayDispatch } from './overlayDispatch';
 import { useAdvancedSettingsStore } from '../settings/advanced';
-import { useAppearanceSettingsStore } from '../settings/appearance';
 import { useFavoriteStore } from '../favorite';
 import { useFriendStore } from '../friend';
 import { handleFriendAdd } from '../../coordinators/friendRelationshipCoordinator';
@@ -58,7 +57,6 @@ export const useNotificationStore = defineStore('Notification', () => {
     const friendStore = useFriendStore();
     const notificationsSettingsStore = useNotificationsSettingsStore();
     const advancedSettingsStore = useAdvancedSettingsStore();
-    const appearanceSettingsStore = useAppearanceSettingsStore();
     const userStore = useUserStore();
     const wristOverlaySettingsStore = useWristOverlaySettingsStore();
     const uiStore = useUiStore();
@@ -70,7 +68,7 @@ export const useNotificationStore = defineStore('Notification', () => {
     const notificationInitStatus = ref(false);
     const notificationTable = ref({
         data: [],
-        filters: [
+        filters: /** @type {import('@/types/vrcx').TableFilter[]} */ ([
             {
                 prop: 'type',
                 value: []
@@ -79,7 +77,7 @@ export const useNotificationStore = defineStore('Notification', () => {
                 prop: ['senderUsername', 'message'],
                 value: ''
             }
-        ],
+        ]),
         pageSize: 20,
         pageSizeLinked: true,
         paginationProps: {
@@ -89,6 +87,11 @@ export const useNotificationStore = defineStore('Notification', () => {
     const unseenNotifications = ref([]);
     const isNotificationsLoading = ref(false);
     const isNotificationCenterOpen = ref(false);
+    const inventoryBundleDialog = ref({
+        visible: false,
+        bundles: []
+    });
+    const shownBundleIds = new Set();
 
     const friendNotifications = computed(() =>
         notificationTable.value.data.filter((n) => getNotificationCategory(n.type) === 'friend')
@@ -130,11 +133,23 @@ export const useNotificationStore = defineStore('Notification', () => {
         (isLoggedIn) => {
             isNotificationsLoading.value = false;
             notificationTable.value.data = [];
+            inventoryBundleDialog.value.visible = false;
             if (isLoggedIn) {
                 initNotifications();
             }
         },
         { flush: 'sync' }
+    );
+
+    watch(
+        () => notificationsSettingsStore.inventoryBundleNotifications,
+        (enabled) => {
+            if (!enabled) {
+                inventoryBundleDialog.value.visible = false;
+            } else if (watchState.isLoggedIn) {
+                checkInventoryBundles();
+            }
+        }
     );
 
     async function init() {
@@ -232,6 +247,10 @@ export const useNotificationStore = defineStore('Notification', () => {
             handleAutoDeclineFriendRequest(ref);
         }
         if (ref.type !== 'requestInvite' || generalSettingsStore.autoAcceptInviteRequests === 'Off') {
+            return;
+        }
+        const allowedStatuses = generalSettingsStore.autoAcceptInviteStatuses;
+        if (allowedStatuses.length && !allowedStatuses.includes(userStore.currentUser.status)) {
             return;
         }
 
@@ -695,9 +714,8 @@ export const useNotificationStore = defineStore('Notification', () => {
             for (let i = 0; i < count; i++) {
                 const args = await notificationRequest.getHiddenFriendRequests(params);
                 for (const json of args.json) {
-                    json.type = 'ignoredFriendRequest';
                     handleNotification({
-                        json,
+                        json: { ...json, type: 'ignoredFriendRequest' },
                         params: {
                             notificationId: json.id
                         }
@@ -883,8 +901,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         getUserIdFromNoty,
         queryRequest,
         notificationsSettingsStore,
-        advancedSettingsStore,
-        appearanceSettingsStore
+        advancedSettingsStore
     });
 
     // Overlay dispatch functions (notySaveImage, displayDesktopToast, etc.)
@@ -969,9 +986,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         }
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;
         const parsedLocation = parseLocation(locationStore.lastLocation.location);
-        const isPublicInstance =
-            parsedLocation.accessType === 'public' ||
-            (parsedLocation.accessType === 'group' && parsedLocation.groupAccessType === 'public');
+        const isPublicInstance = parsedLocation.accessType === 'public' || parsedLocation.accessType === 'group';
         if (
             notyFilter[noty.type] &&
             (notyFilter[noty.type] === 'On' ||
@@ -1054,6 +1069,39 @@ export const useNotificationStore = defineStore('Notification', () => {
         tableData.splice(dbVars.maxTableSize);
         notificationTable.value.data = tableData;
         refreshNotifications();
+    }
+
+    async function checkInventoryBundles() {
+        if (!notificationsSettingsStore.inventoryBundleNotifications) {
+            return;
+        }
+        let bundles;
+        try {
+            const args = await inventoryRequest.getInventoryItems({
+                n: 100,
+                offset: 0,
+                types: 'bundle',
+                order: 'newest'
+            });
+            bundles = args.json.data;
+        } catch (err) {
+            console.error('Failed to check inventory bundles:', err);
+            return;
+        }
+        const newBundles = bundles.filter((item) => !shownBundleIds.has(item.id));
+        if (newBundles.length === 0) {
+            return;
+        }
+        for (const item of newBundles) {
+            shownBundleIds.add(item.id);
+        }
+        const dialog = inventoryBundleDialog.value;
+        if (dialog.visible) {
+            dialog.bundles.push(...newBundles);
+        } else {
+            dialog.bundles = newBundles;
+        }
+        dialog.visible = true;
     }
 
     function testNotification() {
@@ -1275,8 +1323,9 @@ export const useNotificationStore = defineStore('Notification', () => {
                 // ids[1] cal_ is the event id
                 break;
             case 'openNotificationLink':
+            case 'OpenSafetyCenter':
             default:
-                toast.error('Unsupported notification link type');
+                toast.error(`Unsupported notification link type: "${link}"`);
                 break;
         }
     }
@@ -1286,10 +1335,12 @@ export const useNotificationStore = defineStore('Notification', () => {
         notificationTable,
         unseenNotifications,
         isNotificationsLoading,
+        inventoryBundleDialog,
 
         initNotifications,
         expireNotification,
         refreshNotifications,
+        checkInventoryBundles,
         queueNotificationNoty,
         playNoty,
         queueGameLogNoty,

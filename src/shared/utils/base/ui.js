@@ -52,7 +52,7 @@ function applyThemeColorStyle(theme) {
     if (!styleEl) {
         styleEl = document.createElement('link');
         styleEl.id = THEME_COLOR_STYLE_ID;
-        styleEl.rel = 'stylesheet';
+        styleEl.setAttribute('rel', 'stylesheet');
         document.head.appendChild(styleEl);
     }
 
@@ -94,11 +94,17 @@ function useThemeColor() {
     };
 }
 
-/**
- * @returns {boolean}
- */
+let electronSystemIsDark = null;
+
 function systemIsDarkMode() {
+    if (electronSystemIsDark !== null) {
+        return electronSystemIsDark;
+    }
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function setSystemIsDarkMode(isDark) {
+    electronSystemIsDark = isDark;
 }
 
 function applyThemeFonts(themeKey, fontLinks = []) {
@@ -136,7 +142,7 @@ function applyThemeModeStyle(themeMode) {
     if (!styleEl) {
         styleEl = document.createElement('link');
         styleEl.id = THEME_MODE_STYLE_ID;
-        styleEl.rel = 'stylesheet';
+        styleEl.setAttribute('rel', 'stylesheet');
         document.head.appendChild(styleEl);
     }
 
@@ -238,7 +244,8 @@ function applyAppCjkFontPack(packKey) {
 }
 
 function changeAppThemeStyle(themeMode) {
-    if (themeMode === 'system') {
+    let isSystemMode = themeMode === 'system';
+    if (isSystemMode) {
         themeMode = systemIsDarkMode() ? 'dark' : 'light';
     }
 
@@ -246,8 +253,8 @@ function changeAppThemeStyle(themeMode) {
     if (!themeConfig) {
         // fallback to system
         console.error('Invalid theme mode:', themeMode);
-        configRepository.setString('VRCX_ThemeMode', 'system');
-        themeMode = systemIsDarkMode() ? 'dark' : 'light';
+        configRepository.setString('VRCX_ThemeMode', 'rednight');
+        themeMode = 'rednight';
         themeConfig = THEME_CONFIG[themeMode];
     }
 
@@ -270,6 +277,10 @@ function changeAppThemeStyle(themeMode) {
         AppApi.ChangeTheme(1);
     } else {
         AppApi.ChangeTheme(0);
+    }
+
+    if (LINUX) {
+        window.electron?.setThemeSource(isSystemMode ? 'system' : themeConfig.isDark ? 'dark' : 'light');
     }
 
     return { isDark: themeConfig.isDark };
@@ -463,7 +474,7 @@ function changeHtmlLangAttribute(language) {
 }
 
 async function getThemeMode(configRepository) {
-    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'system');
+    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'rednight');
 
     let isDarkMode;
     if (initThemeMode === 'light') {
@@ -498,5 +509,6 @@ export {
     formatJsonVars,
     changeHtmlLangAttribute,
     getThemeMode,
+    setSystemIsDarkMode,
     redirectToToolsTab
 };

@@ -15,7 +15,8 @@ const getOptions = (optionTypes) => {
             textKey: 'dialog.shared_feed_filters.everyone'
         },
         'Everyone w/o Public': {
-            label: 'Everyone w/o Public'
+            label: 'Everyone w/o Public',
+            text: 'Everyone w/o Public/Group'
         }
     };
     return optionTypes.map((type) => optionMap[type]);
@@ -271,6 +272,8 @@ const sharedFeedFiltersDefaults = {
         TrustLevel: 'VIP',
         groupChange: 'On',
         'group.announcement': 'On',
+        'group.event.created': 'On',
+        'group.event.starting': 'On',
         'group.informative': 'On',
         'group.invite': 'On',
         'group.joinRequest': 'Off',
@@ -313,6 +316,8 @@ const sharedFeedFiltersDefaults = {
         TrustLevel: 'Friends',
         groupChange: 'On',
         'group.announcement': 'On',
+        'group.event.created': 'On',
+        'group.event.starting': 'On',
         'group.informative': 'On',
         'group.invite': 'On',
         'group.joinRequest': 'On',

@@ -3,9 +3,11 @@
     import { ContextMenuRoot, useForwardPropsEmits } from 'reka-ui';
     import { PORTAL_DOCUMENT_KEY, isUsableDocument } from '@/composables/usePortalDocument';
 
+    /** @typedef {import('reka-ui').ContextMenuRootProps} ContextMenuRootProps */
+
     const props = defineProps({
         pressOpenDelay: { type: Number, required: false },
-        dir: { type: String, required: false },
+        dir: { type: /** @type {import('vue').PropType<ContextMenuRootProps['dir']>} */ (String), required: false },
         modal: { type: Boolean, required: false, default: undefined }
     });
     const emits = defineEmits(['update:open']);

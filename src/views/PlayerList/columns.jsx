@@ -73,8 +73,9 @@ export const createColumns = ({
                             class="h-4 w-4 rounded-sm object-cover"
                             loading="lazy"
                             onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextElementSibling.style.display = '';
+                                const img = /** @type {HTMLElement} */ (e.target);
+                                img.style.display = 'none';
+                                /** @type {HTMLElement} */ (img.nextElementSibling).style.display = '';
                             }}
                         />
                         <div class="h-4 w-4 rounded-sm bg-muted flex items-center justify-center" style="display: none">
@@ -348,7 +349,7 @@ export const createColumns = ({
             enableSorting: false,
             meta: { label: () => t('table.playerList.bioLink') },
             cell: ({ row }) => {
-                const links = row.original?.ref?.bioLinks?.filter(Boolean) ?? [];
+                const links = row.original?.profileRef?.bioLinks?.filter(Boolean) ?? [];
                 return (
                     <div class="flex items-center">
                         {links.map((link, index) => (
@@ -387,6 +388,23 @@ export const createColumns = ({
             cell: ({ row }) => {
                 const note = row.original?.ref?.note;
                 const text = typeof note === 'string' || typeof note === 'number' ? String(note) : '';
+                return <span>{text}</span>;
+            }
+        },
+        {
+            id: 'memo',
+            accessorFn: (row) => row?.ref?.$memo,
+            header: () => t('table.playerList.memo'),
+            size: 150,
+            minSize: 20,
+            meta: {
+                stretch: true,
+                label: () => t('table.playerList.memo')
+            },
+            enableSorting: false,
+            cell: ({ row }) => {
+                const memo = row.original?.ref?.$memo;
+                const text = typeof memo === 'string' || typeof memo === 'number' ? String(memo) : '';
                 return <span>{text}</span>;
             }
         }

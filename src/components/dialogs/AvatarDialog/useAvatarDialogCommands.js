@@ -209,6 +209,12 @@ export function useAvatarDialogCommands(
             Share: () => {
                 copyAvatarUrl(D().id);
             },
+            'Copy Avatar Name': () => {
+                copyToClipboard(D().ref.name);
+            },
+            'Copy Avatar ID': () => {
+                copyToClipboard(D().id);
+            },
             Rename: () => {
                 promptRenameAvatar(D());
             },
@@ -340,7 +346,7 @@ export function useAvatarDialogCommands(
                 handler: (id) => {
                     avatarRequest.deleteAvatar({ avatarId: id }).then((args) => {
                         const { json } = args;
-                        removeAvatarFromCache(json._id);
+                        removeAvatarFromCache(json.id);
                         if (userDialog.value.id === json.authorId) {
                             const map = new Map();
                             for (const ref of cachedAvatars.values()) {

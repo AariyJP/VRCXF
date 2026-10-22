@@ -374,7 +374,7 @@
             default: 0
         },
         pageSizes: {
-            type: Array,
+            type: /** @type {import('vue').PropType<number[]>} */ (Array),
             default: () => []
         },
         showPagination: {

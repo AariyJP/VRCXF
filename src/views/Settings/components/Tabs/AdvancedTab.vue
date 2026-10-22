@@ -3,7 +3,8 @@
         <SettingsGroup v-if="!BROWSER" :title="t('view.settings.advanced.advanced.vrchat_settings.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.relaunch_vrchat.header')"
-                :description="t('view.settings.advanced.advanced.relaunch_vrchat.description')">
+                :description="t('view.settings.advanced.advanced.relaunch_vrchat.description')"
+                toggle>
                 <Switch
                     :model-value="relaunchVRChatAfterCrash"
                     :ariaLabel="t('view.settings.advanced.advanced.relaunch_vrchat.header')"
@@ -12,7 +13,8 @@
 
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.vrchat_quit_fix.header')"
-                :description="t('view.settings.advanced.advanced.vrchat_quit_fix.description')">
+                :description="t('view.settings.advanced.advanced.vrchat_quit_fix.description')"
+                toggle>
                 <Switch
                     :model-value="vrcQuitFix"
                     :ariaLabel="t('view.settings.advanced.advanced.vrchat_quit_fix.header')"
@@ -21,7 +23,8 @@
 
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.auto_cache_management.header')"
-                :description="t('view.settings.advanced.advanced.auto_cache_management.description')">
+                :description="t('view.settings.advanced.advanced.auto_cache_management.description')"
+                toggle>
                 <Switch
                     :model-value="autoSweepVRChatCache"
                     :ariaLabel="t('view.settings.advanced.advanced.auto_cache_management.header')"
@@ -30,7 +33,8 @@
 
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.self_invite.header')"
-                :description="t('view.settings.advanced.advanced.self_invite.description')">
+                :description="t('view.settings.advanced.advanced.self_invite.description')"
+                toggle>
                 <Switch
                     :model-value="selfInviteOverride"
                     :ariaLabel="t('view.settings.advanced.advanced.self_invite.header')"
@@ -51,7 +55,8 @@
         <SettingsGroup :title="t('view.settings.advanced_groups.security.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.primary_password.header')"
-                :description="t('view.settings.advanced.advanced.primary_password.description')">
+                :description="t('view.settings.advanced.advanced.primary_password.description')"
+                toggle>
                 <Switch
                     :model-value="enablePrimaryPassword"
                     :disabled="!enablePrimaryPassword"
@@ -61,21 +66,21 @@
         </SettingsGroup>
 
         <SettingsGroup v-if="!BROWSER" :title="t('view.settings.general.logging.header')">
-            <SettingsItem :label="t('view.settings.advanced.advanced.cache_debug.udon_exception_logging')">
+            <SettingsItem :label="t('view.settings.advanced.advanced.cache_debug.udon_exception_logging')" toggle>
                 <Switch
                     :model-value="udonExceptionLogging"
                     :ariaLabel="t('view.settings.advanced.advanced.cache_debug.udon_exception_logging')"
                     @update:modelValue="setUdonExceptionLogging" />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.general.logging.resource_load')">
+            <SettingsItem :label="t('view.settings.general.logging.resource_load')" toggle>
                 <Switch
                     :model-value="logResourceLoad"
                     :ariaLabel="t('view.settings.general.logging.resource_load')"
                     @update:modelValue="setLogResourceLoad" />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.general.logging.auto_login_delay')">
+            <SettingsItem :label="t('view.settings.general.logging.auto_login_delay')" toggle>
                 <Switch
                     :model-value="autoLoginDelayEnabled"
                     :ariaLabel="t('view.settings.general.logging.auto_login_delay')"
@@ -101,21 +106,22 @@
 
                 <SettingsItem
                     :label="t('view.settings.advanced.advanced.remote_database.enable')"
-                    :description="t('view.settings.advanced.advanced.app_launcher.folder_tooltip')">
+                    :description="t('view.settings.advanced.advanced.app_launcher.folder_tooltip')"
+                    toggle>
                     <Switch
                         :model-value="enableAppLauncher"
                         :ariaLabel="t('view.settings.advanced.advanced.remote_database.enable')"
                         @update:modelValue="setEnableAppLauncher" />
                 </SettingsItem>
 
-                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.auto_close')">
+                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.auto_close')" toggle>
                     <Switch
                         :model-value="enableAppLauncherAutoClose"
                         :ariaLabel="t('view.settings.advanced.advanced.app_launcher.auto_close')"
                         @update:modelValue="setEnableAppLauncherAutoClose" />
                 </SettingsItem>
 
-                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.run_process_once')">
+                <SettingsItem :label="t('view.settings.advanced.advanced.app_launcher.run_process_once')" toggle>
                     <Switch
                         :model-value="enableAppLauncherRunProcessOnce"
                         :ariaLabel="t('view.settings.advanced.advanced.app_launcher.run_process_once')"
@@ -127,9 +133,11 @@
         <SettingsGroup :title="t('view.settings.advanced.advanced.launch_commands.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.launch_commands.show_confirmation_on_switch_avatar_enable')"
+                class="mb-2"
                 :description="
                     t('view.settings.advanced.advanced.launch_commands.show_confirmation_on_switch_avatar_tooltip')
-                ">
+                "
+                toggle>
                 <Switch
                     :model-value="showConfirmationOnSwitchAvatar"
                     :ariaLabel="
@@ -168,7 +176,9 @@
             </div>
 
             <SettingsItem
-                :label="`${t('view.settings.advanced.advanced.cache_debug.disable_gamelog')} ${t('view.settings.advanced.advanced.cache_debug.disable_gamelog_notice')}`">
+                :label="`${t('view.settings.advanced.advanced.cache_debug.disable_gamelog')} ${t('view.settings.advanced.advanced.cache_debug.disable_gamelog_notice')}`"
+                class="my-2"
+                toggle>
                 <Switch
                     :model-value="gameLogDisabled"
                     :ariaLabel="t('view.settings.advanced.advanced.cache_debug.disable_gamelog')"
@@ -290,6 +300,60 @@
                 @change="handleDbFileImport" />
         </SettingsGroup>
 
+        <SettingsGroup title="Google Drive バックアップ">
+            <template #description>
+                <p class="m-0">データベース (VRCX.sqlite3) を Google Drive のアプリ専用領域に保存・復元します。</p>
+            </template>
+
+            <SettingsItem label="Google アカウント" :description="googleDriveAccountText">
+                <Button
+                    v-if="googleDrive.status.signedIn"
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy"
+                    @click="signOutGoogleDrive">
+                    ログアウト
+                </Button>
+                <Button
+                    v-else-if="googleDrive.action === 'signIn'"
+                    size="sm"
+                    variant="outline"
+                    @click="cancelGoogleDriveSignIn">
+                    キャンセル
+                </Button>
+                <Button
+                    v-else
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.configured"
+                    @click="signInGoogleDrive">
+                    ログイン
+                </Button>
+            </SettingsItem>
+
+            <SettingsItem label="バックアップ" :description="googleDriveBackupText">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.signedIn"
+                    @click="backupGoogleDrive">
+                    {{ googleDrive.action === 'backup' ? 'アップロード中...' : '今すぐバックアップ' }}
+                </Button>
+            </SettingsItem>
+
+            <SettingsItem
+                label="復元"
+                description="Google Drive のバックアップで現在のデータベースを置き換え、アプリを再起動します。">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="googleDriveBusy || !googleDrive.status.backup"
+                    @click="restoreGoogleDrive">
+                    {{ googleDrive.action === 'restore' ? '復元中...' : '復元' }}
+                </Button>
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup :title="t('view.settings.advanced.advanced.database_cleanup.header')">
             <SettingsItem
                 :label="t('view.settings.advanced.advanced.database_cleanup.auto_cleanup')"
@@ -396,6 +460,9 @@
                 <div class="flex items-center gap-2">
                     <span v-if="visits !== null" class="text-sm text-muted-foreground">{{
                         t('view.profile.game_info.user_online', { count: visits })
+                    }}</span>
+                    <span v-if="instanceCount !== null" class="text-sm text-muted-foreground">{{
+                        t('view.profile.game_info.instances_active', { count: instanceCount })
                     }}</span>
                     <Button size="sm" variant="outline" @click="getVisits">{{ t('common.actions.refresh') }}</Button>
                 </div>
@@ -553,7 +620,8 @@
             <SettingsGroup :title="t('view.settings.advanced_groups.nightly.header')">
                 <SettingsItem
                     :label="t('view.settings.advanced.advanced.anonymous_error_reporting.header')"
-                    :description="t('view.settings.advanced.advanced.anonymous_error_reporting.description')">
+                    :description="t('view.settings.advanced.advanced.anonymous_error_reporting.description')"
+                    toggle>
                     <Switch :model-value="sentryErrorReporting" @update:modelValue="setSentryErrorReporting()" />
                 </SettingsItem>
             </SettingsGroup>
@@ -575,7 +643,7 @@
         Trash2,
         TriangleAlert
     } from 'lucide-vue-next';
-    import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';
     import {
         DropdownMenu,
@@ -607,6 +675,7 @@
         useGeneralSettingsStore,
         useGroupStore,
         useInstanceStore,
+        useModalStore,
         usePhotonStore,
         useUiStore,
         useUserStore,
@@ -621,7 +690,8 @@
         clearBrowserConsoleLogs,
         executeBrowserConsoleCommand
     } from '@/services/browserConsoleLog';
-    import { openExternalLink } from '@/shared/utils';
+    import { formatDateFilter, formatFileSize, openExternalLink } from '@/shared/utils';
+    import * as googleDriveService from '@/services/googleDrive';
 
     import PhotonSettings from '../PhotonSettings.vue';
     import RegistryBackupDialog from '../../../Tools/dialogs/RegistryBackupDialog.vue';
@@ -648,6 +718,7 @@
 
     const { photonLoggingEnabled } = storeToRefs(usePhotonStore());
     const { branch } = storeToRefs(useVRCXUpdaterStore());
+    const { restartVRCX } = useVRCXUpdaterStore();
 
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { isDarkMode, feedEnabled } = storeToRefs(appearanceSettingsStore);
@@ -690,6 +761,7 @@
 
     const configTreeData = ref({});
     const visits = ref(null);
+    const instanceCount = ref(null);
     const selectedPurgePeriod = ref('180');
     const isPurgeDialogVisible = ref(false);
     const dbFileInputRef = ref(null);
@@ -837,19 +909,26 @@
     function startBrowserConsoleResize(event) {
         event.preventDefault();
         stopBrowserConsoleResize?.();
+        const handle = event.currentTarget;
         const startY = event.clientY;
         const startHeight = browserConsoleHeight.value;
         const handlePointerMove = (pointerEvent) => {
             setBrowserConsoleHeight(startHeight + pointerEvent.clientY - startY);
         };
-        const handlePointerUp = () => stopBrowserConsoleResize?.();
+        const handlePointerEnd = () => stopBrowserConsoleResize?.();
         stopBrowserConsoleResize = () => {
-            globalThis.removeEventListener('pointermove', handlePointerMove);
-            globalThis.removeEventListener('pointerup', handlePointerUp);
+            handle.removeEventListener('pointermove', handlePointerMove);
+            handle.removeEventListener('pointerup', handlePointerEnd);
+            handle.removeEventListener('pointercancel', handlePointerEnd);
+            if (handle.hasPointerCapture?.(event.pointerId)) {
+                handle.releasePointerCapture(event.pointerId);
+            }
             stopBrowserConsoleResize = undefined;
         };
-        globalThis.addEventListener('pointermove', handlePointerMove);
-        globalThis.addEventListener('pointerup', handlePointerUp);
+        handle.addEventListener('pointermove', handlePointerMove);
+        handle.addEventListener('pointerup', handlePointerEnd);
+        handle.addEventListener('pointercancel', handlePointerEnd);
+        handle.setPointerCapture(event.pointerId);
     }
 
     function handleBrowserConsoleResizeKeydown(event) {
@@ -922,6 +1001,10 @@
             const imported = await AppApi.ImportDatabase(filePath);
             if (!imported) {
                 toast.error('有効な SQLite データベースファイルではないか、読み込みに失敗しました。');
+                return;
+            }
+            if (LINUX) {
+                window.electron.restartApp();
             }
         } catch (err) {
             toast.error(`インポートに失敗しました: ${err?.message ?? err}`);
@@ -957,5 +1040,127 @@
         queryRequest.fetch('visits').then((args) => {
             visits.value = args.json;
         });
+        queryRequest.fetch('instanceCount').then((args) => {
+            instanceCount.value = args.json.instances;
+        });
     }
+
+    const modalStore = useModalStore();
+
+    const googleDrive = reactive({
+        status: { configured: false, signedIn: false, email: null, backup: null, error: null },
+        action: ''
+    });
+
+    const googleDriveBusy = computed(() => googleDrive.action !== '');
+
+    const googleDriveAccountText = computed(() => {
+        if (!googleDrive.status.configured) {
+            return 'このビルドでは Google Drive 連携が設定されていません。';
+        }
+        if (googleDrive.action === 'signIn') {
+            return 'ブラウザで Google の認証を完了してください。';
+        }
+        if (!googleDrive.status.signedIn) {
+            return '未ログイン';
+        }
+        return googleDrive.status.email || 'ログイン済み';
+    });
+
+    const googleDriveBackupText = computed(() => {
+        if (googleDrive.status.error) {
+            return `状態の取得に失敗しました: ${googleDrive.status.error}`;
+        }
+        const backup = googleDrive.status.backup;
+        if (!backup) {
+            return 'Google Drive にバックアップはありません。';
+        }
+        return `最終バックアップ: ${formatDateFilter(backup.modifiedTime, 'long')} (${formatFileSize(Number(backup.size))})`;
+    });
+
+    async function runGoogleDriveAction(action, task) {
+        if (googleDriveBusy.value) {
+            return;
+        }
+        googleDrive.action = action;
+        try {
+            await task();
+        } catch (err) {
+            if (!err?.cancelled) {
+                toast.error(`Google Drive: ${err?.message ?? err}`);
+            }
+            await refreshGoogleDriveStatus();
+        } finally {
+            googleDrive.action = '';
+        }
+    }
+
+    async function refreshGoogleDriveStatus() {
+        try {
+            googleDrive.status = await googleDriveService.getStatus();
+        } catch (err) {
+            console.error('Failed to get Google Drive status', err);
+        }
+    }
+
+    function signInGoogleDrive() {
+        return runGoogleDriveAction('signIn', async () => {
+            await googleDriveService.signIn();
+            await refreshGoogleDriveStatus();
+            toast.success('Google Drive にログインしました。');
+        });
+    }
+
+    function cancelGoogleDriveSignIn() {
+        googleDriveService.cancelSignIn();
+    }
+
+    function signOutGoogleDrive() {
+        return runGoogleDriveAction('signOut', async () => {
+            await googleDriveService.signOut();
+            await refreshGoogleDriveStatus();
+        });
+    }
+
+    async function backupGoogleDrive() {
+        const { ok } = await modalStore.confirm({
+            title: 'Google Drive にバックアップ',
+            description:
+                'Google Drive 上の既存のバックアップは削除され、現在のデータベースで置き換えられます。削除したバックアップは元に戻せません。続行しますか？',
+            confirmText: 'バックアップ',
+            destructive: true
+        });
+        if (!ok) {
+            return;
+        }
+        await runGoogleDriveAction('backup', async () => {
+            await googleDriveService.backup();
+            await refreshGoogleDriveStatus();
+            toast.success('Google Drive にバックアップしました。');
+        });
+    }
+
+    async function restoreGoogleDrive() {
+        const { ok } = await modalStore.confirm({
+            title: 'Google Drive から復元',
+            description: '現在のデータベースはバックアップの内容で上書きされ、アプリが再起動します。続行しますか？',
+            confirmText: '復元',
+            destructive: true
+        });
+        if (!ok) {
+            return;
+        }
+        await runGoogleDriveAction('restore', async () => {
+            const restored = await googleDriveService.restore();
+            if (!restored) {
+                throw new Error('バックアップが有効な SQLite データベースではないか、置き換えに失敗しました。');
+            }
+            restartVRCX(false);
+        });
+    }
+
+    onMounted(async () => {
+        googleDrive.status = await googleDriveService.getLocalStatus();
+        await refreshGoogleDriveStatus();
+    });
 </script>

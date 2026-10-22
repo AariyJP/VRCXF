@@ -16,10 +16,11 @@ const t = i18n.global.t;
 
 /**
  * @param {string} endpoint
- * @param {object} [options]
- * @returns {object} Init object ready for webApiService.execute
+ * @param {import('@/types/vrcx').RequestOptions} [options]
+ * @returns {import('@/types/vrcx').WebApiOptions} Init object ready for webApiService.execute
  */
 export function buildRequestInit(endpoint, options) {
+    /** @type {import('@/types/vrcx').WebApiOptions} */
     const init = {
         url: `${AppDebug.endpointDomain}/${endpoint}`,
         method: 'GET',
@@ -76,9 +77,9 @@ export function parseResponse(response) {
 }
 
 /**
- * @template T
+ * @template [T=any]
  * @param {string} endpoint
- * @param {RequestInit & { params?: any } & { customMsg?: string }} [options]
+ * @param {import('@/types/vrcx').RequestOptions} [options]
  * @returns {Promise<T>}
  */
 export function request(endpoint, options) {
@@ -304,6 +305,7 @@ export function $throw(code, error, endpoint) {
             position: 'bottom-left'
         });
     }
+    /** @type {any} */
     const e = new Error(text);
     e.status = code;
     e.endpoint = endpoint;

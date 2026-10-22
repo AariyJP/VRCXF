@@ -13,6 +13,11 @@ namespace VRCX
 
         public bool ImportDatabase(string sourcePath)
         {
+            return ImportDatabaseFile(sourcePath, false);
+        }
+
+        private bool ImportDatabaseFile(string sourcePath, bool deleteSource)
+        {
             if (string.IsNullOrEmpty(sourcePath) || !File.Exists(sourcePath))
                 return false;
 
@@ -40,6 +45,9 @@ namespace VRCX
                     if (File.Exists(journal))
                         File.Delete(journal);
                 }
+
+                if (deleteSource)
+                    File.Delete(sourcePath);
             }
             catch (Exception ex)
             {
