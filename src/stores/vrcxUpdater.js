@@ -270,7 +270,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         return { downloadUrl, hashString, size };
     }
     async function checkForVRCXUpdate() {
-        if (BROWSER || currentVersion.value.includes(' 0.0.0-')) {
+        if (BROWSER) {
             return false;
         }
         if (
@@ -324,7 +324,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             const releaseName = json.name;
             setLatestAppVersion(releaseName);
             VRCXUpdateDialog.value.updatePendingIsLatest = false;
-            if (autoUpdateVRCX.value === 'Off') {
+            if (autoUpdateVRCX.value === 'Off' || currentVersion.value.includes(' 0.0.0-')) {
                 return true;
             }
             if (releaseName === pendingVRCXInstall.value) {
