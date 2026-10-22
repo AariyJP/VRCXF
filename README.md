@@ -26,7 +26,7 @@ winget install VRCXF.VRCXF
 
 | プラットフォーム       | ファイル                                                    |
 | ---------------------- | ----------------------------------------------------------- |
-| Windows                | `VRCXF_Setup.exe`（インストーラー）、`VRCXF_<version>.msix` |
+| Windows                | `VRCXF_Setup_x64.exe`（インストーラー）、`VRCXF_<version>.msix` |
 | macOS（Apple Silicon） | `VRCXF_arm64.dmg`                                           |
 | Linux                  | `VRCXF_x64.AppImage`、`VRCXF_arm64.AppImage`                |
 | Web ブラウザ           | `VRCXF_bundle.zip`                                          |
