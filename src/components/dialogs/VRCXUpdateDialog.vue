@@ -16,11 +16,20 @@
                         <br />
                         <span>{{ t('dialog.vrcx_updater.ready_for_update') }}</span>
                     </div>
-                    <Tabs :model-value="branch" class="w-full" @update:modelValue="handleBranchChange">
+                    <Tabs v-if="false" :model-value="branch" class="w-full" @update:modelValue="handleBranchChange">
                         <TabsList class="grid w-full grid-cols-2">
                             <TabsTrigger value="Stable">{{ t('dialog.vrcx_updater.branch_stable') }}</TabsTrigger>
-                            <TabsTrigger value="Nightly">Forked</TabsTrigger>
+                            <TabsTrigger value="Nightly">{{ t('dialog.vrcx_updater.branch_nightly') }}</TabsTrigger>
                         </TabsList>
+                        <TabsContent value="Nightly">
+                            <Alert variant="destructive">
+                                <AlertCircle class="text-muted-foreground" />
+                                <AlertTitle>{{ t('dialog.vrcx_updater.nightly_title') }}</AlertTitle>
+                                <AlertDescription>
+                                    {{ t('dialog.vrcx_updater.nightly_notice') }}
+                                </AlertDescription>
+                            </Alert>
+                        </TabsContent>
                     </Tabs>
                     <FieldGroup class="mt-3">
                         <Field>

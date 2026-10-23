@@ -1,0 +1,44 @@
+name: Create Release Commit
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        required: true
+        default: develop
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-slim
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 3566973
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - run: |
+          git config user.name 'aariyjp[bot]'
+          git config user.email '280956696+aariyjp[bot]@users.noreply.github.com'
+
+      - env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+        run: |
+          set -euo pipefail
+          git checkout --detach
+          git branch -f main origin/main
+          git checkout main
+          git merge --no-ff "origin/${SOURCE_BRANCH}" -m "$(TZ=Asia/Tokyo date '+%Y.%m.%d')"
+          git push origin HEAD:main
