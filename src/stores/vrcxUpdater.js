@@ -293,10 +293,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         try {
             response = await webApiService.execute({
                 url,
-                method: 'GET',
-                headers: {
-                    'VRCX-ID': vrcxId.value
-                }
+                method: 'GET'
             });
             json = JSON.parse(response.data);
         } catch (error) {
@@ -374,10 +371,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         try {
             response = await webApiService.execute({
                 url,
-                method: 'GET',
-                headers: {
-                    'VRCX-ID': vrcxId.value
-                }
+                method: 'GET'
             });
             json = JSON.parse(response.data);
         } catch (error) {
