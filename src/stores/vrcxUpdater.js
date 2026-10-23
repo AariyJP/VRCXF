@@ -270,9 +270,6 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         return { downloadUrl, hashString, size };
     }
     async function checkForVRCXUpdate() {
-        if (BROWSER) {
-            return false;
-        }
         if (
             !currentVersion.value ||
             currentVersion.value === 'VRCX Nightly Build' ||
