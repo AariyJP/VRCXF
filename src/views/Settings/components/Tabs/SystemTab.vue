@@ -37,6 +37,14 @@
                 <Button v-if="!noUpdater" size="sm" variant="outline" @click="showVRCXUpdateDialog()">{{
                     t('view.settings.general.vrcx_updater.change_build')
                 }}</Button>
+                <Button
+                    v-if="isPackaged"
+                    size="sm"
+                    variant="outline"
+                    :disabled="checkingMicrosoftStoreUpdate"
+                    @click="handleCheckMicrosoftStoreUpdate"
+                    >Microsoft Storeのアップデートを確認</Button
+                >
             </div>
 
             <template v-if="!noUpdater">
@@ -196,10 +204,21 @@
         promptProxySettings
     } = generalSettingsStore;
 
-    const { appVersion, autoUpdateVRCX, noUpdater } = storeToRefs(vrcxUpdaterStore);
-    const { setAutoUpdateVRCX, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
+    const { appVersion, autoUpdateVRCX, noUpdater, isPackaged } = storeToRefs(vrcxUpdaterStore);
+    const { setAutoUpdateVRCX, showVRCXUpdateDialog, showChangeLogDialog, checkForMicrosoftStoreUpdate } =
+        vrcxUpdaterStore;
 
     const ossDialog = ref(false);
+    const checkingMicrosoftStoreUpdate = ref(false);
+
+    async function handleCheckMicrosoftStoreUpdate() {
+        checkingMicrosoftStoreUpdate.value = true;
+        try {
+            await checkForMicrosoftStoreUpdate(true);
+        } finally {
+            checkingMicrosoftStoreUpdate.value = false;
+        }
+    }
     const isLinux = computed(() => LINUX);
     const isMacOS = computed(() => {
         return navigator.platform.indexOf('Mac') > -1;

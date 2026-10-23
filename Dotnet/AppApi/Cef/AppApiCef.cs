@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -15,6 +16,7 @@ using CefSharp;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.Win32;
 using NLog;
+using Windows.Services.Store;
 
 namespace VRCX
 {
@@ -113,6 +115,52 @@ namespace VRCX
         public override bool CheckForUpdateExe()
         {
             return File.Exists(Path.Join(Program.AppDataDirectory, "update.exe"));
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetCurrentPackageFullName(ref int packageFullNameLength, StringBuilder packageFullName);
+
+        public bool IsPackaged()
+        {
+            var length = 0;
+            return GetCurrentPackageFullName(ref length, null) != 15700;
+        }
+
+        public async Task<bool> CheckMicrosoftStoreUpdate()
+        {
+            try
+            {
+                var updates = await StoreContext.GetDefault().GetAppAndOptionalStorePackageUpdatesAsync();
+                return updates.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Failed to check Microsoft Store update");
+                return false;
+            }
+        }
+
+        public async Task<bool> InstallMicrosoftStoreUpdate()
+        {
+            try
+            {
+                var context = StoreContext.GetDefault();
+                var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+                if (updates.Count == 0)
+                    return false;
+                var operation = MainForm.Instance.Invoke(() =>
+                {
+                    WinRT.Interop.InitializeWithWindow.Initialize(context, MainForm.Instance.Handle);
+                    return context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates);
+                });
+                var result = await operation;
+                return result.OverallState == StorePackageUpdateState.Completed;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Failed to install Microsoft Store update");
+                return false;
+            }
         }
 
         public override void ExecuteVrOverlayFunction(string function, string json)
