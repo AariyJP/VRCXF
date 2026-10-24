@@ -37,6 +37,7 @@ declare global {
         };
         electron: {
             getArch: () => Promise<string>;
+            getName: () => Promise<string>;
             getClipboardText: () => Promise<string>;
             getNoUpdater: () => Promise<boolean>;
             setTrayIconNotification: (notify: boolean) => Promise<void>;

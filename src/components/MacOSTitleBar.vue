@@ -3,7 +3,7 @@
         <div class="title-bar-content">
             <div class="traffic-lights-spacer"></div>
             <div class="title-bar-center">
-                <span class="app-title">VRCXF</span>
+                <span class="app-title">{{ appName }}</span>
             </div>
             <div class="title-bar-right"></div>
         </div>
@@ -11,17 +11,22 @@
 </template>
 
 <script setup>
-    import { computed, onMounted } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
+
+    const appName = ref(document.title);
 
     const isMacOS = computed(() => {
         return navigator.platform.indexOf('Mac') > -1;
     });
 
-    onMounted(() => {
+    onMounted(async () => {
         if (isMacOS.value) {
             const titleBar = document.querySelector('.macos-title-bar');
             if (titleBar) {
                 titleBar.classList.add('draggable');
+            }
+            if (window.electron) {
+                appName.value = await window.electron.getName();
             }
         }
     });

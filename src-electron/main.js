@@ -267,6 +267,9 @@ ipcMain.handle('app:updateVr', (_event, active, hmdOverlay, wristOverlay, _menuB
 ipcMain.handle('app:getArch', () => {
     return process.arch.toString();
 });
+ipcMain.handle('app:getName', () => {
+    return app.getName();
+});
 ipcMain.handle('app:getClipboardText', () => {
     return clipboard.readText();
 });

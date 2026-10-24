@@ -139,5 +139,6 @@
         "vue-demi": true,
         "electron": true
     },
-    "desktopName": "VRCX"
+    "desktopName": "VRCX",
+    "productName": "VRCXF"
 }
