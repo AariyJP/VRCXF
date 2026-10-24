@@ -98,7 +98,7 @@
         <div v-else class="friend-view__toolbar friend-view__toolbar--loading">
             <span class="friend-view__loading-text">{{ t('view.friends_locations.loading_more') }}</span>
         </div>
-        <div v-if="settingsReady" ref="scrollbarRef" class="friend-view__scroll">
+        <div v-if="settingsReady && watchState.isFriendsLoaded" ref="scrollbarRef" class="friend-view__scroll">
             <div v-if="virtualRows.length" class="friend-view__virtual" :style="virtualListStyle">
                 <template v-for="row in virtualRows" :key="String(row.key)">
                     <div class="friend-view__virtual-row" :class="`friend-view__virtual-row--${row.type}`">
@@ -200,6 +200,7 @@
     import LocationWorld from '@/components/LocationWorld.vue';
     import FriendLocationCard from './components/FriendsLocationsCard.vue';
     import configRepository from '../../services/config.js';
+    import { watchState } from '../../services/watchState';
     import { userRequest } from '../../api';
 
     const { t } = useI18n();
