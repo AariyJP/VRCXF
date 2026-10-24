@@ -24,17 +24,11 @@ jobs:
           app-id: 3566973
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v7
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
-
       - env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SOURCE_BRANCH: ${{ inputs.source_branch }}
         run: |
-          set -euo pipefail
-          git config user.name 'aariyjp[bot]'
-          git config user.email '280956696+aariyjp[bot]@users.noreply.github.com'
-          git merge --no-ff "origin/${SOURCE_BRANCH}" -m "$(TZ=Asia/Tokyo date '+%Y.%m.%d')"
-          git push origin HEAD:main
+          gh api "repos/${GITHUB_REPOSITORY}/merges" \
+            -f base=main \
+            -f head="${SOURCE_BRANCH}" \
+            -f commit_message="$(TZ=Asia/Tokyo date '+%Y.%m.%d')"
