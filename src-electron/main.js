@@ -291,6 +291,9 @@ ipcMain.handle('window:focusSelf', (ipcEvent) => {
         targetWindow.restore();
     }
     targetWindow.show();
+    if (process.platform === 'darwin') {
+        app.focus({ steal: true });
+    }
     targetWindow.focus();
 });
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,13 +19,14 @@ namespace VRCX
         private const string GoogleDriveClientId = "906543223879-p7nsbk0jnqegkoa4boa486ho2jtlssdr.apps.googleusercontent.com";
         private const string GoogleDriveClientSecret = "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";
         private const string GoogleDriveBackupFileName = "VRCX.sqlite3";
-        private const string GoogleDriveBackupContentType = "application/vnd.sqlite3";
+        private const string GoogleDriveBackupContentType = "application/gzip";
         private const string GoogleDriveTokenUrl = "https://oauth2.googleapis.com/token";
         private const string GoogleDriveRevokeUrl = "https://oauth2.googleapis.com/revoke";
 
         private static readonly HttpClient GoogleDriveHttpClient = CreateGoogleDriveHttpClient();
         private static readonly SemaphoreSlim GoogleDriveLock = new(1, 1);
         private static CancellationTokenSource googleDriveSignInCts;
+        private static string googleDrivePendingPath;
 
         private static HttpClient CreateGoogleDriveHttpClient()
         {
@@ -161,15 +163,44 @@ namespace VRCX
                 logger.Warn("Failed to revoke Google Drive token ({status})", (int)response.StatusCode);
         }
 
+        public async Task GoogleDriveCompressDatabase()
+        {
+            await GoogleDriveLock.WaitAsync();
+            var snapshotPath = GetGoogleDriveTempPath(GoogleDriveBackupFileName);
+            var compressedPath = snapshotPath + ".gz";
+            try
+            {
+                TryDeleteFile(snapshotPath);
+                SQLite.Instance.ExecuteNonQuery("VACUUM INTO @path", new Dictionary<string, object> { ["@path"] = snapshotPath });
+
+                await using (var input = File.OpenRead(snapshotPath))
+                await using (var output = File.Create(compressedPath))
+                await using (var gzip = new GZipStream(output, CompressionLevel.Optimal))
+                {
+                    await input.CopyToAsync(gzip);
+                }
+
+                SetGoogleDrivePendingPath(compressedPath);
+            }
+            catch
+            {
+                TryDeleteFile(compressedPath);
+                throw;
+            }
+            finally
+            {
+                TryDeleteFile(snapshotPath);
+                GoogleDriveLock.Release();
+            }
+        }
+
         public async Task<string> GoogleDriveUploadDatabase(string accessToken)
         {
             await GoogleDriveLock.WaitAsync();
-            var snapshotPath = Path.Join(Path.GetTempPath(), $"VRCX-gdrive-{Guid.NewGuid():N}.sqlite3");
+            var compressedPath = TakeGoogleDrivePendingPath();
             try
             {
-                SQLite.Instance.ExecuteNonQuery("VACUUM INTO @path", new Dictionary<string, object> { ["@path"] = snapshotPath });
-
-                var length = new FileInfo(snapshotPath).Length;
+                var length = new FileInfo(compressedPath).Length;
 
                 using var initRequest = new HttpRequestMessage(HttpMethod.Post,
                     "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id")
@@ -187,7 +218,7 @@ namespace VRCX
                 var uploadUrl = initResponse.Headers.Location
                     ?? throw new InvalidOperationException("Google Drive のアップロード先を取得できませんでした。");
 
-                await using var stream = File.OpenRead(snapshotPath);
+                await using var stream = File.OpenRead(compressedPath);
                 using var uploadRequest = new HttpRequestMessage(HttpMethod.Put, uploadUrl)
                 {
                     Content = new StreamContent(stream)
@@ -199,15 +230,15 @@ namespace VRCX
             }
             finally
             {
-                TryDeleteFile(snapshotPath);
+                TryDeleteFile(compressedPath);
                 GoogleDriveLock.Release();
             }
         }
 
-        public async Task<bool> GoogleDriveDownloadDatabase(string fileId, string accessToken)
+        public async Task GoogleDriveDownloadDatabase(string fileId, string accessToken)
         {
             await GoogleDriveLock.WaitAsync();
-            var downloadPath = Path.Join(Path.GetTempPath(), $"VRCX-gdrive-{Guid.NewGuid():N}.sqlite3");
+            var downloadPath = GetGoogleDriveTempPath(GoogleDriveBackupFileName + ".gz");
             try
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Get,
@@ -218,13 +249,63 @@ namespace VRCX
                     await response.Content.CopyToAsync(output);
                 }
 
-                return ImportDatabaseFile(downloadPath, true);
+                SetGoogleDrivePendingPath(downloadPath);
+            }
+            catch
+            {
+                TryDeleteFile(downloadPath);
+                throw;
+            }
+            finally
+            {
+                GoogleDriveLock.Release();
+            }
+        }
+
+        public async Task<bool> GoogleDriveImportDatabase()
+        {
+            await GoogleDriveLock.WaitAsync();
+            var downloadPath = TakeGoogleDrivePendingPath();
+            var databasePath = Path.ChangeExtension(downloadPath, null);
+            try
+            {
+                await using (var input = File.OpenRead(downloadPath))
+                await using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+                await using (var output = File.Create(databasePath))
+                {
+                    await gzip.CopyToAsync(output);
+                }
+
+                return ImportDatabaseFile(databasePath, true);
             }
             finally
             {
                 TryDeleteFile(downloadPath);
+                TryDeleteFile(databasePath);
                 GoogleDriveLock.Release();
             }
+        }
+
+        private static string GetGoogleDriveTempPath(string fileName)
+        {
+            var tempPath = Path.Join(Path.GetTempPath(), "VRCX");
+            Directory.CreateDirectory(tempPath);
+            return Path.Join(tempPath, fileName);
+        }
+
+        private static void SetGoogleDrivePendingPath(string path)
+        {
+            if (googleDrivePendingPath != null && googleDrivePendingPath != path)
+                TryDeleteFile(googleDrivePendingPath);
+            googleDrivePendingPath = path;
+        }
+
+        private static string TakeGoogleDrivePendingPath()
+        {
+            var path = googleDrivePendingPath
+                ?? throw new InvalidOperationException("Google Drive の転送するファイルが準備されていません。");
+            googleDrivePendingPath = null;
+            return path;
         }
 
         private static async Task<HttpResponseMessage> SendGoogleDriveRequest(HttpRequestMessage request, string accessToken,

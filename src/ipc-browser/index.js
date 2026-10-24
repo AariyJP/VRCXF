@@ -434,8 +434,15 @@ function delegateToNativeGoogleDrive(method, args) {
     return bridge ? bridge.postMessage({ method, args }) : null;
 }
 
-async function exportDatabaseBlob() {
-    return new Blob([await browserSQLiteRuntime.exportDatabase()], { type: 'application/vnd.sqlite3' });
+let googleDrivePendingBlob = null;
+
+function takeGoogleDrivePendingBlob() {
+    const blob = googleDrivePendingBlob;
+    if (!blob) {
+        throw new Error('Google Drive の転送するファイルが準備されていません。');
+    }
+    googleDrivePendingBlob = null;
+    return blob;
 }
 
 let googleOAuthPopup = null;
@@ -1295,16 +1302,42 @@ const BrowserAppApi = new Proxy(
                 body: JSON.stringify({ token: refreshToken })
             });
         },
+        async GoogleDriveCompressDatabase() {
+            const stream = new Blob([await browserSQLiteRuntime.exportDatabase()])
+                .stream()
+                .pipeThrough(new CompressionStream('gzip'));
+            googleDrivePendingBlob = new Blob([await new Response(stream).arrayBuffer()], {
+                type: 'application/gzip'
+            });
+        },
         async GoogleDriveUploadDatabase(accessToken) {
-            const metadata = JSON.stringify({ name: 'VRCX.sqlite3', parents: ['appDataFolder'] });
-            const body = new FormData();
-            body.append('metadata', new Blob([metadata], { type: 'application/json' }));
-            body.append('file', await exportDatabaseBlob());
-
-            const response = await fetch(
-                'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-                { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body }
+            const file = takeGoogleDrivePendingBlob();
+            const initResponse = await fetch(
+                'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'X-Upload-Content-Type': file.type,
+                        'X-Upload-Content-Length': String(file.size)
+                    },
+                    body: JSON.stringify({ name: 'VRCX.sqlite3', parents: ['appDataFolder'] })
+                }
             );
+            if (!initResponse.ok) {
+                throw new Error(`Google Drive API エラー (${initResponse.status}): ${await initResponse.text()}`);
+            }
+            const uploadUrl = initResponse.headers.get('Location');
+            if (!uploadUrl) {
+                throw new Error('Google Drive のアップロード先を取得できませんでした。');
+            }
+
+            const response = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': file.type },
+                body: file
+            });
             if (!response.ok) {
                 throw new Error(`Google Drive API エラー (${response.status}): ${await response.text()}`);
             }
@@ -1317,7 +1350,11 @@ const BrowserAppApi = new Proxy(
             if (!response.ok) {
                 throw new Error(`Google Drive API エラー (${response.status}): ${await response.text()}`);
             }
-            return browserSQLiteRuntime.importDatabase(await response.arrayBuffer());
+            googleDrivePendingBlob = await response.blob();
+        },
+        async GoogleDriveImportDatabase() {
+            const stream = takeGoogleDrivePendingBlob().stream().pipeThrough(new DecompressionStream('gzip'));
+            return browserSQLiteRuntime.importDatabase(await new Response(stream).arrayBuffer());
         }
     },
     {

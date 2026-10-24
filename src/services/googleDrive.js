@@ -284,9 +284,13 @@ export async function signOut() {
     }
 }
 
-export async function backup() {
+export async function backup(onPhase) {
     await ensureLoaded();
-    const uploadedId = await AppApi.GoogleDriveUploadDatabase(await getAccessToken());
+    const token = await getAccessToken();
+    onPhase?.('compress');
+    await AppApi.GoogleDriveCompressDatabase();
+    onPhase?.('upload');
+    const uploadedId = await AppApi.GoogleDriveUploadDatabase(token);
     if (!uploadedId) {
         throw new Error('Google Drive へのアップロードに失敗しました。');
     }
@@ -295,11 +299,14 @@ export async function backup() {
     await Promise.all(stale.map((file) => driveFetch(`${DRIVE_FILES_URL}/${file.id}`, { method: 'DELETE' })));
 }
 
-export async function restore() {
+export async function restore(onPhase) {
     await ensureLoaded();
     const file = await findBackupFile();
     if (!file) {
         throw new Error('Google Drive にバックアップがありません。');
     }
-    return AppApi.GoogleDriveDownloadDatabase(file.id, await getAccessToken());
+    onPhase?.('download');
+    await AppApi.GoogleDriveDownloadDatabase(file.id, await getAccessToken());
+    onPhase?.('extract');
+    return AppApi.GoogleDriveImportDatabase();
 }

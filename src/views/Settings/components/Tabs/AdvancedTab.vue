@@ -314,13 +314,13 @@
                     @click="signOutGoogleDrive">
                     ログアウト
                 </Button>
-                <Button
-                    v-else-if="googleDrive.action === 'signIn'"
-                    size="sm"
-                    variant="outline"
-                    @click="cancelGoogleDriveSignIn">
-                    キャンセル
-                </Button>
+                <template v-else-if="googleDrive.action === 'signIn'">
+                    <Button size="sm" variant="outline" disabled>
+                        <Loader2 class="animate-spin" />
+                        ログイン中
+                    </Button>
+                    <Button size="sm" variant="outline" @click="cancelGoogleDriveSignIn">キャンセル</Button>
+                </template>
                 <Button
                     v-else
                     size="sm"
@@ -337,7 +337,11 @@
                     variant="outline"
                     :disabled="googleDriveBusy || !googleDrive.status.signedIn"
                     @click="backupGoogleDrive">
-                    {{ googleDrive.action === 'backup' ? 'アップロード中...' : '今すぐバックアップ' }}
+                    <template v-if="googleDrive.action === 'backup'">
+                        <Loader2 class="animate-spin" />
+                        {{ googleDrivePhaseText }}
+                    </template>
+                    <template v-else>今すぐバックアップ</template>
                 </Button>
             </SettingsItem>
 
@@ -349,7 +353,11 @@
                     variant="outline"
                     :disabled="googleDriveBusy || !googleDrive.status.backup"
                     @click="restoreGoogleDrive">
-                    {{ googleDrive.action === 'restore' ? '復元中...' : '復元' }}
+                    <template v-if="googleDrive.action === 'restore'">
+                        <Loader2 class="animate-spin" />
+                        {{ googleDrivePhaseText }}
+                    </template>
+                    <template v-else>復元</template>
                 </Button>
             </SettingsItem>
         </SettingsGroup>
@@ -640,6 +648,7 @@
         CircleX,
         Info,
         ListFilter,
+        Loader2,
         Trash2,
         TriangleAlert
     } from 'lucide-vue-next';
@@ -1049,8 +1058,17 @@
 
     const googleDrive = reactive({
         status: { configured: false, signedIn: false, email: null, backup: null, error: null },
-        action: ''
+        action: '',
+        phase: ''
     });
+
+    const GOOGLE_DRIVE_PHASE_TEXT = {
+        compress: '圧縮中',
+        upload: 'アップロード中',
+        download: 'ダウンロード中',
+        extract: '展開中'
+    };
+    const googleDrivePhaseText = computed(() => GOOGLE_DRIVE_PHASE_TEXT[googleDrive.phase] ?? '');
 
     const googleDriveBusy = computed(() => googleDrive.action !== '');
 
@@ -1092,6 +1110,7 @@
             await refreshGoogleDriveStatus();
         } finally {
             googleDrive.action = '';
+            googleDrive.phase = '';
         }
     }
 
@@ -1106,9 +1125,15 @@
     function signInGoogleDrive() {
         return runGoogleDriveAction('signIn', async () => {
             await googleDriveService.signIn();
+            AppApi.FocusWindow();
+            window.electron?.focusSelfWindow?.();
             await refreshGoogleDriveStatus();
             toast.success('Google Drive にログインしました。');
         });
+    }
+
+    function setGoogleDrivePhase(phase) {
+        googleDrive.phase = phase;
     }
 
     function cancelGoogleDriveSignIn() {
@@ -1134,7 +1159,7 @@
             return;
         }
         await runGoogleDriveAction('backup', async () => {
-            await googleDriveService.backup();
+            await googleDriveService.backup(setGoogleDrivePhase);
             await refreshGoogleDriveStatus();
             toast.success('Google Drive にバックアップしました。');
         });
@@ -1151,7 +1176,7 @@
             return;
         }
         await runGoogleDriveAction('restore', async () => {
-            const restored = await googleDriveService.restore();
+            const restored = await googleDriveService.restore(setGoogleDrivePhase);
             if (!restored) {
                 throw new Error('バックアップが有効な SQLite データベースではないか、置き換えに失敗しました。');
             }

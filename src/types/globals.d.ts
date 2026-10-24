@@ -228,8 +228,10 @@ declare global {
         GoogleDriveCancelSignIn(): Promise<void>;
         GoogleDriveExchangeToken(formJson: string): Promise<string>;
         GoogleDriveRevokeToken(refreshToken: string): Promise<void>;
+        GoogleDriveCompressDatabase(): Promise<void>;
         GoogleDriveUploadDatabase(accessToken: string): Promise<string>;
-        GoogleDriveDownloadDatabase(fileId: string, accessToken: string): Promise<boolean>;
+        GoogleDriveDownloadDatabase(fileId: string, accessToken: string): Promise<void>;
+        GoogleDriveImportDatabase(): Promise<boolean>;
 
         // Game Handler
         OnProcessStateChanged(monitoredProcess: any): Promise<void>;
