@@ -53,7 +53,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 3. `window.electron.*` を使う場合は、必要に応じて Windows 互換パスを提供する
 4. .NET コードを変更したら `Dotnet/VRCX-Cef.csproj` と `Dotnet/VRCX-Electron.csproj` の両方がビルド可能な状態を保つ
 5. Browser ターゲットに影響するネイティブ API を追加/変更する場合は `src/ipc-browser/index.js` のモックも合わせて更新する（ネイティブ依存機能はスタブのままで構わない）
-6. Browser の REST 中継を変更する場合は `functions/api/1/[[path]].ts` も確認する。WebSocket は CORS の対象外なので中継を持たず、全ターゲットが `wss://pipeline.vrchat.cloud` へ直接接続する
+6. Browser の REST / WebSocket 中継を変更する場合は `functions/api/1/[[path]].ts` と `functions/ws/[[path]].ts` も確認する。WebSocket は CORS の対象外だが、pipeline はセッションを作成した IP と接続元 IP を照合するため、REST と同じく Cloudflare 経由で中継する
 
 ## 技術スタック
 
@@ -93,7 +93,7 @@ VRChat のフレンド管理デスクトップアプリ。[vrcx-team/VRCX](https
 - **公開静的アセット** (`src/public/`)
 - **アプリシェル CSS の分割**: `src/styles/globals.css` と `src/app.css`
 - **Web Worker** (`src/workers/`) — Activity の重い計算をレンダラから分離
-- **Cloudflare Pages Functions** (`functions/`) — Browser 版の VRChat REST 中継
+- **Cloudflare Pages Functions** (`functions/`) — Browser 版の VRChat REST / WebSocket 中継
 
 ## ディレクトリ構成
 
@@ -153,6 +153,7 @@ build-scripts/
   generate-third-party-licenses.js
 functions/
   api/1/[[path]].ts       # Browser 版 VRChat REST プロキシ
+  ws/[[path]].ts          # Browser 版 VRChat WebSocket プロキシ
 Dotnet/
   AppApi/Common/          # 共通ネイティブ API サーフェス
   AppApi/Cef/             # Windows 専用 API レイヤ
@@ -321,7 +322,7 @@ fork では `src/coordinators/gameLogCoordinator.js` の `addGameLogEvent()` を
 ## VRChat API
 
 - REST エンドポイントベース: `https://api.vrchat.cloud/api/1`（Browser のみ同一オリジンの `/api/1` を経由。VRChat が CORS ヘッダーを返さないため）
-- WebSocket ベース: `wss://pipeline.vrchat.cloud`（Browser も直接接続する。WebSocket は同一オリジンポリシーの対象外で、pipeline は `Origin` を検証しない。認証は `?auth=` クエリのみで Cookie は不要）
+- WebSocket ベース: `wss://pipeline.vrchat.cloud`（Browser のみ同一オリジンの `/ws` を経由。pipeline は `?auth=` のセッションを作成した IP と接続元 IP を照合し、一致しないと `authToken doesn't correspond with an active session` を返すため、REST と同じ Cloudflare 経由で接続する）
 - リクエスト経路: `src/services/request.js` → `src/services/webapi.js` → ネイティブ `WebApi`
 - `src/services/request.js` に GET 重複排除ウィンドウと 404/403 抑制ウィンドウがある（具体値は同ファイルを参照）
 
