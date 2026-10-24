@@ -426,7 +426,7 @@ class BrowserSQLiteRuntime {
 const browserSQLiteRuntime = new BrowserSQLiteRuntime();
 
 const GOOGLE_OAUTH_MESSAGE_SOURCE = 'vrcxf-google-oauth';
-const GOOGLE_OAUTH_CALLBACK_PATH = '/google-oauth-callback.html';
+const GOOGLE_OAUTH_CALLBACK_PATH = '/google/callback';
 const googleDriveCredentialsKey = 'vrcx-google-drive-credentials';
 
 function delegateToNativeGoogleDrive(method, args) {
