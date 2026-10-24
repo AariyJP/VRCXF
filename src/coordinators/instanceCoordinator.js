@@ -7,7 +7,7 @@ import { parseLocation } from '../shared/utils/locationParser';
 function refreshInstancePlayerCount(instance) {
     const L = parseLocation(instance);
     if (L.isRealInstance) {
-        instanceRequest.getInstance({
+        return instanceRequest.getInstance({
             worldId: L.worldId,
             instanceId: L.instanceId
         });
