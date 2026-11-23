@@ -187,8 +187,8 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(jsdom@30.1.3(@noble/hashes@1.8.0))(vite@8.1.5(@types/node@26.6.5)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
       vrchat:
-        specifier: ^2.26.0
-        version: 2.26.0(supports-color@7.2.0)
+        specifier: ^2.26.1-nightly.15
+        version: 2.26.1-nightly.18(supports-color@7.2.0)
       vue:
         specifier: ^3.5.44
         version: 3.5.44(typescript@6.0.3)
@@ -3621,8 +3621,8 @@ packages:
       jsdom:
         optional: true
 
-  vrchat@2.26.0:
-    resolution: {integrity: sha512-i4UkZHCFIbKt46Ep+AK/tU8OrIaUuput0fUSjqR0muY+O2B05QAlkJrdeEwbBnh2eHs5hK18uGzztA2TfNe6rA==}
+  vrchat@2.26.1-nightly.18:
+    resolution: {integrity: sha512-y9V2j/HRoXq258RH7B/gYJV90AUMEXaLCtj08BT5LJKyhRg2BfTheso7YfqCqu3kQ7sGUyCNhjaJcJTIWF//Fg==}
 
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
@@ -7170,7 +7170,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vrchat@2.26.0(supports-color@7.2.0):
+  vrchat@2.26.1-nightly.18(supports-color@7.2.0):
     dependencies:
       cacheable: 1.10.4
       debug: 4.4.3(supports-color@7.2.0)
