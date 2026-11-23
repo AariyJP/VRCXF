@@ -204,7 +204,8 @@ export default defineConfig(({ mode }) => {
                 },
                 output: {
                     assetFileNames: getAssetFilename,
-                    manualChunks: getManualChunk
+                    manualChunks: getManualChunk,
+                    strictExecutionOrder: true
                 }
             }
         }

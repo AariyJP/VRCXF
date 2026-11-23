@@ -1,4 +1,15 @@
-import type { CurrentUser, Favorite, Group, Instance, Notification, UpdateInstanceRequest, User, World } from 'vrchat';
+import type {
+    CurrentUser,
+    Favorite,
+    Group,
+    Instance,
+    InstanceCategory,
+    InstanceVibe,
+    Notification,
+    UpdateInstanceRequest,
+    User,
+    World
+} from 'vrchat';
 
 // cursed line to convert Date and bigint to expected types
 export type Json<T> = T extends Date
@@ -18,7 +29,8 @@ export interface moderations {
     isChatBoxMuted: boolean;
 }
 
-export interface VrcxUser extends Json<User> {
+export interface VrcxUser extends Omit<Json<User>, 'state'> {
+    state: User['state'] | '';
     $location: {};
     $location_at: number;
     $online_for: number;
@@ -44,7 +56,7 @@ export interface VrcxUser extends Json<User> {
     $customTag: string;
     $customTagColour: string;
     $friendNumber: number;
-    $lastFetch: number;
+    $lastFetch?: number;
     $moderations: moderations;
     $memo: string;
     $platform: string;
@@ -91,28 +103,15 @@ export interface InstanceCount {
     instances: number;
 }
 
+export interface InstanceOptions {
+    categories: Json<InstanceCategory>[];
+    vibes: Json<InstanceVibe>[];
+}
+
 export interface VrcxUpdateInstanceRequest {
     location: string;
     calendarEntryId?: UpdateInstanceRequest['calendarEntryId'];
     displayName?: string | null;
-}
-
-export interface MarketplaceAvatarSearchParams {
-    n: number;
-    offset: number;
-    search: string;
-    releaseStatus: string;
-    order: string;
-    marketplace: string;
-    metadata: boolean;
-    minPrice?: number;
-    maxPrice?: number;
-    performanceAtLeast?: string;
-    platform?: string;
-    minUnityVersion?: string;
-    maxUnityVersion?: string;
-    minAssetVersion?: number;
-    maxAssetVersion?: number;
 }
 
 export interface VrcxWorld extends Json<World> {

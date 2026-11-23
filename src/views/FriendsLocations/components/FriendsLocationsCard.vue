@@ -6,7 +6,7 @@
             :style="cardStyle"
             @click="showUserDialog(friend.id)">
             <ProfileEffect
-                v-if="showCosmetics"
+                :enabled="showCosmetics"
                 :profile-effect="friend.ref.profileEffect"
                 class="object-cover rounded-lg" />
             <div class="friend-card__header grid items-center mb-1.75">
@@ -19,7 +19,7 @@
                             <User class="text-muted-foreground" :size="Math.max(16, 20 * cardScale)" />
                         </AvatarFallback>
                     </Avatar>
-                    <IconFrame v-if="showCosmetics" :icon-frame="friend.ref.iconFrame" />
+                    <IconFrame :enabled="showCosmetics" :icon-frame="friend.ref.iconFrame" />
                 </div>
                 <span
                     class="friend-card__status-dot absolute rounded-full pointer-events-none"

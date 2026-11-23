@@ -1,4 +1,12 @@
-import type { File, LimitedWorld, SearchWorlds, UpdateWorldRequest, World } from 'vrchat';
+import type {
+    File,
+    LimitedWorld,
+    SearchWorlds,
+    UpdateWorldRequest,
+    World,
+    WorldRating,
+    WorldRatingValue
+} from 'vrchat';
 import type { Json } from '../types/vrcx';
 import { patchAndRefetchActiveQuery, queryKeys } from '../queries';
 import { request } from '../services/request';
@@ -129,6 +137,43 @@ const worldReq = {
                 params
             };
             return args;
+        });
+    },
+
+    getWorldRating(params: { worldId: string }): Promise<{ json: WorldRating; params: { worldId: string } }> {
+        return request(`worlds/${params.worldId}/rating`, {
+            method: 'GET'
+        }).then((json) => {
+            return {
+                json,
+                params
+            };
+        });
+    },
+
+    setWorldRating(params: {
+        worldId: string;
+        value: WorldRatingValue;
+    }): Promise<{ json: WorldRating; params: { worldId: string; value: WorldRatingValue } }> {
+        return request(`worlds/${params.worldId}/rating`, {
+            method: 'PUT',
+            params: { value: params.value }
+        }).then((json) => {
+            return {
+                json,
+                params
+            };
+        });
+    },
+
+    deleteWorldRating(params: { worldId: string }): Promise<{ json: WorldRating; params: { worldId: string } }> {
+        return request(`worlds/${params.worldId}/rating`, {
+            method: 'DELETE'
+        }).then((json) => {
+            return {
+                json,
+                params
+            };
         });
     }
 };

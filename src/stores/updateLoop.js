@@ -8,6 +8,7 @@ import { runUpdateIsGameRunningFlow } from '../coordinators/gameCoordinator';
 import { addGameLogEvent } from '../coordinators/gameLogCoordinator';
 import { runRefreshPlayerModerationsFlow } from '../coordinators/moderationCoordinator';
 import { clearVRCXCache } from '../coordinators/vrcxCoordinator';
+import { isWebSocketConnected } from '../services/websocket';
 import { useAuthStore } from './auth';
 import { useDiscordPresenceSettingsStore } from './settings/discordPresence';
 import { useFriendStore } from './friend';
@@ -34,6 +35,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
     const state = {
         nextCurrentUserRefresh: 300,
         nextFriendsRefresh: 3600,
+        nextOfflineFriendsRefresh: 30,
         nextGroupInstanceRefresh: 0,
         nextAppUpdateCheck: 3600,
         ipcTimeout: 0,
@@ -51,6 +53,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         () => {
             state.nextCurrentUserRefresh = 300;
             state.nextFriendsRefresh = 3600;
+            state.nextOfflineFriendsRefresh = 30;
             state.nextGroupInstanceRefresh = 0;
             state.nextBundleCheck = 60;
         },
@@ -82,6 +85,16 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                     ) {
                         runRefreshPlayerModerationsFlow();
                         userStore.getAllProductPurchases();
+                    }
+                }
+                if (--state.nextOfflineFriendsRefresh <= 0) {
+                    state.nextOfflineFriendsRefresh = 30;
+                    if (
+                        !isWebSocketConnected.value &&
+                        watchState.isFriendsLoaded &&
+                        !friendStore.isRefreshFriendsLoading
+                    ) {
+                        friendStore.refreshFriends().catch(console.error);
                     }
                 }
                 if (--state.nextGroupInstanceRefresh <= 0) {

@@ -687,10 +687,29 @@ export const useNotificationStore = defineStore('Notification', () => {
         });
     }
 
+    let refreshNotificationsPromise = null;
+    let refreshNotificationsBlockedUntil = 0;
+
     /**
      * @returns {Promise<void>}
      */
-    async function refreshNotifications() {
+    function refreshNotifications() {
+        if (refreshNotificationsPromise) {
+            return refreshNotificationsPromise;
+        }
+        if (Date.now() < refreshNotificationsBlockedUntil) {
+            return Promise.resolve();
+        }
+        refreshNotificationsPromise = fetchAllNotifications().finally(() => {
+            refreshNotificationsPromise = null;
+        });
+        return refreshNotificationsPromise;
+    }
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async function fetchAllNotifications() {
         isNotificationsLoading.value = true;
         let count;
         let params;
@@ -758,6 +777,9 @@ export const useNotificationStore = defineStore('Notification', () => {
             }
         } catch (err) {
             console.error(err);
+            if (err?.status === 429) {
+                refreshNotificationsBlockedUntil = Date.now() + 120000;
+            }
         } finally {
             isNotificationsLoading.value = false;
             notificationInitStatus.value = true;
@@ -1192,6 +1214,7 @@ export const useNotificationStore = defineStore('Notification', () => {
             console.error('Failed to check free store items:', err);
             return;
         }
+        const failedListingIds = await getFailedFreeListingIds();
         const freeListings = new Map();
         for (const shelf of shelves) {
             for (const listing of shelf.listings ?? []) {
@@ -1199,7 +1222,8 @@ export const useNotificationStore = defineStore('Notification', () => {
                     listing.active &&
                     !getEffectiveListingPrice(listing) &&
                     !isListingOwned(listing) &&
-                    !shownFreeListingIds.has(listing.id)
+                    !shownFreeListingIds.has(listing.id) &&
+                    !failedListingIds.has(listing.id)
                 ) {
                     freeListings.set(listing.id, {
                         ...listing,
@@ -1224,6 +1248,23 @@ export const useNotificationStore = defineStore('Notification', () => {
             dialog.listings = newListings;
         }
         dialog.visible = true;
+    }
+
+    async function getFailedFreeListingIds() {
+        const data = await configRepository.getString(`VRCX_failedFreeListingIds_${userStore.currentUser.id}`, '[]');
+        return new Set(JSON.parse(data));
+    }
+
+    async function addFailedFreeListingIds(listingIds) {
+        if (listingIds.length === 0) {
+            return;
+        }
+        const key = `VRCX_failedFreeListingIds_${userStore.currentUser.id}`;
+        const failedIds = await getFailedFreeListingIds();
+        for (const id of listingIds) {
+            failedIds.add(id);
+        }
+        await configRepository.setString(key, JSON.stringify(Array.from(failedIds)));
     }
 
     function testNotification() {
@@ -1465,6 +1506,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         refreshNotifications,
         checkInventoryBundles,
         checkFreeStoreItems,
+        addFailedFreeListingIds,
         queueNotificationNoty,
         playNoty,
         queueGameLogNoty,

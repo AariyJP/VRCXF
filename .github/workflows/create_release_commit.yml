@@ -21,7 +21,7 @@ jobs:
       - id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: Iv23ctmE0LHCwq58gBqC
+          client-id: Iv23liM0TVvpzi0YLibm
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - env:

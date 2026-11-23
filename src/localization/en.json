@@ -372,15 +372,6 @@
             "marketplace": {
                 "header": "Marketplace"
             },
-            "store": {
-                "header": "VRChat Store",
-                "refresh_tooltip": "Refresh store",
-                "free": "Free",
-                "vrc_plus_price": "{price} with VRC+",
-                "credits": "{credits}V",
-                "buy": "Buy",
-                "owned": "Owned"
-            },
             "group": {
                 "header": "Group"
             }
@@ -740,6 +731,19 @@
                 "launch_options_description": "Edit VRChat launch options",
                 "registry_backup": "VRChat Registry Backup",
                 "registry_backup_description": "Create or restore a VRChat registry backup"
+            },
+            "marketplace": {
+                "header": "Marketplace",
+                "vrchat_store": "VRChat Store",
+                "vrchat_store_description": "Browse and buy items from the VRChat store",
+                "search_placeholder": "Search store",
+                "refresh_tooltip": "Refresh store",
+                "free": "Free",
+                "vrc_plus_price": "{price} with VRC+",
+                "credits": "{credits}V",
+                "buy": "Buy",
+                "owned": "Owned",
+                "days_left": "{days}d left"
             },
             "other": {
                 "header": "Other",
@@ -1101,7 +1105,9 @@
                         "header": "Desktop Notifications",
                         "when_to_display": "Show Desktop Notifications",
                         "when_to_display_vr": "Show VR Notifications",
-                        "desktop_notification_while_afk": "Show Notifications While AFK"
+                        "desktop_notification_while_afk": "Show Notifications While AFK",
+                        "queue_ready_alarm": "Queue Ready Alarm",
+                        "queue_ready_alarm_description": "Play a chime and flash the taskbar (Windows) when a queued instance is ready, even while Busy"
                     },
                     "text_to_speech": {
                         "header": "Text-To-Speech",
@@ -1464,6 +1470,10 @@
                 "instance_friends_tooltip": "Friends in this instance",
                 "instance_game_version": "Game Version:",
                 "instance_languages": "Languages:",
+                "instance_creation_language": "Set by instance creator",
+                "instance_description": "Description:",
+                "instance_category": "Category:",
+                "instance_vibes": "Vibes:",
                 "last_join": "Last Join",
                 "instance_queuing_enabled": "Queuing Enabled",
                 "instance_hype_train": "Hype Train Active",
@@ -1664,6 +1674,8 @@
             "actions": {
                 "delete_cache_tooltip": "Delete world from cache",
                 "favorites_tooltip": "Favorites",
+                "like": "Like",
+                "dislike": "Dislike",
                 "refresh": "Refresh",
                 "share": "Share",
                 "new_instance": "New Instance",
@@ -2195,8 +2207,13 @@
             "legacy": "Legacy",
             "roles": "Roles",
             "open_ingame": "Open in-game",
-            "display_name": "Display Name (VRC+)",
-            "minimum_avatar_performance": "Minimum Avatar Performance"
+            "display_name": "Display Name",
+            "minimum_avatar_performance": "Minimum Avatar Performance",
+            "description": "Description",
+            "category": "Category",
+            "vibes": "Vibes",
+            "languages": "Languages",
+            "none": "None"
         },
         "launch_options": {
             "header": "VRChat Launch Options",

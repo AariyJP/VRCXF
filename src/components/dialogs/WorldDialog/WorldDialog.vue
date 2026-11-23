@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-1 min-h-0 min-w-0 flex-col max-sm:overflow-y-auto sm:flex-row">
         <DialogHeader class="sr-only">
-            <DialogTitle>{{ worldDialog.ref?.name }}</DialogTitle>
+            <DialogTitle>{{ worldDialog.ref?.name || worldDialog.id }}</DialogTitle>
             <DialogDescription>
                 {{ worldDialog.ref?.description }}
             </DialogDescription>
@@ -31,14 +31,14 @@
                                     <span
                                         class="flex flex-wrap font-bold cursor-pointer"
                                         @click="copyWorldName"
-                                        :title="worldDialog.ref.name">
+                                        :title="worldDialog.ref.name || worldDialog.id">
                                         <Home
                                             v-if="
                                                 currentUser.$homeLocation &&
                                                 currentUser.$homeLocation.worldId === worldDialog.id
                                             "
                                             class="inline-block" />
-                                        {{ worldDialog.ref.name }}
+                                        {{ worldDialog.ref.name || worldDialog.id }}
                                     </span>
                                 </div>
                                 <div class="flex flex-col gap-1">
@@ -46,7 +46,7 @@
                                         <span
                                             class="flex flex-wrap cursor-pointer x-grey font-mono text-xs max-w-30"
                                             @click="showUserDialog(worldDialog.ref.authorId)"
-                                            v-text="worldDialog.ref.authorName" />
+                                            v-text="worldDialog.ref.authorName || worldDialog.ref.authorId" />
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +217,6 @@
                                 </DropdownMenu>
                                 <TooltipWrapper
                                     v-if="worldDialog.inCache"
-                                    class="col-start-1 row-start-2"
                                     side="top"
                                     :content="t('dialog.world.actions.delete_cache_tooltip')">
                                     <Button
@@ -333,6 +332,28 @@
                 fill
                 class="max-sm:[&_[role=tabpanel]]:flex-none max-sm:[&_[role=tabpanel]]:overflow-visible"
                 @update:modelValue="worldDialogTabClick">
+                <template #header-end>
+                    <TooltipWrapper side="top" :content="t('dialog.world.actions.like')">
+                        <Button
+                            class="size-7 rounded-full text-muted-foreground hover:text-foreground"
+                            size="icon-sm"
+                            variant="ghost"
+                            :ariaLabel="t('dialog.world.actions.like')"
+                            @click="setWorldRating('like')">
+                            <ThumbsUp :class="{ 'fill-current text-primary': worldDialog.rating === 'like' }" />
+                        </Button>
+                    </TooltipWrapper>
+                    <TooltipWrapper side="top" :content="t('dialog.world.actions.dislike')">
+                        <Button
+                            class="size-7 rounded-full text-muted-foreground hover:text-foreground"
+                            size="icon-sm"
+                            variant="ghost"
+                            :ariaLabel="t('dialog.world.actions.dislike')"
+                            @click="setWorldRating('dislike')">
+                            <ThumbsDown :class="{ 'fill-current text-primary': worldDialog.rating === 'dislike' }" />
+                        </Button>
+                    </TooltipWrapper>
+                </template>
                 <template #Instances>
                     <WorldDialogInstancesTab />
                 </template>
@@ -398,6 +419,8 @@
         Share2,
         Smartphone,
         Star,
+        ThumbsDown,
+        ThumbsUp,
         Trash2,
         Upload,
         Wand2
@@ -422,6 +445,7 @@
         useWorldStore
     } from '../../../stores';
     import { showWorldDialog } from '../../../coordinators/worldCoordinator';
+    import { worldRequest } from '../../../api';
     import {
         DropdownMenu,
         DropdownMenuContent,
@@ -577,5 +601,18 @@
 
     function refreshWorldDialogTreeData() {
         treeData.value = formatJsonVars(worldDialog.value.ref);
+    }
+
+    function setWorldRating(rating) {
+        const D = worldDialog.value;
+        const req =
+            D.rating === rating
+                ? worldRequest.deleteWorldRating({ worldId: D.id })
+                : worldRequest.setWorldRating({ worldId: D.id, value: rating });
+        req.then((args) => {
+            if (args.params.worldId === D.id) {
+                D.rating = args.json?.value ?? null;
+            }
+        });
     }
 </script>

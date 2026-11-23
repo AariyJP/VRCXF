@@ -11,6 +11,7 @@ declare global {
 
     interface Window {
         $pinia: any;
+        $coordinators: any;
         $bridge: any;
         $vr: any;
         $debug: AppDebug;

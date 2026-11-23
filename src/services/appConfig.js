@@ -4,28 +4,31 @@ import dayjs from 'dayjs';
 
 import * as utils from '../shared/utils';
 
-const AppDebug = reactive({
-    debug: false,
-    debugWebSocket: false,
-    debugUserDiff: false,
-    debugPhotonLogging: false,
-    debugGameLog: false,
-    debugWebRequests: false,
-    debugFriendState: false,
-    debugRecompute: false,
-    debugIPC: false,
-    debugVrcPlus: false,
-    errorNoty: null,
-    dontLogMeOut: false,
-    endpointDomain: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
-    endpointDomainVrchat: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
-    websocketDomain: BROWSER
-        ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
-        : 'wss://pipeline.vrchat.cloud',
-    websocketDomainVrchat: BROWSER
-        ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
-        : 'wss://pipeline.vrchat.cloud'
-});
+// Handle hot-reload
+const AppDebug =
+    window.$debug ??
+    reactive({
+        debug: false,
+        debugWebSocket: false,
+        debugUserDiff: false,
+        debugPhotonLogging: false,
+        debugGameLog: false,
+        debugWebRequests: false,
+        debugFriendState: false,
+        debugRecompute: false,
+        debugIPC: false,
+        debugVrcPlus: false,
+        errorNoty: null,
+        dontLogMeOut: false,
+        endpointDomain: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
+        endpointDomainVrchat: BROWSER ? '/api/1' : 'https://api.vrchat.cloud/api/1',
+        websocketDomain: BROWSER
+            ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
+            : 'wss://pipeline.vrchat.cloud',
+        websocketDomainVrchat: BROWSER
+            ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
+            : 'wss://pipeline.vrchat.cloud'
+    });
 
 window.$debug = AppDebug;
 window.utils = utils;
